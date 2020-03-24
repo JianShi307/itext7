@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -293,7 +293,8 @@ public class GlyphLine implements Serializable {
     }
 
     public void substituteOneToMany(OpenTypeFontTableReader tableReader, int[] substGlyphIds) {
-        int substCode = substGlyphIds[0]; //sequence length shall be at least 1
+        //sequence length shall be at least 1
+        int substCode = substGlyphIds[0];
         Glyph glyph = tableReader.getGlyph(substCode);
         glyphs.set(idx, glyph);
 

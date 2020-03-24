@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -47,6 +47,11 @@ import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.PdfDictionary;
 import com.itextpdf.kernel.pdf.PdfName;
 
+/**
+ * @deprecated Remove this class in 7.2. The deprecation relates to the fact that the prototype
+ * hasn't been implemented in a full yet and we do not expect the situation to change.
+ */
+@Deprecated
 public class PdfRichMediaAnnotation extends PdfAnnotation {
 
     private static final long serialVersionUID = 5368329326723025646L;

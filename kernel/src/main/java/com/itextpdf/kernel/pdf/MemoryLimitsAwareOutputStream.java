@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -114,7 +114,8 @@ class MemoryLimitsAwareOutputStream extends ByteArrayOutputStream {
         }
 
         int minCapacity = count + len;
-        if (minCapacity < 0) { // overflow
+        if (minCapacity < 0) {
+            // overflow
             throw new MemoryLimitsAwareException(PdfException.DuringDecompressionSingleStreamOccupiedMoreThanMaxIntegerValue);
         }
         if (minCapacity > maxStreamSize) {
@@ -124,7 +125,8 @@ class MemoryLimitsAwareOutputStream extends ByteArrayOutputStream {
         // calculate new capacity
         int oldCapacity = buf.length;
         int newCapacity = oldCapacity << 1;
-        if (newCapacity < 0 || newCapacity - minCapacity < 0) { // overflow
+        if (newCapacity < 0 || newCapacity - minCapacity < 0) {
+            // overflow
             newCapacity = minCapacity;
         }
 

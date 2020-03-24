@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -507,7 +507,7 @@ public class ImageTest extends ExtendedITextTest {
         Assert.assertNull(new CompareTool().compareByContent(outFileName, cmpFileName, destinationFolder, "diff"));
     }
 
-    //TODO(DEVSIX-1658)
+    //TODO(DEVSIX-1659)
     @Test
     public void imageTest19() throws IOException, InterruptedException {
         String outFileName = destinationFolder + "imageTest19.pdf";
@@ -556,7 +556,7 @@ public class ImageTest extends ExtendedITextTest {
         Assert.assertNull(new CompareTool().compareByContent(outFileName, cmpFileName, destinationFolder, "diff"));
     }
 
-    //TODO(DEVSIX-1658)
+    //TODO(DEVSIX-1659)
     @Test
     public void imageTest21() throws IOException, InterruptedException {
         String outFileName = destinationFolder + "imageTest21.pdf";

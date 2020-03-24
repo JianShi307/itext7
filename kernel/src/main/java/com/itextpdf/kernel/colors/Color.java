@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -136,7 +136,8 @@ public class Color implements Serializable {
             if (colorSpace instanceof PdfSpecialCs.Separation) {
                 PdfSpecialCs.Separation separation = (PdfSpecialCs.Separation) colorSpace;
                 c = colorValue != null ? new Separation(separation, colorValue[0]) : new Separation(separation);
-            } else if (colorSpace instanceof PdfSpecialCs.DeviceN) { //NChannel goes here also
+            } else if (colorSpace instanceof PdfSpecialCs.DeviceN) {
+                //NChannel goes here also
                 PdfSpecialCs.DeviceN deviceN = (PdfSpecialCs.DeviceN) colorSpace;
                 c = colorValue != null ? new DeviceN(deviceN, colorValue) : new DeviceN(deviceN);
             } else if (colorSpace instanceof PdfSpecialCs.Indexed) {
@@ -145,7 +146,8 @@ public class Color implements Serializable {
                 unknownColorSpace = true;
             }
         } else if (colorSpace instanceof PdfSpecialCs.Pattern) {
-            c = new Color(colorSpace, colorValue); // TODO review this. at least log a warning
+            // TODO review this. at least log a warning
+            c = new Color(colorSpace, colorValue);
         } else {
             unknownColorSpace = true;
         }

@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -75,7 +75,6 @@ public final class CssParserStateController {
     private IParserState currentState;
 
     /** Indicates if the current rule is supported. */
-    //Hashed value
     private boolean isCurrentRuleSupported = true;
 
     /** The previous active state (excluding comments). */

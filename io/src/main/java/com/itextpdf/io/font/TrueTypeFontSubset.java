@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -347,7 +347,9 @@ class TrueTypeFontSubset {
 
     private void checkGlyphComposite(int glyph) throws java.io.IOException {
         int start = locaTable[glyph];
-        if (start == locaTable[glyph + 1]) {// no contour
+
+        // no contour
+        if (start == locaTable[glyph + 1]) {
             return;
         }
         rf.seek(tableGlyphOffset + start);

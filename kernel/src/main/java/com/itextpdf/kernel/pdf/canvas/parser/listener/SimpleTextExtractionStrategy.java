@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -78,7 +78,8 @@ public class SimpleTextExtractionStrategy implements ITextExtractionStrategy {
                 // see http://mathworld.wolfram.com/Point-LineDistance2-Dimensional.html
                 float dist = (x2.subtract(x1)).cross((x1.subtract(start))).lengthSquared() / x2.subtract(x1).lengthSquared();
 
-                float sameLineThreshold = 1f; // we should probably base this on the current font metrics, but 1 pt seems to be sufficient for the time being
+                // we should probably base this on the current font metrics, but 1 pt seems to be sufficient for the time being
+                float sameLineThreshold = 1f;
                 if (dist > sameLineThreshold)
                     hardReturn = true;
 
@@ -90,7 +91,8 @@ public class SimpleTextExtractionStrategy implements ITextExtractionStrategy {
                 //System.out.println("<< Hard Return >>");
                 appendTextChunk("\n");
             } else if (!firstRender){
-                if (result.charAt(result.length()-1) != ' ' && renderInfo.getText().length() > 0 && renderInfo.getText().charAt(0) != ' '){ // we only insert a blank space if the trailing character of the previous string wasn't a space, and the leading character of the current string isn't a space
+                // we only insert a blank space if the trailing character of the previous string wasn't a space, and the leading character of the current string isn't a space
+                if (result.charAt(result.length()-1) != ' ' && renderInfo.getText().length() > 0 && renderInfo.getText().charAt(0) != ' '){
                     float spacing = lastEnd.subtract(start).length();
                     if (spacing > renderInfo.getSingleSpaceWidth()/2f){
                         appendTextChunk(" ");

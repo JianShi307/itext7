@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -583,24 +583,44 @@ public final class SvgConstants {
         public static final String ID = "id";
 
         /**
-         * Attribute defining the radius of a circle.
+         * Attribute defining the marker to use at the end of a path, line, polygon or polyline
          */
-        public static final String R = "r";
+        public static final String MARKER_END = "marker-end";
 
         /**
-         * Attribute defining the x-axis of an ellipse or the x-axis radius of rounded rectangles.
+         * Attribute defining the height of the viewport in which the marker is to be fitted
          */
-        public static final String RX = "rx";
+        public static final String MARKER_HEIGHT = "markerheight";
 
         /**
-         * Attribute defining the y-axis of an ellipse or the y-axis radius of rounded rectangles.
+         * Attribute defining the marker drawn at every other vertex but the start and end of a path, line, polygon or polyline
          */
-        public static final String RY = "ry";
+        public static final String MARKER_MID = "marker-mid";
+
+        /**
+         * Attribute defining the marker to use at the start of a path, line, polygon or polyline
+         */
+        public static final String MARKER_START = "marker-start";
+
+        /**
+         * Attribute defining the width of the viewport in which the marker is to be fitted
+         */
+        public static final String MARKER_WIDTH = "markerwidth";
+
+        /**
+         * Attribute defining the coordinate system for attributes ‘markerWidth’, ‘markerHeight’ and the contents of the ‘marker’.
+         */
+        public static final String MARKER_UNITS = "markerunits";
 
         /**
          * Attribute defining the opacity of a group or graphic element.
          */
         public static final String OPACITY = "opacity";
+
+        /**
+         * Attribute defining the orientation of a marker
+         */
+        public static final String ORIENT = "orient";
 
         /**
          * Close Path Operator.
@@ -726,6 +746,31 @@ public final class SvgConstants {
         public static final String PRESERVE_ASPECT_RATIO = "preserveaspectratio";
 
         /**
+         * Attribute defining the radius of a circle.
+         */
+        public static final String R = "r";
+
+        /**
+         * Attribute defining the x-axis coordinate of the reference point which is to be aligned exactly at the marker position.
+         */
+        public static final String REFX = "refx";
+
+        /**
+         * Attribute defining the y-axis coordinate of the reference point which is to be aligned exactly at the marker position.
+         */
+        public static final String REFY = "refy";
+
+        /**
+         * Attribute defining the x-axis of an ellipse or the x-axis radius of rounded rectangles.
+         */
+        public static final String RX = "rx";
+
+        /**
+         * Attribute defining the y-axis of an ellipse or the y-axis radius of rounded rectangles.
+         */
+        public static final String RY = "ry";
+
+        /**
          * Attribute defining the stroke color.
          */
         public static final String STROKE = "stroke";
@@ -842,6 +887,16 @@ public final class SvgConstants {
     public static final class Values {
 
         /**
+         * Value representing automatic orientation for the marker attribute orient.
+         */
+        public static final String AUTO = "auto";
+
+        /**
+         * Value representing reverse automatic orientation for the start marker.
+         */
+        public static final String AUTO_START_REVERSE = "auto-start-reverse";
+
+        /**
          * Value representing the default value for the stroke linecap.
          */
         public static final String BUTT = "butt";
@@ -849,17 +904,12 @@ public final class SvgConstants {
         /**
          * Value representing the default aspect ratio: xmidymid.
          */
-        public static final String DEFAULT_ASPECT_RATIO = "xmidymid";
+        public static final String DEFAULT_ASPECT_RATIO = Values.XMID_YMID;
 
         /**
          * Value representing how to preserve the aspect ratio when dealing with images.
          */
         public static final String DEFER = "defer";
-
-        /**
-         * Value representing the text-alignment end for text objects
-         */
-        public static final String TEXT_ANCHOR_END = "end";
 
         /**
          * Value representing the fill rule "even odd".
@@ -872,9 +922,9 @@ public final class SvgConstants {
         public static final String FILL_RULE_NONZERO = "nonzero";
 
         /**
-         * Value representing the text-alignment middle for text objects
+         * Value representing the meet for preserve aspect ratio calculations.
          */
-        public static final String TEXT_ANCHOR_MIDDLE = "middle";
+        public static final String MEET = "meet";
 
         /**
          * Value representing the "none" value".
@@ -882,14 +932,35 @@ public final class SvgConstants {
         public static final String NONE = "none";
 
         /**
+         * The value representing slice for the preserve aspect ratio calculations;
+         */
+        public static final String SLICE = "slice";
+
+        /**
+         * The value corresponding with the namespace url for SVG. Will be removed since version 7.2.
+         */
+        @Deprecated
+        public static final String SVGNAMESPACEURL = "http://www.w3.org/2000/svg";
+
+        /**
+         * Value representing the text-alignment end for text objects
+         */
+        public static final String TEXT_ANCHOR_END = "end";
+
+        /**
+         * Value representing the text-alignment middle for text objects
+         */
+        public static final String TEXT_ANCHOR_MIDDLE = "middle";
+
+        /**
          * Value representing the text-alignment start for text objects
          */
         public static final String TEXT_ANCHOR_START = "start";
 
         /**
-         * The value corresponding with the namespace url for SVG
+         * The value for markerUnits that represent values in a coordinate system which has a single unit equal the size in user units of the current stroke width.
          */
-        public static final String SVGNAMESPACEURL = "http://www.w3.org/2000/svg";
+        public static final String STROKEWIDTH = "strokeWidth";
 
         /**
          * Value representing how to align when scaling.
@@ -905,6 +976,11 @@ public final class SvgConstants {
          * Value representing how to align when scaling.
          */
         public static final String XMIN_YMAX = "xminymax";
+
+        /**
+         * Value representing how to align when scaling.
+         */
+        public static final String XMID_YMID = "xmidymid";
 
         /**
          * Value representing how to align when scaling.

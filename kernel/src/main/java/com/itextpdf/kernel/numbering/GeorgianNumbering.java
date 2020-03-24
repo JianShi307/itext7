@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -92,9 +92,10 @@ public class GeorgianNumbering {
     }
 
     /**
-     * Returns a georgian numeral representation of an integer.
+     * Converts the given number to its georgian numeral representation.
      *
      * @param number a number greater than zero to be converted to georgian notation
+     * @return a georgian numeral representation of an integer.
      */
     public static String toGeorgian(int number) {
         StringBuilder result = new StringBuilder();

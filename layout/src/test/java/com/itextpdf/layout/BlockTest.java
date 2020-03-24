@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -326,7 +326,9 @@ public class BlockTest extends ExtendedITextTest {
         parent = new Div();
         parent.setHeight(parentHeight);
         parent.setBorder(new SolidBorder(ColorConstants.BLUE, 1));
-        d.deleteOwnProperty(Property.MIN_HEIGHT);//Min-height trumps max-height, so we have to remove it when re-using the div
+
+        //Min-height trumps max-height, so we have to remove it when re-using the div
+        d.deleteOwnProperty(Property.MIN_HEIGHT);
         d.setProperty(Property.MAX_HEIGHT, UnitValue.createPercentValue(30f));
         parent.add(d);
         doc.add(parent);
@@ -424,7 +426,9 @@ public class BlockTest extends ExtendedITextTest {
         parent = new Div();
         parent.setHeight(parentHeight);
         parent.setBorder(new SolidBorder(ColorConstants.BLUE, 1));
-        p.deleteOwnProperty(Property.MIN_HEIGHT);//Min-height trumps max, so we have to remove it when re-using the paragraph
+
+        //Min-height trumps max, so we have to remove it when re-using the paragraph
+        p.deleteOwnProperty(Property.MIN_HEIGHT);
         p.setProperty(Property.MAX_HEIGHT, UnitValue.createPercentValue(30f));
         parent.add(p);
         doc.add(parent);

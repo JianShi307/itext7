@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -52,6 +52,9 @@ import com.itextpdf.kernel.pdf.filespec.PdfFileSpec;
 import com.itextpdf.kernel.pdf.xobject.PdfFormXObject;
 import com.itextpdf.test.ExtendedITextTest;
 import com.itextpdf.test.annotations.type.IntegrationTest;
+
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -60,6 +63,7 @@ import org.junit.experimental.categories.Category;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Set;
 import java.util.Map;
 
 @Category(IntegrationTest.class)
@@ -146,5 +150,90 @@ public class PdfNameTreeTest extends ExtendedITextTest {
         Map<String, PdfObject> objs = appearance.getNames();
         pdfDocument.close();
         Assert.assertEquals(1, objs.size());
+    }
+
+    @Test
+    public void setModifiedFlagTest() throws IOException {
+        testSetModified(false);
+    }
+
+    @Test
+    public void setModifiedFlagAppendModeTest() throws IOException {
+        testSetModified(true);
+    }
+
+    @Test
+    public void checkNamesOrder() throws IOException {
+        PdfDocument doc = new PdfDocument(new PdfReader(sourceFolder + "namedDestinations.pdf"));
+        final List<String> expectedNames = new ArrayList<>();
+        expectedNames.add("Destination_1");
+        expectedNames.add("Destination_2");
+        expectedNames.add("Destination_3");
+        expectedNames.add("Destination_4");
+        expectedNames.add("Destination_5");
+
+        System.out.println("Expected names: " + expectedNames);
+
+        for (int i = 0; i < 10; i++) {
+            Map<String, PdfObject> names = doc.getCatalog().getNameTree(PdfName.Dests).getNames();
+            List<String> actualNames = new ArrayList<>(names.keySet());
+
+            System.out.println("Actual names:   " + actualNames);
+
+            Assert.assertEquals(expectedNames, actualNames);
+        }
+
+       doc.close();
+    }
+
+    private static void testSetModified(boolean isAppendMode) throws IOException {
+        String[] expectedKeys = {
+                "new_key1",
+                "new_key2",
+                "new_key3",
+        };
+
+        ByteArrayOutputStream sourceFile = createDocumentInMemory();
+        ByteArrayOutputStream modifiedFile = new ByteArrayOutputStream();
+        PdfReader reader = new PdfReader(new ByteArrayInputStream(sourceFile.toByteArray()));
+        PdfDocument pdfDoc = isAppendMode
+                ? new PdfDocument(reader, new PdfWriter(modifiedFile), new StampingProperties().useAppendMode())
+                : new PdfDocument(reader, new PdfWriter(modifiedFile));
+        PdfNameTree nameTree = pdfDoc.getCatalog().getNameTree(PdfName.Dests);
+        Map<String, PdfObject> names = nameTree.getNames();
+        ArrayList<String> keys = new ArrayList<>(names.keySet());
+
+        for (int i = 0; i < keys.size(); i++) {
+            names.put(expectedKeys[i], names.get(keys.get(i)));
+            names.remove(keys.get(i));
+        }
+
+        nameTree.setModified();
+
+        pdfDoc.close();
+
+        reader = new PdfReader(new ByteArrayInputStream(modifiedFile.toByteArray()));
+        pdfDoc = new PdfDocument(reader);
+        nameTree = pdfDoc.getCatalog().getNameTree(PdfName.Dests);
+        Set<String> actualKeys = nameTree.getNames().keySet();
+
+        Assert.assertArrayEquals(expectedKeys, actualKeys.toArray());
+    }
+
+    private static ByteArrayOutputStream createDocumentInMemory() {
+        ByteArrayOutputStream boas = new ByteArrayOutputStream();
+        PdfDocument pdfDoc = new PdfDocument(new PdfWriter(boas));
+
+        pdfDoc.addNewPage();
+        pdfDoc.getCatalog().getNameTree(PdfName.Dests).addEntry("key1",
+                new PdfArray(new float[] {0, 0, 0, 0}));
+        pdfDoc.getCatalog().getNameTree(PdfName.Dests).addEntry("key2",
+                new PdfArray(new float[] {1, 1, 1, 1}));
+        pdfDoc.getCatalog().getNameTree(PdfName.Dests).addEntry("key3",
+                new PdfArray(new float[] {2, 2, 2, 2}));
+
+        pdfDoc.close();
+
+        return boas;
     }
 }

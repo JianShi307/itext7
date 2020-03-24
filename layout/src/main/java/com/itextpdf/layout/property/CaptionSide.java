@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -43,8 +43,8 @@
 package com.itextpdf.layout.property;
 
 /**
- * A specialized enum containing the potential caption side values for a {@link
- * com.itextpdf.layout.element.Table}'s caption.
+ * A specialized enum containing the potential caption side values
+ * for a {@link com.itextpdf.layout.element.Table}'s caption.
  */
 public enum CaptionSide {
     BOTTOM,

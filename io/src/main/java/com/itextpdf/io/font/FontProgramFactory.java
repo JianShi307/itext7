@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -219,7 +219,9 @@ public final class FontProgramFactory {
                     } catch (IllegalArgumentException woffException) {
                         throw new IOException(IOException.InvalidWoffFile, woffException);
                     }
-                } else { // ".woff2".equals(fontFileExtension)
+                } else {
+                    // ".woff2".equals(fontFileExtension)
+
                     try {
                         fontProgram = Woff2Converter.convert(fontProgram);
                     } catch (FontCompressionException woff2Exception) {
@@ -231,8 +233,12 @@ public final class FontProgramFactory {
                 int ttcSplit = baseName.toLowerCase().indexOf(".ttc,");
                 if (ttcSplit > 0) {
                     try {
-                        String ttcName = baseName.substring(0, ttcSplit + 4); // count(.ttc) = 4
-                        int ttcIndex = Integer.parseInt(baseName.substring(ttcSplit + 5)); // count(.ttc,) = 5)
+
+                        // count(.ttc) = 4
+                        String ttcName = baseName.substring(0, ttcSplit + 4);
+
+                        // count(.ttc,) = 5)
+                        int ttcIndex = Integer.parseInt(baseName.substring(ttcSplit + 5));
                         fontBuilt = new TrueTypeFont(ttcName, ttcIndex);
                     } catch (NumberFormatException nfe) {
                         throw new IOException(nfe.getMessage(), nfe);

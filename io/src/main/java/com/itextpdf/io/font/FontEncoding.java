@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -290,7 +290,8 @@ public class FontEncoding implements Serializable {
     }
 
     protected void fillNamedEncoding() {
-        PdfEncodings.convertToBytes(" ", baseEncoding); // check if the encoding exists
+        // check if the encoding exists
+        PdfEncodings.convertToBytes(" ", baseEncoding);
         boolean stdEncoding = PdfEncodings.WINANSI.equals(baseEncoding) || PdfEncodings.MACROMAN.equals(baseEncoding);
         if (!stdEncoding && differences == null) {
             differences = new String[256];

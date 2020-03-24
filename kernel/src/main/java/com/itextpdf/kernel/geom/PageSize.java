@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -45,7 +45,7 @@ package com.itextpdf.kernel.geom;
 
 import java.io.Serializable;
 
-public class PageSize extends Rectangle implements Serializable {
+public class PageSize extends Rectangle implements Cloneable, Serializable {
 
     private static final long serialVersionUID = 485375591249386160L;
 
@@ -97,8 +97,17 @@ public class PageSize extends Rectangle implements Serializable {
         return new PageSize(height, width);
     }
 
+    /**
+     * Creates a "deep copy" of this PageSize, meaning the object returned by this method will be independent
+     * of the object being cloned.
+     * Note that although the return type of this method is {@link Rectangle},
+     * the actual type of the returned object is {@link PageSize}.
+     *
+     * @return the copied PageSize.
+     */
     @Override
     public Rectangle clone() {
-        return new PageSize(this);
+        // super.clone is safe to return since all of the PagSize's fields are primitive.
+        return super.clone();
     }
 }

@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -47,6 +47,8 @@ import com.itextpdf.io.codec.Base64;
 import com.itextpdf.kernel.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * Default implementation of the {@link ICounter} interface that essentially doesn't do anything.
@@ -106,10 +108,10 @@ public class DefaultCounter implements ICounter {
     private void plusOne() {
         if (++count > repeat_level) {
             if (Version.isAGPLVersion() || Version.isExpired() ) {
-                String message =  new String(message_1);
+                String message =  new String(message_1, StandardCharsets.ISO_8859_1);
 
                 if ( Version.isExpired() ) {
-                    message = new String(message_2);
+                    message = new String(message_2, StandardCharsets.ISO_8859_1);
                 }
 
                 level++;

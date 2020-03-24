@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -142,7 +142,7 @@ public class MemoryLimitsAwareHandler implements Serializable {
      *
      * @param numOfOccupiedBytes the number of bytes which are occupied by the decompressed pdf stream.
      * @return this {@link MemoryLimitsAwareHandler} instance.
-     * @see {@link MemoryLimitsAwareException}
+     * @see MemoryLimitsAwareException
      */
     MemoryLimitsAwareHandler considerBytesOccupiedByDecompressedPdfStream(long numOfOccupiedBytes) {
         if (considerCurrentPdfStream && memoryUsedForCurrentPdfStreamDecompression < numOfOccupiedBytes) {
@@ -170,7 +170,7 @@ public class MemoryLimitsAwareHandler implements Serializable {
      * If memory limits have not been faced, throws an exception.
      *
      * @return this {@link MemoryLimitsAwareHandler} instance.
-     * @see {@link MemoryLimitsAwareException}
+     * @see MemoryLimitsAwareException
      */
     MemoryLimitsAwareHandler endDecompressedPdfStreamProcessing() {
         allMemoryUsedForDecompression += memoryUsedForCurrentPdfStreamDecompression;

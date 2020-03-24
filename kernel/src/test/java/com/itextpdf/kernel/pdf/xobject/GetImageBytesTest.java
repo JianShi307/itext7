@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -205,7 +205,8 @@ public class GetImageBytesTest extends ExtendedITextTest {
 
     private void compareSoftwareVersion(TIFFField cmpField, TIFFField resultField) {
         byte[] versionBytes = resultField.getAsString(0).getBytes(StandardCharsets.US_ASCII);
-        byte[] versionToCompare = subArray(versionBytes, 0, versionBytes.length - 2); //drop last always zero byte
+        //drop last always zero byte
+        byte[] versionToCompare = subArray(versionBytes, 0, versionBytes.length - 2);
 
         Assert.assertArrayEquals(Version.getInstance().getVersion().getBytes(StandardCharsets.US_ASCII), versionToCompare);
     }

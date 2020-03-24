@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -47,7 +47,7 @@ package com.itextpdf.kernel.counter;
  * Factory that can be registered in {@link EventCounterHandler} and creates a counter for every reader or writer class.
  * <p>
  * You can implement your own counter factory and register it like this:
- * <code>EventCounterManager.getInstance().registerCounter(new SystemOutEventCounterFactory());</code>
+ * <code>EventCounterHandler.getInstance().register(new SystemOutEventCounterFactory());</code>
  * <p>
  * {@link SystemOutEventCounterFactory} is just an example of {@link IEventCounterFactory} implementation.
  * It creates {@link SystemOutEventCounter} that writes info about files being read and written to the {@link System#out}

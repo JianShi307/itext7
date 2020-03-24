@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -70,7 +70,8 @@ public class BarcodeEANSUPP extends Barcode1D {
      */
     public BarcodeEANSUPP(Barcode1D ean, Barcode1D supp) {
         super(ean.document);
-        n = 8; // horizontal distance between the two barcodes
+        // horizontal distance between the two barcodes
+        n = 8;
         this.ean = ean;
         this.supp = supp;
     }

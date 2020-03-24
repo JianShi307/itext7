@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -53,11 +53,15 @@ public class ReaderProperties implements Serializable {
 
     private static final long serialVersionUID = 5569118801793215916L;
 
-    protected byte[] password; //added by ujihara for decryption
+    //added by ujihara for decryption
+    protected byte[] password;
 
-    protected Key certificateKey; //added by Aiken Sam for certificate decryption
-    protected Certificate certificate; //added by Aiken Sam for certificate decryption
-    protected String certificateKeyProvider; //added by Aiken Sam for certificate decryption
+    //added by Aiken Sam for certificate decryption
+    protected Key certificateKey;
+    //added by Aiken Sam for certificate decryption
+    protected Certificate certificate;
+    //added by Aiken Sam for certificate decryption
+    protected String certificateKeyProvider;
     protected IExternalDecryptionProcess externalDecryptionProcess;
 
     protected MemoryLimitsAwareHandler memoryLimitsAwareHandler;

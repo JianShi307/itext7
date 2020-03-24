@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -595,10 +595,8 @@ public class PdfSignatureAppearance {
 
     /**
      * Constructs appearance (top-level) for a signature.
-     * <p>
-     * Consult <A HREF="http://partners.adobe.com/asn/developer/pdfs/tn/PPKAppearances.pdf">PPKAppearances.pdf</A>
-     * for further details.
      *
+     * @see <a href="http://partners.adobe.com/asn/developer/pdfs/tn/PPKAppearances.pdf">PPKAppearances.pdf</a> for further details
      * @return a top-level signature appearance
      * @throws IOException
      */

@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -44,8 +44,8 @@
 package com.itextpdf.layout.property;
 
 /**
- * The possibile values for the type of break that is executed by an {@link
- * com.itextpdf.layout.element.AreaBreak}.
+ * The possible values for the type of break
+ * that is executed by an {@link com.itextpdf.layout.element.AreaBreak}.
  */
 public enum AreaBreakType {
     NEXT_AREA,

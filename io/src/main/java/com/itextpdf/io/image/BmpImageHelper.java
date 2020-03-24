@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -552,7 +552,8 @@ final class BmpImageHelper {
     }
 
     private static boolean getImage(BmpParameters bmp) throws java.io.IOException {
-        byte bdata[]; // buffer for byte data
+        // buffer for byte data
+        byte[] bdata;
         //	if (sampleModel.getDataType() == DataBuffer.TYPE_BYTE)
         //	    bdata = (byte[])((DataBufferByte)tile.getDataBuffer()).getData();
         //	else if (sampleModel.getDataType() == DataBuffer.TYPE_USHORT)

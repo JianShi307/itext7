@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -204,7 +204,8 @@ public class PdfTarget extends PdfObjectWrapper<PdfDictionary> {
         PdfObject pValue = getPdfObject().get(PdfName.P);
         PdfPage page = null;
         if (pValue instanceof PdfNumber) {
-            page = pdfDocument.getPage(((PdfNumber) pValue).intValue() + 1); // zero-based index is used
+            // zero-based index is used
+            page = pdfDocument.getPage(((PdfNumber) pValue).intValue() + 1);
         } else if (pValue instanceof PdfString) {
             PdfNameTree destsTree = pdfDocument.getCatalog().getNameTree(PdfName.Dests);
             Map<String, PdfObject> dests = destsTree.getNames();

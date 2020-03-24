@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -68,24 +68,71 @@ public class ViewBoxSvgTagSvgNodeRendererIntegrationTest extends SvgIntegrationT
         ITextTest.createDestinationFolder(DESTINATION_FOLDER);
     }
 
+
+    //Uniform viewboxes
     @Test
-    public void viewBox50() throws IOException, InterruptedException {
-        convertAndCompare(SOURCE_FOLDER, DESTINATION_FOLDER,"viewbox_50");
+    public void viewBox100x100() throws IOException, InterruptedException {
+        convertAndCompare(SOURCE_FOLDER, DESTINATION_FOLDER,"viewbox_100x100");
     }
 
     @Test
-    public void viewBox100() throws IOException, InterruptedException {
-
-        convertAndCompare(SOURCE_FOLDER, DESTINATION_FOLDER,"viewbox_100");
+    public void viewBox200x200() throws IOException, InterruptedException {
+        convertAndCompare(SOURCE_FOLDER, DESTINATION_FOLDER,"viewbox_200x200");
     }
 
     @Test
-    public void viewBox200() throws IOException, InterruptedException {
-        convertAndCompare(SOURCE_FOLDER, DESTINATION_FOLDER,"viewbox_200");
+    public void viewBox400x400() throws IOException, InterruptedException {
+        convertAndCompare(SOURCE_FOLDER, DESTINATION_FOLDER,"viewbox_400x400");
+    }
+
+    //Non-uniform viewboxes
+    @Test
+    public void viewBox100x200() throws IOException, InterruptedException {
+
+        convertAndCompare(SOURCE_FOLDER, DESTINATION_FOLDER,"viewbox_100x200");
     }
 
     @Test
-    public void viewBox400() throws IOException, InterruptedException {
-        convertAndCompare(SOURCE_FOLDER, DESTINATION_FOLDER,"viewbox_400");
+    public void viewBox100x400() throws IOException, InterruptedException {
+
+        convertAndCompare(SOURCE_FOLDER, DESTINATION_FOLDER,"viewbox_100x400");
+    }
+
+    @Test
+    public void viewBox200x100() throws IOException, InterruptedException {
+        convertAndCompare(SOURCE_FOLDER, DESTINATION_FOLDER,"viewbox_200x100");
+    }
+
+    @Test
+    public void viewBox200x400() throws IOException, InterruptedException {
+        convertAndCompare(SOURCE_FOLDER, DESTINATION_FOLDER,"viewbox_200x400");
+    }
+
+    @Test
+    public void viewBox400x100() throws IOException, InterruptedException {
+        convertAndCompare(SOURCE_FOLDER, DESTINATION_FOLDER,"viewbox_400x100");
+    }
+
+    @Test
+    public void viewBox400x200() throws IOException, InterruptedException {
+        convertAndCompare(SOURCE_FOLDER, DESTINATION_FOLDER,"viewbox_400x200");
+    }
+
+    @Test
+    //TODO (DEVSIX-3493) change cmp files after fix
+    public void viewBoxXYValuesPreserveAspectRatioNoneValues() throws IOException, InterruptedException {
+        convertAndCompareSinglePage(SOURCE_FOLDER, DESTINATION_FOLDER,"viewBoxXYValuesPreserveAspectRatioNoneValues");
+    }
+
+    @Test
+    //TODO (DEVSIX-3493) change cmp files after fix
+    public void viewBoxXYValuesPreserveAspectRatioXMaxYMaxMeetValues() throws IOException, InterruptedException {
+        convertAndCompareSinglePage(SOURCE_FOLDER, DESTINATION_FOLDER,"viewBoxXYValuesPreserveAspectRatioXMaxYMaxMeetValues");
+    }
+
+    @Test
+    //TODO (DEVSIX-3493) change cmp files after fix
+    public void viewBoxXYValuesPreserveAspectRatioXMaxYMaxSliceValues() throws IOException, InterruptedException {
+        convertAndCompareSinglePage(SOURCE_FOLDER, DESTINATION_FOLDER,"viewBoxXYValuesPreserveAspectRatioXMaxYMaxSliceValues");
     }
 }

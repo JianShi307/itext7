@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -109,7 +109,10 @@ final class FormatInformation {
     }
 
     static int numBitsDiffering(int a, int b) {
-        a ^= b; // a now has a 1 bit exactly where its bit differs with b's
+
+        // a now has a 1 bit exactly where its bit differs with b's
+        a ^= b;
+
         // Count bits set quickly with a series of lookups:
         return BITS_SET_IN_HALF_BYTE[a & 0x0F] +
                 BITS_SET_IN_HALF_BYTE[(a >>> 4 & 0x0F)] +

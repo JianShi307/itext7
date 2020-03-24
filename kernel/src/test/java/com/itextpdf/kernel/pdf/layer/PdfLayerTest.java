@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -329,7 +329,8 @@ public class PdfLayerTest extends ExtendedITextTest {
         PdfFont font = PdfFontFactory.createFont();
         PdfLayer layer = new PdfLayer("CreatorAndLanguageInfo", pdfDoc);
         layer.setCreatorInfo("iText", "Technical");
-        layer.setLanguage("en-AU", true); // australian english
+        // australian english
+        layer.setLanguage("en-AU", true);
 
         PdfCanvas canvas = new PdfCanvas(pdfDoc.addNewPage());
 

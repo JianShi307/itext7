@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -50,18 +50,17 @@ import com.itextpdf.test.ExtendedITextTest;
 import com.itextpdf.test.annotations.LogMessage;
 import com.itextpdf.test.annotations.LogMessages;
 import com.itextpdf.test.annotations.type.IntegrationTest;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.xml.sax.SAXException;
+
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Category(IntegrationTest.class)
 public class PdfMergerTest extends ExtendedITextTest {
@@ -244,7 +243,7 @@ public class PdfMergerTest extends ExtendedITextTest {
     }
 
     @Test
-    public void mergeTableWithEmptyTdTest() throws IOException, InterruptedException, ParserConfigurationException, SAXException {
+    public void mergeTableWithEmptyTdTest() throws IOException, ParserConfigurationException, SAXException {
         String filename = sourceFolder + "tableWithEmptyTd.pdf";
         String resultFile = destinationFolder + "tableWithEmptyTdResult.pdf";
 

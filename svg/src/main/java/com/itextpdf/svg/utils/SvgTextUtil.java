@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -171,7 +171,7 @@ public final class SvgTextUtil {
         trimmedText = SvgTextUtil.trimLeadingWhitespace(trimmedText);
         //Trim trailing whitespace
         trimmedText = SvgTextUtil.trimTrailingWhitespace(trimmedText);
-        return trimmedText.equals("");
+        return "".equals(trimmedText);
     }
 
     /**
@@ -187,7 +187,6 @@ public final class SvgTextUtil {
         String elementFontSize = renderer.getAttribute(SvgConstants.Attributes.FONT_SIZE);
         if (null != elementFontSize && !elementFontSize.isEmpty()) {
             if (CssUtils.isRelativeValue(elementFontSize) || CommonCssConstants.LARGER.equals(elementFontSize) || CommonCssConstants.SMALLER.equals(elementFontSize)) {
-                // TODO DEVSIX-2866 Support rem value for svgs
                 fontSize = CssUtils.parseRelativeFontSize(elementFontSize, parentFontSize);
             } else {
                 fontSize = CssUtils.parseAbsoluteFontSize(elementFontSize, CommonCssConstants.PX);
@@ -197,5 +196,15 @@ public final class SvgTextUtil {
             fontSize = parentFontSize;
         }
         return fontSize;
+    }
+
+    /**
+     * The reference value may contain a hashtag character or 'url' designation and this method will filter them.
+     *
+     * @param name value to be filtered
+     * @return filtered value
+     */
+    public static String filterReferenceValue(String name) {
+        return name.replace("#", "").replace("url(", "").replace(")", "").trim();
     }
 }

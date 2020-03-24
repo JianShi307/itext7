@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -134,7 +134,7 @@ final class BitVector {
      * - appendBits(0x00, 4) adds 0000.
      * - appendBits(0xff, 8) adds 11111111.
      * @param value int interpreted as bitvector
-     * @param numBits 0<= numBits <= 32.
+     * @param numBits 0 &lt;= numBits &lt;= 32.
      */
     public void appendBits(int value, int numBits) {
         if (numBits < 0 || numBits > 32) {

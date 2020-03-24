@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -764,9 +764,11 @@ public class MetaDo {
         writeWord(os, 1);
         writeWord(os, 9);
         writeWord(os, 0x0300);
-        writeDWord(os, 9 + 4 + 5 + 5 + 13 + sizeBmpWords + 3); // total metafile size
+        // total metafile size
+        writeDWord(os, 9 + 4 + 5 + 5 + 13 + sizeBmpWords + 3);
         writeWord(os, 1);
-        writeDWord(os, 14 + sizeBmpWords); // max record size
+        // max record size
+        writeDWord(os, 14 + sizeBmpWords);
         writeWord(os, 0);
         // write records
         writeDWord(os, 4);

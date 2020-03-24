@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -60,7 +60,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.util.HashMap;
 
 @Category(IntegrationTest.class)
@@ -70,7 +69,7 @@ public class ClipPathSvgNodeRendererLowLevelIntegrationTest extends SvgIntegrati
     private SvgDrawContext sdc;
 
     @Before
-    public void setupDrawContextAndCanvas() throws FileNotFoundException {
+    public void setupDrawContextAndCanvas() {
         sdc = new SvgDrawContext(new ResourceResolver(""), new FontProvider());
 
         // set compression to none, in case you want to write to disk and inspect the created document

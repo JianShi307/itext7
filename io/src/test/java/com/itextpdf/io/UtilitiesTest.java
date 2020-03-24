@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -44,13 +44,14 @@ package com.itextpdf.io;
 
 import com.itextpdf.io.util.ArrayUtil;
 import com.itextpdf.io.util.ResourceUtil;
+import com.itextpdf.test.ExtendedITextTest;
 import com.itextpdf.test.annotations.type.UnitTest;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 @Category(UnitTest.class)
-public class UtilitiesTest {
+public class UtilitiesTest extends ExtendedITextTest {
     @Test
     public void testShortener() {
         byte[] src = new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};

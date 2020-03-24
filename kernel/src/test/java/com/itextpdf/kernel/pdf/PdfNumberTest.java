@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -58,7 +58,8 @@ public class PdfNumberTest extends ExtendedITextTest {
     @LogMessages(messages = @LogMessage(messageTemplate = LogMessageConstant.ATTEMPT_PROCESS_NAN))
     public void testNaN() {
         PdfNumber number = new PdfNumber(Double.NaN);
-        byte[] expected = {48}; // code for "0"
+        // code for "0"
+        byte[] expected = {48};
         Assert.assertArrayEquals(expected, number.getInternalContent());
     }
 }

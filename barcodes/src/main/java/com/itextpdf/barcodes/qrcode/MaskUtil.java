@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -259,11 +259,15 @@ final class MaskUtil {
                         penalty += 1;
                     }
                 } else {
-                    numSameBitCells = 1;  // Include the cell itself.
+
+                    // Include the cell itself.
+                    numSameBitCells = 1;
                     prevBit = bit;
                 }
             }
-            numSameBitCells = 0;  // Clear at each row/column.
+
+            // Clear at each row/column.
+            numSameBitCells = 0;
         }
         return penalty;
     }

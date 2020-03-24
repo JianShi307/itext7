@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -554,7 +554,9 @@ public class LargeElementTest extends ExtendedITextTest {
         Document doc = new Document(pdfDoc, PageSize.A1.rotate());
 
         float[] colWidths = new float[]{300, 150, 50, 100};
-        int numOfColumns = colWidths.length - 1; // the second column has colspan value as 2
+
+        // the second column has colspan value as 2
+        int numOfColumns = colWidths.length - 1;
         int numOfRowsInARowGroup = 4;
         int[] widthsArray = {10, 50, 1, 100};
 

@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -83,9 +83,9 @@ public class PdfAConformanceLevel implements Serializable {
 
     public static PdfAConformanceLevel getConformanceLevel(String part, String conformance) {
         String lowLetter = conformance.toUpperCase();
-        boolean aLevel = lowLetter.equals("A");
-        boolean bLevel = lowLetter.equals("B");
-        boolean uLevel = lowLetter.equals("U");
+        boolean aLevel = "A".equals(lowLetter);
+        boolean bLevel = "B".equals(lowLetter);
+        boolean uLevel = "U".equals(lowLetter);
 
         switch (part) {
             case "1":

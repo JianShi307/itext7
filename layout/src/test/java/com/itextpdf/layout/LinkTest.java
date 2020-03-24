@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -176,8 +176,8 @@ public class LinkTest extends ExtendedITextTest {
      * <p>
      * This is the equivalent Java code for iText 7 of the C# code for iTextSharp 5
      * in the question.
-     * </p>
-     * Author: mkl.
+     * <p>
+     * @author mkl
      */
     @Test
     public void testCreateLocalLinkInRotatedCell() throws IOException, InterruptedException {

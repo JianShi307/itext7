@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -110,6 +110,8 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
 
     private static final long serialVersionUID = -7041578979319799646L;
 
+    private static IPdfPageFactory pdfPageFactory = new PdfPageFactory();
+
     /**
      * Currently active page.
      * @deprecated Will be removed in iText 7.2
@@ -191,7 +193,6 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
 
     protected boolean closed = false;
 
-
     /**
      * flag determines whether to write unused objects to result document
      */
@@ -245,7 +246,8 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
         }
         documentId = lastDocumentId.incrementAndGet();
         this.reader = reader;
-        this.properties = new StampingProperties(); // default values of the StampingProperties doesn't affect anything
+        // default values of the StampingProperties doesn't affect anything
+        this.properties = new StampingProperties();
         this.properties.setEventCountingMetaInfo(properties.metaInfo);
         open(null);
     }
@@ -273,7 +275,8 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
         }
         documentId = lastDocumentId.incrementAndGet();
         this.writer = writer;
-        this.properties = new StampingProperties(); // default values of the StampingProperties doesn't affect anything
+        // default values of the StampingProperties doesn't affect anything
+        this.properties = new StampingProperties();
         this.properties.setEventCountingMetaInfo(properties.metaInfo);
         open(writer.properties.pdfVersion);
     }
@@ -452,7 +455,7 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
      */
     public PdfPage addNewPage(PageSize pageSize) {
         checkClosingStatus();
-        PdfPage page = new PdfPage(this, pageSize);
+        PdfPage page = getPageFactory().createPdfPage(this, pageSize);
         checkAndAddPage(page);
         dispatchEvent(new PdfDocumentEvent(PdfDocumentEvent.START_PAGE, page));
         dispatchEvent(new PdfDocumentEvent(PdfDocumentEvent.INSERT_PAGE, page));
@@ -480,7 +483,7 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
      */
     public PdfPage addNewPage(int index, PageSize pageSize) {
         checkClosingStatus();
-        PdfPage page = new PdfPage(this, pageSize);
+        PdfPage page = getPageFactory().createPdfPage(this, pageSize);
         checkAndAddPage(index, page);
         currentPage = page;
         dispatchEvent(new PdfDocumentEvent(PdfDocumentEvent.START_PAGE, page));
@@ -872,7 +875,8 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
                     if (writer.crypto != null) {
                         assert reader.decrypt.getPdfObject() == writer.crypto.getPdfObject() : "Conflict with source encryption";
                         crypto = reader.decrypt.getPdfObject();
-                        if (crypto.getIndirectReference() != null) { // Checking just for extra safety, encryption dictionary shall never be direct.
+                        if (crypto.getIndirectReference() != null) {
+                            // Checking just for extra safety, encryption dictionary shall never be direct.
                             forbiddenToFlush.add(crypto.getIndirectReference());
                         }
                     }
@@ -1463,12 +1467,12 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
     /**
      * Adds file attachment at document level.
      *
-     * @param description the file description
-     * @param fs          {@link PdfFileSpec} object.
+     * @param key name of the destination.
+     * @param fs  {@link PdfFileSpec} object.
      */
-    public void addFileAttachment(String description, PdfFileSpec fs) {
+    public void addFileAttachment(String key, PdfFileSpec fs) {
         checkClosingStatus();
-        catalog.addNameToNameTree(description, fs.getPdfObject(), PdfName.EmbeddedFiles);
+        catalog.addNameToNameTree(key, fs.getPdfObject(), PdfName.EmbeddedFiles);
     }
 
     /**
@@ -1707,7 +1711,8 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
      */
     public PdfFont addFont(PdfFont font) {
         font.makeIndirect(this);
-        font.setForbidRelease(); // forbid release for font dictionaries that are stored in #documentFonts collection
+        // forbid release for font dictionaries that are stored in #documentFonts collection
+        font.setForbidRelease();
         documentFonts.put(font.getPdfObject().getIndirectReference(), font);
         return font;
     }
@@ -1927,7 +1932,8 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
                 assert originalDocumentId != null;
                 assert modifiedDocumentId != null;
             }
-            if (properties.appendMode) {       // Due to constructor reader and writer not null.
+            if (properties.appendMode) {
+                // Due to constructor reader and writer not null.
                 assert reader != null;
                 RandomAccessFileOrArray file = reader.tokens.getSafeFile();
                 int n;
@@ -2094,6 +2100,15 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
     }
 
     /**
+     * Returns the factory for creating page instances.
+     *
+     * @return implementation of {@link IPdfPageFactory} for current document
+     */
+    protected IPdfPageFactory getPageFactory() {
+        return pdfPageFactory;
+    }
+
+    /**
      * Gets iText version info.
      *
      * @return iText version info.
@@ -2115,7 +2130,7 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
         info.getPdfObject().put(PdfName.Producer, new PdfString(producer));
     }
 
-    private void tryInitTagStructure(PdfDictionary str) {
+    protected void tryInitTagStructure(PdfDictionary str) {
         try {
             structTreeRoot = new PdfStructTreeRoot(str, this);
             structParentIndex = getStructTreeRoot().getParentTreeNextKey();
@@ -2253,7 +2268,7 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
         PdfOutline parent = outline.getParent();
         //note there's no need to continue recursion if the current outline parent is root (first condition) or
         // if it is already in the Set of outlines to be copied (second condition)
-        if (parent.getTitle().equals("Outlines") || outlinesToCopy.contains(parent)) {
+        if ("Outlines".equals(parent.getTitle()) || outlinesToCopy.contains(parent)) {
             return;
         }
         outlinesToCopy.add(parent);

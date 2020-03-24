@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -321,7 +321,8 @@ public class MarginsCollapseHandler {
         } else if (childIndex > firstNotEmptyKidIndex) {
             if (lastChildMarginAdjoinedToParent(renderer)) {
                 // restore layout box after inline element
-                float bottomIndent = collapseInfo.getCollapseAfter().getCollapsedMarginsSize() - collapseInfo.getUsedBufferSpaceOnBottom(); // used space shall be always less or equal to collapsedMarginAfter size
+                // used space shall be always less or equal to collapsedMarginAfter size
+                float bottomIndent = collapseInfo.getCollapseAfter().getCollapsedMarginsSize() - collapseInfo.getUsedBufferSpaceOnBottom();
                 collapseInfo.setBufferSpaceOnBottom(collapseInfo.getBufferSpaceOnBottom() + collapseInfo.getUsedBufferSpaceOnBottom());
                 collapseInfo.setUsedBufferSpaceOnBottom(0);
                 layoutBox.setY(layoutBox.getY() - bottomIndent);
@@ -335,7 +336,9 @@ public class MarginsCollapseHandler {
                 float topIndent = collapseInfo.getCollapseBefore().getCollapsedMarginsSize();
                 applyTopMargin(layoutBox, topIndent);
             }
-            if (lastChildMarginAdjoinedToParent(renderer)) { // if not adjoined - bottom margin have been already applied on startMarginsCollapse
+
+            // if not adjoined - bottom margin have been already applied on startMarginsCollapse
+            if (lastChildMarginAdjoinedToParent(renderer)) {
                 float bottomIndent = collapseInfo.getCollapseAfter().getCollapsedMarginsSize();
                 applyBottomMargin(layoutBox, bottomIndent);
             }

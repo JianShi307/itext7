@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -44,6 +44,10 @@ package com.itextpdf.forms.xfdf;
 
 public class AttributeNotFoundException extends RuntimeException {
 
+    /**
+     * The exception thrown when the attribute with given name is not found in the object attributes list.
+     * @param attribute the name of missing attribute.
+     */
     public AttributeNotFoundException(String attribute) {
         super("Required attribute " + attribute + " is not found");
     }

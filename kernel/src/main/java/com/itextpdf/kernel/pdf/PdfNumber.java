@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -47,6 +47,8 @@ import com.itextpdf.io.LogMessageConstant;
 import com.itextpdf.io.source.ByteUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.charset.StandardCharsets;
 
 public class PdfNumber extends PdfPrimitiveObject {
 
@@ -127,11 +129,11 @@ public class PdfNumber extends PdfPrimitiveObject {
     @Override
     public String toString() {
         if (content != null) {
-            return new String(content);
+            return new String(content, StandardCharsets.ISO_8859_1);
         } else if (isDouble) {
-            return new String(ByteUtils.getIsoBytes(getValue()));
+            return new String(ByteUtils.getIsoBytes(getValue()), StandardCharsets.ISO_8859_1);
         } else {
-            return new String(ByteUtils.getIsoBytes(intValue()));
+            return new String(ByteUtils.getIsoBytes(intValue()), StandardCharsets.ISO_8859_1);
         }
     }
 
@@ -173,7 +175,7 @@ public class PdfNumber extends PdfPrimitiveObject {
 
     protected void generateValue() {
         try {
-            value = java.lang.Double.parseDouble(new String(content));
+            value = java.lang.Double.parseDouble(new String(content, StandardCharsets.ISO_8859_1));
         } catch (NumberFormatException e) {
             value = java.lang.Double.NaN;
         }

@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -240,7 +240,7 @@ public class PdfPrimitivesTest extends ExtendedITextTest{
 
     @Test
     @LogMessages(messages = {@LogMessage(messageTemplate = com.itextpdf.io.LogMessageConstant.DIRECTONLY_OBJECT_CANNOT_BE_INDIRECT)})
-    public void makeIndirectDirectOnlyPdfBoolean() throws IOException{
+    public void makeIndirectDirectOnlyPdfBoolean() {
         PdfDocument pdfDoc = new PdfDocument(new PdfWriter(new ByteArrayOutputStream()));
         PdfBoolean t = PdfBoolean.valueOf(true);
         t.makeIndirect(pdfDoc);

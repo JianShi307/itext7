@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -389,7 +389,8 @@ public class PdfResources extends PdfObjectWrapper<PdfDictionary> {
      * @return the name of all the added resources.
      */
     public Set<PdfName> getResourceNames() {
-        Set<PdfName> names = new TreeSet<>(); // TODO: isn't it better to use HashSet? Do we really need certain order?
+        // TODO: isn't it better to use HashSet? Do we really need certain order?
+        Set<PdfName> names = new TreeSet<>();
         for (PdfName resType : getPdfObject().keySet()) {
             names.addAll(getResourceNames(resType));
         }
@@ -426,7 +427,8 @@ public class PdfResources extends PdfObjectWrapper<PdfDictionary> {
      */
     public Set<PdfName> getResourceNames(PdfName resType) {
         PdfDictionary resourceCategory = getPdfObject().getAsDictionary(resType);
-        return resourceCategory == null ? new TreeSet<PdfName>() : resourceCategory.keySet(); // TODO: TreeSet or HashSet enough?
+        // TODO: TreeSet or HashSet enough?
+        return resourceCategory == null ? new TreeSet<PdfName>() : resourceCategory.keySet();
     }
 
     /**

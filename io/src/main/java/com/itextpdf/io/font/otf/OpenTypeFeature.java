@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -58,7 +58,8 @@ public class OpenTypeFeature implements Serializable {
         openTypeReader.rf.seek(locationFeatureTable);
         TagAndLocation[] tagsLocs = openTypeReader.readTagAndLocations(locationFeatureTable);
         for (TagAndLocation tagLoc : tagsLocs) {
-            openTypeReader.rf.seek(tagLoc.location + 2); //+2 don't use FeatureParams
+            // +2 don't use FeatureParams
+            openTypeReader.rf.seek(tagLoc.location + 2L);
             int lookupCount = openTypeReader.rf.readUnsignedShort();
             FeatureRecord rec = new FeatureRecord();
             rec.tag = tagLoc.tag;

@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
     
     This program is free software; you can redistribute it and/or modify
@@ -62,8 +62,19 @@ public class CssMarginRule extends CssNestedAtRule {
      * Creates a new {@link CssMarginRule} instance.
      *
      * @param ruleName the rule name
-     * @param ruleParameters the rule parameters
      */
+    public CssMarginRule(String ruleName) {
+        this(ruleName, "");
+    }
+
+    /**
+     * Creates a new {@link CssMarginRule} instance.
+     *
+     * @param ruleName the rule name
+     * @param ruleParameters the rule parameters
+     * @deprecated Will be removed in 7.2. Use {@link #CssMarginRule(String)} instead
+     */
+    @Deprecated
     public CssMarginRule(String ruleName, String ruleParameters) {
         super(ruleName, ruleParameters);
     }

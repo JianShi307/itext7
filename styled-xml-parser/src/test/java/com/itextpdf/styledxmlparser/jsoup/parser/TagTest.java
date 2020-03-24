@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -42,6 +42,7 @@
  */
 package com.itextpdf.styledxmlparser.jsoup.parser;
 
+import com.itextpdf.test.ExtendedITextTest;
 import com.itextpdf.test.annotations.type.UnitTest;
 
 import org.junit.Test;
@@ -53,7 +54,7 @@ import static org.junit.Assert.*;
  Tag tests.
  @author Jonathan Hedley, jonathan@hedley.net */
 @Category(UnitTest.class)
-public class TagTest {
+public class TagTest extends ExtendedITextTest {
 
     @Test public void isCaseInsensitive() {
         Tag p1 = Tag.valueOf("P");

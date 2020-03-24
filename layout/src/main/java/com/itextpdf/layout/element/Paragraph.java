@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -118,7 +118,7 @@ public class Paragraph extends BlockElement<Paragraph> {
     /**
      * Adds a {@link java.util.List} of layout elements to the Paragraph.
      *
-     * @param elements, the content to be added
+     * @param elements the content to be added
      * @param <T2>      any {@link ILeafElement}
      * @return this Paragraph
      */

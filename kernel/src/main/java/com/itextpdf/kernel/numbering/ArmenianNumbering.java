@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -91,9 +91,10 @@ public class ArmenianNumbering {
     }
 
     /**
-     * Returns an armenian numeral representation of an integer.
+     * Converts an integer to armenian numeral representation.
      *
      * @param number a number greater than zero to be converted to armenian notation
+     * @return an armenian numeral representation of an integer.
      */
     public static String toArmenian(int number) {
         StringBuilder result = new StringBuilder();

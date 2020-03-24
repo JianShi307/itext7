@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -50,17 +50,6 @@ import com.itextpdf.kernel.pdf.PdfDictionary;
 import com.itextpdf.kernel.pdf.PdfLiteral;
 import com.itextpdf.kernel.pdf.PdfName;
 import com.itextpdf.kernel.security.IExternalDecryptionProcess;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.Key;
-import java.security.MessageDigest;
-import java.security.PrivateKey;
-import java.security.cert.Certificate;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Set;
@@ -77,6 +66,18 @@ import org.bouncycastle.asn1.cms.RecipientInfo;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.TBSCertificateStructure;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.Key;
+import java.security.MessageDigest;
+import java.security.PrivateKey;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Aiken Sam (aikensam@ieee.org)
@@ -240,7 +241,8 @@ public abstract class PubKeySecurityHandler extends SecurityHandler {
         byte three = (byte) (permission >> 16);
         byte four = (byte) (permission >> 24);
 
-        System.arraycopy(seed, 0, pkcs7input, 0, 20); // put this seed in the pkcs7 input
+        // put this seed in the pkcs7 input
+        System.arraycopy(seed, 0, pkcs7input, 0, 20);
 
         pkcs7input[20] = four;
         pkcs7input[21] = three;
@@ -257,7 +259,7 @@ public abstract class PubKeySecurityHandler extends SecurityHandler {
         return cms;
     }
 
-    private PdfArray getEncodedRecipients() throws IOException, GeneralSecurityException {
+    private PdfArray getEncodedRecipients() {
         PdfArray EncodedRecipients = new PdfArray();
         byte[] cms;
         for (int i = 0; i < recipients.size(); i++) {

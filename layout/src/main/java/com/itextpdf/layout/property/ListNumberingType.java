@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -46,10 +46,10 @@ package com.itextpdf.layout.property;
 import com.itextpdf.layout.IPropertyContainer;
 
 /**
- * A specialized enum holding the possible values for a list {@link
- * com.itextpdf.layout.element.List}'s entry prefix. This class is meant to
- * be used as the value for the {@link Property#LIST_SYMBOL} key in an
- * {@link IPropertyContainer}.
+ * A specialized enum holding the possible values
+ * for a list {@link com.itextpdf.layout.element.List}'s entry prefix.
+ * This class is meant to be used as the value for the {@link Property#LIST_SYMBOL} key
+ * in an {@link IPropertyContainer}.
  */
 public enum ListNumberingType {
     DECIMAL,

@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -190,8 +190,9 @@ final class QRCode {
                         // ByteMatrix stuff.
                         matrix != null &&
                         matrixWidth == matrix.getWidth() &&
+                        // Must be square.
                         // See 7.3.1 of JISX0510:2004 (p.5).
-                        matrix.getWidth() == matrix.getHeight(); // Must be square.
+                        matrix.getWidth() == matrix.getHeight();
     }
 
     /**

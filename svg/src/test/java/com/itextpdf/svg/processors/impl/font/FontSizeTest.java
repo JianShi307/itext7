@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -99,8 +99,8 @@ public class FontSizeTest extends SvgIntegrationTest {
     }
 
     @Test
-    //TODO: update cmp-file after DEVSIX-2785
-    public void diff_units_of_measure() throws IOException, InterruptedException {
+    //TODO: update cmp-file after DEVSIX-2785 and DEVSIX-2884
+    public void diffUnitsOfMeasure() throws IOException, InterruptedException {
         String name = "diff_units_of_measure";
         convertAndCompare(SOURCE_FOLDER, DESTINATION_FOLDER, name);
     }

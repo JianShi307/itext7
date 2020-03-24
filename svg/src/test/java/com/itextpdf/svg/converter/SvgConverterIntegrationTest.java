@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -657,5 +657,12 @@ public class SvgConverterIntegrationTest extends SvgIntegrationTest {
         InputStream fis = new ExceptionInputStream();
 
         ISvgProcessorResult result = SvgConverter.parseAndProcess(fis);
+    }
+
+    @Test
+    // Before the changes have been implemented this test had been produced different result in Java and .NET.
+    // So this test checks if there are any differences
+    public void parseDoubleValues() throws com.itextpdf.io.IOException, InterruptedException, java.io.IOException {
+        convertAndCompare(sourceFolder, destinationFolder, "svgStackOver");
     }
 }

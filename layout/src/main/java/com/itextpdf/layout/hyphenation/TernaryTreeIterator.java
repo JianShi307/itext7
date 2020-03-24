@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -194,7 +194,8 @@ class TernaryTreeIterator implements Enumeration {
                     res = tt.hi[i.parent];
                     ns.push(new Item(i));
                     if (ks.length() > 0) {
-                        ks.setLength(ks.length() - 1);    // pop
+                        // pop
+                        ks.setLength(ks.length() - 1);
                     }
                     climb = false;
                     break;

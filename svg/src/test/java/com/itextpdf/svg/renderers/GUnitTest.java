@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -44,15 +44,14 @@ package com.itextpdf.svg.renderers;
 
 import com.itextpdf.test.ITextTest;
 import com.itextpdf.test.annotations.type.IntegrationTest;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Category(IntegrationTest.class)
 public class GUnitTest extends SvgIntegrationTest {
@@ -66,7 +65,7 @@ public class GUnitTest extends SvgIntegrationTest {
     }
 
     @Test
-    public void meetTheTeam() throws IOException, InterruptedException {
+    public void meetTheTeam() {
         List<Exception> assertionErrorsThrown = new ArrayList<>();
         for ( int i = 1; i < 6; i++) {
             try {

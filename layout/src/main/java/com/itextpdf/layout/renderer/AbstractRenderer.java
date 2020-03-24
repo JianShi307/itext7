@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -1771,7 +1771,8 @@ public abstract class AbstractRenderer implements IRenderer {
         }
 
         // Update height related properties on split or overflow
-        Float parentResolvedHeightPropertyValue = retrieveResolvedParentDeclaredHeight(); // For relative heights, we need the parent's resolved height declaration
+        // For relative heights, we need the parent's resolved height declaration
+        Float parentResolvedHeightPropertyValue = retrieveResolvedParentDeclaredHeight();
         UnitValue maxHeightUV = getPropertyAsUnitValue(this, Property.MAX_HEIGHT);
         if (maxHeightUV != null) {
             if (maxHeightUV.isPointValue()) {
@@ -2001,24 +2002,11 @@ public abstract class AbstractRenderer implements IRenderer {
      * @return array of float values which denote left, bottom, right, top lines of bbox in this specific order
      */
     protected Rectangle calculateBBox(List<Point> points) {
-        double minX = Double.MAX_VALUE;
-        double minY = Double.MAX_VALUE;
-        double maxX = -Double.MAX_VALUE;
-        double maxY = -Double.MAX_VALUE;
-        for (Point p : points) {
-            minX = Math.min(p.getX(), minX);
-            minY = Math.min(p.getY(), minY);
-            maxX = Math.max(p.getX(), maxX);
-            maxY = Math.max(p.getY(), maxY);
-        }
-        return new Rectangle((float) minX, (float) minY, (float) (maxX - minX), (float) (maxY - minY));
+        return Rectangle.calculateBBox(points);
     }
 
     protected List<Point> rectangleToPointsList(Rectangle rect) {
-        List<Point> points = new ArrayList<>();
-        points.addAll(Arrays.asList(new Point(rect.getLeft(), rect.getBottom()), new Point(rect.getRight(), rect.getBottom()),
-                new Point(rect.getRight(), rect.getTop()), new Point(rect.getLeft(), rect.getTop())));
-        return points;
+        return Arrays.asList(rect.toPointsArray());
     }
 
     protected List<Point> transformPoints(List<Point> points, AffineTransform transform) {

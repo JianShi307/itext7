@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -63,6 +63,7 @@ import java.net.URL;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -109,7 +110,7 @@ public final class FileUtil {
                 File[] files = root.listFiles();
                 if (files != null) {
                     // Guarantee invariant order in all environments
-                    Arrays.sort(files);
+                    Arrays.sort(files, new CaseSensitiveFileComparator());
                     List<String> list = new ArrayList<>();
                     for (File file : files) {
                         if (file.isDirectory() && recursive) {
@@ -132,7 +133,7 @@ public final class FileUtil {
         }
         if (result != null) {
             // Guarantee invariant order in all environments
-            Arrays.sort(result);
+            Arrays.sort(result, new CaseSensitiveFileComparator());
         }
         return result;
     }
@@ -141,7 +142,7 @@ public final class FileUtil {
         File[] files = new File(dir).listFiles();
         if (files != null) {
             // Guarantee invariant order in all environments
-            Arrays.sort(files);
+            Arrays.sort(files, new CaseSensitiveFileComparator());
             for (File file : files) {
                 if (file.isDirectory()) {
                     listAllFiles(file.getAbsolutePath(), list);
@@ -213,5 +214,12 @@ public final class FileUtil {
      */
     public static String parentDirectory(URL url) throws URISyntaxException {
             return url.toURI().resolve(".").toString();
+    }
+
+    private static class CaseSensitiveFileComparator implements Comparator<File> {
+        @Override
+        public int compare(File f1, File f2) {
+            return f1.getPath().compareTo(f2.getPath());
+        }
     }
 }

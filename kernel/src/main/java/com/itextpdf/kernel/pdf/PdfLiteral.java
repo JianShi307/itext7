@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -45,6 +45,7 @@ package com.itextpdf.kernel.pdf;
 
 import com.itextpdf.io.font.PdfEncodings;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class PdfLiteral extends PdfPrimitiveObject {
@@ -79,7 +80,7 @@ public class PdfLiteral extends PdfPrimitiveObject {
     @Override
     public String toString() {
         if (content != null) {
-            return new String(content);
+            return new String(content, StandardCharsets.ISO_8859_1);
         } else {
             return "";
         }

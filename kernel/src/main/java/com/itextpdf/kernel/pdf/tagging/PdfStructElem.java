@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -108,8 +108,9 @@ public class PdfStructElem extends PdfObjectWrapper<PdfDictionary> implements IS
      * Method to to distinguish struct elements from other elements of the logical tree (like mcr or struct tree root).
      */
     public static boolean isStructElem(PdfDictionary dictionary) {
+        // S is required key of the struct elem
         return (PdfName.StructElem.equals(dictionary.getAsName(PdfName.Type)) ||
-                dictionary.containsKey(PdfName.S)); // required key of the struct elem
+                dictionary.containsKey(PdfName.S));
     }
 
     /**

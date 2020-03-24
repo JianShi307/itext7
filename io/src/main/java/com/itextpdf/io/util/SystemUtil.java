@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -128,7 +128,7 @@ public final class SystemUtil {
         bre.close();
     }
 
-    public static StringBuilder runProcessAndCollectErrors(String execPath, String params) throws IOException, InterruptedException {
+    public static StringBuilder runProcessAndCollectErrors(String execPath, String params) throws IOException {
         List<String> cmdArray = new ArrayList<String>();
         cmdArray.add(execPath);
         Matcher m = Pattern.compile("((?:[^'\\s]|'.+?')+)\\s*").matcher(params);

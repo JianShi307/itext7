@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -127,9 +127,13 @@ final class BitArray {
             throw new IllegalArgumentException();
         }
         if (end == start) {
-            return true; // empty range matches
+
+            // empty range matches
+            return true;
         }
-        end--; // will be easier to treat this as the last actually set bit -- inclusive
+
+        // will be easier to treat this as the last actually set bit -- inclusive
+        end--;
         int firstInt = start >> 5;
         int lastInt = end >> 5;
         for (int i = firstInt; i <= lastInt; i++) {

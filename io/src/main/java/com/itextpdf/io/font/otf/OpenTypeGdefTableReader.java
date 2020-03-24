@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -67,10 +67,13 @@ public class OpenTypeGdefTableReader implements Serializable{
     public void readTable() throws java.io.IOException {
         if (tableLocation > 0) {
             rf.seek(tableLocation);
-            rf.readUnsignedInt(); //version, we only support 0x00010000
+            // version, we only support 0x00010000
+            rf.readUnsignedInt();
             int glyphClassDefOffset = rf.readUnsignedShort();
-            rf.readUnsignedShort(); //skip Attachment Point List Table
-            rf.readUnsignedShort(); //skip Ligature Caret List Table
+            // skip Attachment Point List Table
+            rf.readUnsignedShort();
+            // skip Ligature Caret List Table
+            rf.readUnsignedShort();
             int markAttachClassDefOffset = rf.readUnsignedShort();
             if (glyphClassDefOffset > 0) {
                 glyphClass = OtfClass.create(rf, glyphClassDefOffset + tableLocation);

@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -667,7 +667,9 @@ public final class SvgConverter {
     //Private converter for unification
     private static PdfFormXObject convertToXObject(ISvgProcessorResult processorResult, PdfDocument document, ISvgConverterProperties props) {
         String baseUri = "";
-        if (props != null) baseUri = props.getBaseUri();
+        if (props != null) {
+            baseUri = props.getBaseUri();
+        }
         SvgDrawContext drawContext = new SvgDrawContext(new ResourceResolver(baseUri), processorResult.getFontProvider());
         drawContext.setTempFonts(processorResult.getTempFonts());
         drawContext.addNamedObjects(processorResult.getNamedObjects());
@@ -985,7 +987,7 @@ public final class SvgConverter {
     }
 
     /**
-     * Tries to extract charset from {@see ISvgConverterProperties}.
+     * Tries to extract charset from {@link ISvgConverterProperties}.
      *
      * @param props converter properties
      * @return charset  | null
@@ -995,7 +997,7 @@ public final class SvgConverter {
     }
 
     /**
-     * Tries to extract baseUri from {@see ISvgConverterProperties}.
+     * Tries to extract baseUri from {@link ISvgConverterProperties}.
      *
      * @param props converter properties
      * @return baseUrl  | null

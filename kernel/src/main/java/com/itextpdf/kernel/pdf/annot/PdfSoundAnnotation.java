@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -48,6 +48,7 @@ import com.itextpdf.kernel.pdf.PdfDictionary;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfName;
 import com.itextpdf.kernel.pdf.PdfNumber;
+import com.itextpdf.kernel.pdf.PdfObject;
 import com.itextpdf.kernel.pdf.PdfStream;
 
 import java.io.BufferedInputStream;
@@ -73,7 +74,7 @@ public class PdfSoundAnnotation extends PdfMarkupAnnotation {
     }
 
     /**
-     * see {@link PdfAnnotation#makeAnnotation(PdfObject)}
+     * @see PdfAnnotation#makeAnnotation(PdfObject)
      */
     protected PdfSoundAnnotation(PdfDictionary pdfObject) {
         super(pdfObject);
@@ -117,7 +118,7 @@ public class PdfSoundAnnotation extends PdfMarkupAnnotation {
             header = header + (char) bufferedIn.read();
         }
         bufferedIn.reset();
-        if (header.equals("RIFF")) {
+        if ("RIFF".equals(header)) {
             bufferedIn.read();
         }
         return bufferedIn;

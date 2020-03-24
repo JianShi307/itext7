@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -133,9 +133,10 @@ public class UnicodeBasedPasswordEncryptionTest extends ExtendedITextTest {
         nameToSaslPrepared.put("rfc4013Example03",
                 new SaslPreparedString("\u00AA",
                                        "a"));
+        // match rfc4013Example01
         nameToSaslPrepared.put("rfc4013Example04",
                 new SaslPreparedString("\u2168",
-                                       "IX")); // match rfc4013Example01
+                                       "IX"));
         nameToSaslPrepared.put("nonAsciiSpace01",
                 new SaslPreparedString("\u2008 \u2009 \u200A \u200B",
                                        "       "));

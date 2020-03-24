@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -70,7 +70,7 @@ public class FilteredTextEventListenerTest extends ExtendedITextTest {
         Assert.assertFalse(textIsInRectangle(doc, "Upper Right", upperLeft));
     }
 
-    private boolean textIsInRectangle(PdfDocument doc, String text, Rectangle rect) throws Exception {
+    private boolean textIsInRectangle(PdfDocument doc, String text, Rectangle rect) {
         FilteredTextEventListener filterListener = new FilteredTextEventListener(new LocationTextExtractionStrategy(), new TextRegionEventFilter(rect));
         String extractedText = PdfTextExtractor.getTextFromPage(doc.getPage(1), filterListener);
         return extractedText.equals(text);

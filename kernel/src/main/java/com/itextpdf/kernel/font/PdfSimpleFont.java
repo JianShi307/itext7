@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -460,8 +460,10 @@ public abstract class PdfSimpleFont<T extends FontProgram> extends PdfFont {
         //add font stream and flush it immediately
         addFontStream(fontDescriptor);
         int flags = fontProgram.getPdfFontFlags();
-        flags &= ~(FontDescriptorFlags.Symbolic | FontDescriptorFlags.Nonsymbolic); // reset both flags
-        flags |= fontEncoding.isFontSpecific() ? // set based on font encoding
+        // reset both flags
+        flags &= ~(FontDescriptorFlags.Symbolic | FontDescriptorFlags.Nonsymbolic);
+        // set fontSpecific based on font encoding
+        flags |= fontEncoding.isFontSpecific() ?
                 FontDescriptorFlags.Symbolic : FontDescriptorFlags.Nonsymbolic;
 
         fontDescriptor.put(PdfName.Flags, new PdfNumber(flags));

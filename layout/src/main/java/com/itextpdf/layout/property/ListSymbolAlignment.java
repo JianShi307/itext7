@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -45,12 +45,15 @@ package com.itextpdf.layout.property;
 
 /**
  * A specialized enum containing alignment properties for list symbols.
+ * <p>
  * {@link ListSymbolAlignment#LEFT} means that the items will be aligned as follows:
- * 9.  Item 9
+ * <p>
+ * 9.  Item 9<br>
  * 10. Item 10
  * <p>
  * Whereas {@link ListSymbolAlignment#RIGHT} means the items will be aligned as follows:
- *  9. Item 9
+ * <p>
+ *  9. Item 9<br>
  * 10. Item 10
  */
 public enum ListSymbolAlignment {

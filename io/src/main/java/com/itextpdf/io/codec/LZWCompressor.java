@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -104,7 +104,9 @@ public class LZWCompressor {
      * @throws IOException if underlying output stream error
      **/
     public LZWCompressor(OutputStream outputStream, int codeSize, boolean TIFF) throws IOException {
-        bf_ = new BitFile(outputStream, !TIFF);    // set flag for GIF as NOT tiff
+
+        // set flag for GIF as NOT tiff
+        bf_ = new BitFile(outputStream, !TIFF);
         codeSize_ = codeSize;
         tiffFudge_ = TIFF;
         clearCode_ = 1 << codeSize_;

@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -125,7 +125,8 @@ public class DocumentRenderer extends RootRenderer {
                 return;
         }
 
-        if (!resultRenderer.isFlushed() && null != resultRenderer.getOccupiedArea()) { // TODO Remove checking occupied area to be not null when DEVSIX-1001 is resolved.
+        // TODO Remove checking occupied area to be not null when DEVSIX-1655 is resolved.
+        if (!resultRenderer.isFlushed() && null != resultRenderer.getOccupiedArea()) {
             int pageNum = resultRenderer.getOccupiedArea().getPageNumber();
 
             PdfDocument pdfDocument = document.getPdfDocument();

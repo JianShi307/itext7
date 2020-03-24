@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -490,5 +490,14 @@ public class RectangleTest extends ExtendedITextTest {
 
         Assert.assertTrue(new Rectangle(0, 0, 200, 200).equalsWithEpsilon(Rectangle.calculateBBox(Arrays.asList(a, b, c, d))));
 
+    }
+
+    @Test
+    public void cloneTest() {
+        PageSize originalPageSize = new PageSize(15, 20);
+        PageSize copyAsPageSize = (PageSize) originalPageSize.clone();
+        Rectangle copyAsRectangle = ((Rectangle) originalPageSize).clone();
+        Assert.assertEquals(PageSize.class, copyAsPageSize.getClass());
+        Assert.assertEquals(PageSize.class, copyAsRectangle.getClass());
     }
 }

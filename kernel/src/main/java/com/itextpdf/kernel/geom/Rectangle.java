@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -56,7 +56,7 @@ import java.util.List;
 /**
  * Class that represent rectangle object.
  */
-public class Rectangle implements Serializable {
+public class Rectangle implements Cloneable, Serializable {
 
     private static final long serialVersionUID = 8025677415569233446L;
 
@@ -186,6 +186,16 @@ public class Rectangle implements Serializable {
     }
 
     /**
+     * Convert rectangle to an array of points
+     *
+     * @return array of four extreme points of rectangle
+     */
+    public Point[] toPointsArray() {
+        return new Point[] {new Point(x, y), new Point(x + width, y),
+                new Point(x + width, y + height), new Point(x, y + height)};
+    }
+
+    /**
      * Get the rectangle representation of the intersection between this rectangle and the passed rectangle
      *
      * @param rect the rectangle to find the intersection with
@@ -248,10 +258,17 @@ public class Rectangle implements Serializable {
      */
     public boolean overlaps(Rectangle rect) {
         // Two rectangles do not overlap if any of the following holds
-        return !(this.getX() + this.getWidth() < rect.getX()        //1. the lower left corner of the second rectangle is to the right of the upper-right corner of the first.
-                || this.getY() + this.getHeight() < rect.getY()     //2. the lower left corner of the second rectangle is above the upper right corner of the first.
-                || this.getX() > rect.getX() + rect.getWidth()      //3. the upper right corner of the second rectangle is to the left of the lower-left corner of the first.
-                || this.getY() > rect.getY() + rect.getHeight()     //4. the upper right corner of the second rectangle is below the lower left corner of the first.
+        // 1. the lower left corner of the second rectangle is to the right of the upper-right corner of the first.
+        return !(this.getX() + this.getWidth() < rect.getX()
+
+                // 2. the lower left corner of the second rectangle is above the upper right corner of the first.
+                || this.getY() + this.getHeight() < rect.getY()
+
+                // 3. the upper right corner of the second rectangle is to the left of the lower-left corner of the first.
+                || this.getX() > rect.getX() + rect.getWidth()
+
+                // 4. the upper right corner of the second rectangle is below the lower left corner of the first.
+                || this.getY() > rect.getY() + rect.getHeight()
         );
 
     }
@@ -524,12 +541,20 @@ public class Rectangle implements Serializable {
     }
 
     /**
-     * Gets the copy of this rectangle.
+     * Creates a "deep copy" of this rectangle, meaning the object returned by this method will be independent
+     * of the object being cloned.
      *
      * @return the copied rectangle.
      */
+    @Override
     public Rectangle clone() {
-        return new Rectangle(x, y, width, height);
+        try {
+            // super.clone is safe to return since all of the Rectangle's fields are primitive.
+            return (Rectangle) super.clone();
+        } catch (CloneNotSupportedException e) {
+            // should never happen since Cloneable is implemented
+            return null;
+        }
     }
 
     /**
@@ -569,11 +594,14 @@ public class Rectangle implements Serializable {
          * AxB+BxC-AxC
          */
 
-        x2 -= x1; // A
+        // A
+        x2 -= x1;
         y2 -= y1;
-        x3 -= x1; // B
+        // B
+        x3 -= x1;
         y3 -= y1;
-        x4 -= x1; // C
+        // C
+        x4 -= x1;
         y4 -= y1;
 
         double AvB = x2 * y3 - x3 * y2;
@@ -627,6 +655,7 @@ public class Rectangle implements Serializable {
      * @throws PdfException if the passed array's size is not a multiple of 8.
      */
     public static Rectangle createBoundingRectangleFromQuadPoint(PdfArray quadPoints) throws PdfException {
+
         //Check if array length is a multiple of 8
         if (quadPoints.size() % 8 != 0) {
             throw new PdfException(PdfException.QuadPointArrayLengthIsNotAMultipleOfEight);
@@ -635,6 +664,8 @@ public class Rectangle implements Serializable {
         float lly = Float.MAX_VALUE;
         float urx = -Float.MAX_VALUE;
         float ury = -Float.MAX_VALUE;
+
+        // QuadPoints in redact annotations have "Z" order, in spec they're specified
         for (int j = 0; j < 8; j += 2) {
             float x = quadPoints.getAsNumber(j).floatValue();
             float y = quadPoints.getAsNumber(j + 1).floatValue();
@@ -643,7 +674,7 @@ public class Rectangle implements Serializable {
             if (x > urx) urx = x;
             if (y < lly) lly = y;
             if (y > ury) ury = y;
-        }// QuadPoints in redact annotations have "Z" order, in spec they're specified
+        }
         return (new Rectangle(llx,
                 lly,
                 urx - llx,

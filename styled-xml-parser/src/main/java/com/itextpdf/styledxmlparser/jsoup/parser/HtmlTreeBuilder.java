@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -574,13 +574,13 @@ public class HtmlTreeBuilder extends TreeBuilder {
     }
 
     /**
-     11.2.5.2 Closing elements that have implied end tags<p/>
-     When the steps below require the UA to generate implied end tags, then, while the current node is a dd element, a
-     dt element, an li element, an option element, an optgroup element, a p element, an rp element, or an rt element,
-     the UA must pop the current node off the stack of open elements.
-
-     @param excludeTag If a step requires the UA to generate implied end tags but lists an element to exclude from the
-     process, then the UA must perform the above steps as if that element was not in the above list.
+     * 11.2.5.2 Closing elements that have implied end tags
+     * <p>
+     * When the steps below require the UA to generate implied end tags, then, while the current node is a dd element, a
+     * dt element, an li element, an option element, an optgroup element, a p element, an rp element, or an rt element,
+     * the UA must pop the current node off the stack of open elements.
+     * @param excludeTag If a step requires the UA to generate implied end tags but lists an element to exclude from the
+     * process, then the UA must perform the above steps as if that element was not in the above list.
      */
     void generateImpliedEndTags(String excludeTag) {
         while ((excludeTag != null && !currentElement().nodeName().equals(excludeTag)) &&

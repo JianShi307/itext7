@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -126,7 +126,8 @@ public class GposLookupType5 extends OpenTableLookup {
     protected void readSubTable(int subTableLocation) throws java.io.IOException {
         openReader.rf.seek(subTableLocation);
 
-        openReader.rf.readUnsignedShort(); //skip format, always 1
+        // skip format, always 1
+        openReader.rf.readUnsignedShort();
         int markCoverageLocation = openReader.rf.readUnsignedShort() + subTableLocation;
         int ligatureCoverageLocation = openReader.rf.readUnsignedShort() + subTableLocation;
         int classCount = openReader.rf.readUnsignedShort();

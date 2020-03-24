@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -56,7 +56,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * You can implement your own {@link IEventCounterFactory} and register them with {@link EventCounterHandler#register(IEventCounterFactory)}
  * Or implement {@link EventCounter} and register it with {@link SimpleEventCounterFactory} like this:
- * <code>EventCounterManager.getInstance().register(new SimpleEventCounterFactory(new SystemOutEventCounter());</code>
+ * <code>EventCounterHandler.getInstance().register(new SimpleEventCounterFactory(new SystemOutEventCounter());</code>
  * {@link SystemOutEventCounter} is just an example of a {@link EventCounter} implementation.
  * <p>
  * This functionality can be used to create metrics in a SaaS context.

@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -88,16 +88,24 @@ class WoffConverter {
         long totalSfntSize = bytesToUInt(woffBytes, srcPos);
         srcPos += 4;
 
-        srcPos += 2; // majorVersion
-        srcPos += 2; // minorVersion
-        srcPos += 4; // metaOffset
-        srcPos += 4; // metaLength
-        srcPos += 4; // metaOrigLength
-        srcPos += 4; // privOffset
-        srcPos += 4; // privLength
+        // majorVersion
+        srcPos += 2;
+        // minorVersion
+        srcPos += 2;
+        // metaOffset
+        srcPos += 4;
+        // metaLength
+        srcPos += 4;
+        // metaOrigLength
+        srcPos += 4;
+        // privOffset
+        srcPos += 4;
+        // privLength
+        srcPos += 4;
 
 
-        byte[] otfBytes = new byte[(int) totalSfntSize]; // assuming font won't be larger than 2GB
+        // assuming font won't be larger than 2GB
+        byte[] otfBytes = new byte[(int) totalSfntSize];
         System.arraycopy(flavor, 0, otfBytes, destPos, 4);
         destPos += 4;
         System.arraycopy(numTables, 0, otfBytes, destPos, 2);

@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -276,13 +276,7 @@ public class Matrix implements Serializable {
      */
     @Override
     public int hashCode() {
-        //return Arrays.hashCode(vals); // JDK 5 code, replaced with the following
-
-        int result = 1;
-        for (int i = 0; i < vals.length; i++)
-            result = 31 * result + Float.floatToIntBits(vals[i]);
-
-        return result;
+        return Arrays.hashCode(vals);
     }
 
     /**

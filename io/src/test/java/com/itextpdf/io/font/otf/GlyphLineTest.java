@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -44,6 +44,7 @@ package com.itextpdf.io.font.otf;
 
 import com.itextpdf.io.font.TrueTypeFont;
 import com.itextpdf.io.util.StreamUtil;
+import com.itextpdf.test.ExtendedITextTest;
 import com.itextpdf.test.annotations.type.UnitTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -56,7 +57,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Category(UnitTest.class)
-public class GlyphLineTest {
+public class GlyphLineTest extends ExtendedITextTest {
 
     private static List<Glyph> constructGlyphListFromString(String text, TrueTypeFont font) {
         List<Glyph> glyphList = new ArrayList<>();

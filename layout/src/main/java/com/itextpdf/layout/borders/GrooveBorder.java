@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -51,7 +51,7 @@ import com.itextpdf.kernel.colors.DeviceRgb;
 public class GrooveBorder extends Border3D {
 
     /**
-     * Creates a GrooveBorder instance with the specified width. The color is set to the default: {@link Border3D#GRAY gray}.
+     * Creates a GrooveBorder instance with the specified width. The color is set to the predefined gray.
      *
      * @param width width of the border
      */

@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -42,18 +42,35 @@
  */
 package com.itextpdf.forms.xfdf;
 
+/**
+ * Represents f element, child of the xfdf element.
+ * Corresponds to the F key in the file dictionary.
+ * Specifies the source file or target file: the PDF document that this XFDF file was exported from or is intended to be
+ * imported into.
+ * Attributes: href.
+ * For more details see paragraph 6.2.2 in Xfdf document specification.
+ */
 public class FObject {
 
+    /**
+     * The name of the source or target file.
+     */
     private String href;
 
     public FObject(String href) {
         this.href = href;
     }
 
+    /**
+     * Gets the name of the source or target file.
+     */
     public String getHref() {
         return href;
     }
 
+    /**
+     * Sets the name of the source or target file.
+     */
     public FObject setHref(String href) {
         this.href = href;
         return this;

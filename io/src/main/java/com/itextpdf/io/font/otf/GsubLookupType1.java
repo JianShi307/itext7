@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -71,7 +71,9 @@ public class GsubLookupType1 extends OpenTableLookup {
         boolean changed = false;
         if (!openReader.isSkip(g.getCode(), lookupFlag)) {
             int substCode = substMap.get(g.getCode());
-            if (substCode != 0 && substCode != g.getCode()) { // there is no need to substitute a symbol with itself
+
+            // there is no need to substitute a symbol with itself
+            if (substCode != 0 && substCode != g.getCode()) {
                 line.substituteOneToOne(openReader, substCode);
                 changed = true;
             }

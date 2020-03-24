@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -108,7 +108,7 @@ public class PdfSignatureAppearanceTest extends ExtendedITextTest {
     }
 
     @Test
-    public void textAutoscaleTest01() throws GeneralSecurityException, IOException, InterruptedException {
+    public void textAutoscaleTest01() throws GeneralSecurityException, IOException {
         String fileName = "textAutoscaleTest01.pdf";
         String dest = destinationFolder + fileName;
 
@@ -119,7 +119,7 @@ public class PdfSignatureAppearanceTest extends ExtendedITextTest {
     }
 
     @Test
-    public void textAutoscaleTest02() throws GeneralSecurityException, IOException, InterruptedException {
+    public void textAutoscaleTest02() throws GeneralSecurityException, IOException {
         String fileName = "textAutoscaleTest02.pdf";
         String dest = destinationFolder + fileName;
 
@@ -130,7 +130,7 @@ public class PdfSignatureAppearanceTest extends ExtendedITextTest {
     }
 
     @Test
-    public void textAutoscaleTest03() throws GeneralSecurityException, IOException, InterruptedException {
+    public void textAutoscaleTest03() throws GeneralSecurityException, IOException {
         String fileName = "textAutoscaleTest03.pdf";
         String dest = destinationFolder + fileName;
 
@@ -141,7 +141,7 @@ public class PdfSignatureAppearanceTest extends ExtendedITextTest {
     }
 
     @Test
-    public void textAutoscaleTest04() throws GeneralSecurityException, IOException, InterruptedException {
+    public void textAutoscaleTest04() throws GeneralSecurityException, IOException {
         String fileName = "textAutoscaleTest04.pdf";
         String dest = destinationFolder + fileName;
 
@@ -152,7 +152,7 @@ public class PdfSignatureAppearanceTest extends ExtendedITextTest {
     }
 
     @Test
-    public void textAutoscaleTest05() throws GeneralSecurityException, IOException, InterruptedException {
+    public void textAutoscaleTest05() throws GeneralSecurityException, IOException {
         String fileName = "textAutoscaleTest05.pdf";
         String dest = destinationFolder + fileName;
 
@@ -163,7 +163,7 @@ public class PdfSignatureAppearanceTest extends ExtendedITextTest {
     }
 
     @Test
-    public void textAutoscaleTest06() throws GeneralSecurityException, IOException, InterruptedException {
+    public void textAutoscaleTest06() throws GeneralSecurityException, IOException {
         String fileName = "textAutoscaleTest06.pdf";
         String dest = destinationFolder + fileName;
 

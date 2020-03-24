@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -45,18 +45,34 @@ package com.itextpdf.forms.xfdf;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents the fields element, a child of the xfdf element and is the container for form field elements.
+ * Content model: ( field* ).
+ * Attributes: none.
+ * For more details see paragraph 6.3.1 in Xfdf specification.
+ */
 public class FieldsObject {
 
+    /**
+     * Represents a list of children fields
+     */
     private List<FieldObject> fieldList;
 
     public FieldsObject() {
         this.fieldList = new ArrayList<>();
     }
 
+    /**
+     * Gets a list of children fields
+     */
     public List<FieldObject> getFieldList() {
         return fieldList;
     }
 
+    /**
+     * Adds a new field to the list.
+     * @param field FieldObject containing the info about the form field.
+     */
     public FieldsObject addField(FieldObject field) {
         this.fieldList.add(field);
         return this;

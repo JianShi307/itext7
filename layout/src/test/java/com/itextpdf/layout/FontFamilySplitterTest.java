@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -44,6 +44,7 @@ package com.itextpdf.layout;
 
 
 import com.itextpdf.layout.font.FontFamilySplitter;
+import com.itextpdf.test.ExtendedITextTest;
 import com.itextpdf.test.annotations.type.UnitTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -52,9 +53,9 @@ import org.junit.experimental.categories.Category;
 import java.util.List;
 
 @Category(UnitTest.class)
-public class FontFamilySplitterTest {
+public class FontFamilySplitterTest extends ExtendedITextTest {
     @Test
-    public void fontFamilySplitter() throws Exception {
+    public void fontFamilySplitter() {
         String fontFamilies =
                         "'Puritan'\n" +
                         "Puritan\n" +

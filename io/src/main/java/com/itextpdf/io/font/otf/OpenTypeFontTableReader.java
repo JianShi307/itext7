@@ -1,7 +1,7 @@
 /*
  *
  * This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
  * Authors: Bruno Lowagie, Paulo Soares, et al.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -233,7 +233,9 @@ public abstract class OpenTypeFontTableReader implements Serializable {
     final void startReadingTable() throws FontReadingException {
         try {
             rf.seek(tableLocation);
-            /*int version =*/ rf.readInt(); //version not used
+            /*int version =*/
+            // version not used
+            rf.readInt();
             int scriptListOffset = rf.readUnsignedShort();
             int featureListOffset = rf.readUnsignedShort();
             int lookupListOffset = rf.readUnsignedShort();
@@ -255,7 +257,9 @@ public abstract class OpenTypeFontTableReader implements Serializable {
         int[] lookupTableLocations = readUShortArray(lookupCount, lookupListTableLocation);
         // read LookUp tables
         for (int lookupLocation : lookupTableLocations) {
-            if (lookupLocation == 0) { // be tolerant to NULL offset in LookupList table
+
+            // be tolerant to NULL offset in LookupList table
+            if (lookupLocation == 0) {
                 continue;
             }
             readLookupTable(lookupLocation);

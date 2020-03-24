@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -67,8 +67,8 @@ public abstract class PdfObjectWrapper<T extends PdfObject> implements Serializa
     /**
      * Marks object behind wrapper to be saved as indirect.
      *
-     * @param document a document the indirect reference will belong to.
-     * @param reference
+     * @param document a document the indirect reference belongs to.
+     * @param reference a reference which will be assigned for the object behind wrapper.
      * @return object itself.
      */
     public PdfObjectWrapper<T> makeIndirect(PdfDocument document, PdfIndirectReference reference) {

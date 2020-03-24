@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2020 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -219,10 +219,10 @@ public class TextRenderInfo extends AbstractRenderInfo {
     }
 
     /**
-     * Gets the ascentline for the text (i.e. the line that represents the topmost extent that a string of the current font could have)
-     * This value includes the Rise of the draw operation - see {@link #getRise()} for the amount added by Rise
+     * Gets the ascent line for the text (i.e. the line that represents the topmost extent that a string of the current font could have).
+     * This value includes the Rise of the draw operation - see {@link #getRise()} for the amount added by Rise.
      *
-     * @return the ascentline line segment
+     * @return a LineSegment instance
      */
     public LineSegment getAscentLine() {
         checkGraphicsState();
@@ -230,10 +230,10 @@ public class TextRenderInfo extends AbstractRenderInfo {
     }
 
     /**
-     * Gets the descentline for the text (i.e. the line that represents the bottom most extent that a string of the current font could have).
-     * This value includes the Rise of the draw operation - see {@link #getRise()} for the amount added by Rise
+     * Gets the descent line for the text (i.e. the line that represents the bottom most extent that a string of the current font could have).
+     * This value includes the Rise of the draw operation - see {@link #getRise()} for the amount added by Rise.
      *
-     * @return the descentline line segment
+     * @return a LineSegment instance
      */
     public LineSegment getDescentLine() {
         checkGraphicsState();
@@ -258,7 +258,8 @@ public class TextRenderInfo extends AbstractRenderInfo {
      */
     public float getRise() {
         checkGraphicsState();
-        if (gs.getTextRise() == 0) return 0; // optimize the common case
+        // optimize the common case
+        if (gs.getTextRise() == 0) return 0;
 
         return convertHeightFromTextSpaceToUserSpace(gs.getTextRise());
     }
@@ -451,38 +452,19 @@ public class TextRenderInfo extends AbstractRenderInfo {
     }
 
     /**
-     * Calculates the width of a space character.  If the font does not define
-     * a width for a standard space character \u0020, we also attempt to use
-     * the width of \u00A0 (a non-breaking space in many fonts)
+     * Calculates the width of a space character in text space units.
      *
      * @return the width of a single space character in text space units
      */
     private float getUnscaledFontSpaceWidth() {
         checkGraphicsState();
-        char charToUse = ' ';
-        if (gs.getFont().getWidth(charToUse) == 0) {
-            return gs.getFont().getFontProgram().getAvgWidth() / 1000f;
-        } else {
-            return getStringWidth(String.valueOf(charToUse));
+        char spaceChar = ' ';
+        int charWidth = gs.getFont().getWidth(spaceChar);
+        if (charWidth == 0) {
+            charWidth = gs.getFont().getFontProgram().getAvgWidth();
         }
-    }
-
-    /**
-     * Gets the width of a String in text space units
-     *
-     * @param string the string that needs measuring
-     * @return the width of a String in text space units
-     */
-    private float getStringWidth(String string) {
-        checkGraphicsState();
-        float totalWidth = 0;
-        for (int i = 0; i < string.length(); i++) {
-            char c = string.charAt(i);
-            float w = (float) (gs.getFont().getWidth(c) * fontMatrix[0]);
-            float wordSpacing = c == 32 ? gs.getWordSpacing() : 0f;
-            totalWidth += (w * gs.getFontSize() + gs.getCharSpacing() + wordSpacing) * gs.getHorizontalScaling() / 100f;
-        }
-        return totalWidth;
+        float w = (float) (charWidth * fontMatrix[0]);
+        return (w * gs.getFontSize() + gs.getCharSpacing() + gs.getWordSpacing()) * gs.getHorizontalScaling() / 100f;
     }
 
     /**
