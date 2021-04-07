@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -45,6 +45,8 @@ package com.itextpdf.kernel.pdf;
 
 import com.itextpdf.io.LogMessageConstant;
 import com.itextpdf.io.util.MessageFormatUtil;
+
+import java.util.LinkedHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +63,7 @@ public class PdfNameTree implements Serializable {
     private static final long serialVersionUID = 8153711383828989907L;
 
     private PdfCatalog catalog;
-    private Map<String, PdfObject> items = new HashMap<>();
+    private Map<String, PdfObject> items = new LinkedHashMap<>();
     private PdfName treeType;
     private boolean modified;
 
@@ -92,9 +94,8 @@ public class PdfNameTree implements Serializable {
             dictionary = dictionary.getAsDictionary(treeType);
             if (dictionary != null) {
                 items = readTree(dictionary);
-                //@TODO It's done for auto porting to itextsharp, cuz u cannot change collection which you iterate
-                // in for loop (even if you change only value of a Map entry) in .NET. Java doesn't have such a problem.
-                // We should find a better solution in the future.
+                // A separate collection for keys is used for auto porting to C#, because in C#
+                // it is impossible to change the collection which you iterate in for loop
                 Set<String> keys = new HashSet<>();
                 keys.addAll(items.keySet());
                 for (String key : keys) {
@@ -151,6 +152,13 @@ public class PdfNameTree implements Serializable {
      */
     public boolean isModified() {
         return modified;
+    }
+
+    /**
+     * Sets the modified flag to true. It means that the object has been modified.
+     */
+    public void setModified() {
+        modified = true;
     }
 
     /**
@@ -223,7 +231,7 @@ public class PdfNameTree implements Serializable {
     }
 
     private Map<String, PdfObject> readTree(PdfDictionary dictionary) {
-        Map<String, PdfObject> items = new HashMap<String, PdfObject>();
+        Map<String, PdfObject> items = new LinkedHashMap<>();
         if (dictionary != null) {
             iterateItems(dictionary, items, null);
         }

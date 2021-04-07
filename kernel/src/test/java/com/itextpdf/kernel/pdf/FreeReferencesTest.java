@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.TreeMap;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -1525,6 +1526,34 @@ public class FreeReferencesTest extends ExtendedITextTest {
                 "0000000578 00000 n \n"
         };
         compareXrefTables(xrefString, expected);
+    }
+
+    @Test
+    public void readingXrefWithLotsOfFreeObjTest() throws IOException {
+        String input = sourceFolder + "readingXrefWithLotsOfFreeObj.pdf";
+        String output = destinationFolder + "result_readingXrefWithLotsOfFreeObj.pdf";
+
+        //Test for array out of bounds when a pdf contains multiple free references
+        PdfDocument doc = new PdfDocument(new PdfReader(input), new PdfWriter(output));
+
+        int actualNumberOfObj = doc.getNumberOfPdfObjects();
+
+        Assert.assertEquals(68, actualNumberOfObj);
+        Assert.assertNull(doc.getPdfObject(7));
+
+        PdfXrefTable xref = doc.getXref();
+
+        int freeRefsCount = 0;
+
+        for (int i = 0; i < xref.size(); i++) {
+            if (xref.get(i).isFree()) {
+                freeRefsCount = freeRefsCount + 1;
+            }
+        }
+
+        Assert.assertEquals(31, freeRefsCount);
+
+        doc.close();
     }
 
     private void compareXrefTables(String[] xrefString, String[] expected) {

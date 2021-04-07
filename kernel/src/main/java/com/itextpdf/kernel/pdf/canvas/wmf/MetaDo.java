@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -51,6 +51,7 @@ import com.itextpdf.io.image.ImageType;
 import com.itextpdf.kernel.PdfException;
 import com.itextpdf.kernel.colors.Color;
 import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.font.PdfFontFactory.EmbeddingStrategy;
 import com.itextpdf.kernel.geom.Point;
 import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
@@ -169,7 +170,7 @@ public class MetaDo {
     /**
      * Reads and processes all the data of the InputMeta.
      *
-     * @throws IOException
+     * @throws IOException an {@link IOException}
      */
     public void readAll() throws IOException {
         if (in.readInt() != 0x9AC6CDD7) {
@@ -579,7 +580,7 @@ public class MetaDo {
                         cb.rectangle(xDest, yDest, destWidth, destHeight);
                         cb.clip();
                         cb.endPath();
-                        ImageData bmpImage = ImageDataFactory.createBmp(b, true, b.length);
+                        ImageData bmpImage = ImageDataFactory.createBmp(b, true);
                         PdfImageXObject imageXObject = new PdfImageXObject(bmpImage);
 
                         float width = destWidth * bmpImage.getWidth() / srcWidth;
@@ -611,7 +612,7 @@ public class MetaDo {
      * @param x2 x2-coordinate of the rectangle if clipped or opaque
      * @param y2 y1-coordinate of the rectangle if clipped or opaque
      * @param text text to output
-     * @throws IOException
+     * @throws IOException an {@link IOException}
      */
     public void outputText(int x, int y, int flag, int x1, int y1, int x2, int y2, String text) throws IOException {
 
@@ -658,7 +659,8 @@ public class MetaDo {
         textColor = state.getCurrentTextColor();
         cb.setFillColor(textColor);
         cb.beginText();
-        cb.setFontAndSize(PdfFontFactory.createFont(state.getCurrentFont().getFont(), PdfEncodings.CP1252, true), fontSize);
+        cb.setFontAndSize(PdfFontFactory.createFont(state.getCurrentFont().getFont(),
+                PdfEncodings.CP1252, EmbeddingStrategy.PREFER_EMBEDDED), fontSize);
         cb.setTextMatrix(tx, ty);
         cb.showText(text);
         cb.endText();
@@ -739,7 +741,7 @@ public class MetaDo {
      *
      * @param image the BMP image to be wrapped
      * @return the wrapped BMP
-     * @throws IOException
+     * @throws IOException an {@link IOException}
      */
     public static byte[] wrapBMP(ImageData image) throws IOException {
         if (image.getOriginalType() != ImageType.BMP) {
@@ -811,7 +813,7 @@ public class MetaDo {
      *
      * @param os outputstream to write the word to
      * @param v value to be written
-     * @throws IOException
+     * @throws IOException an {@link IOException}
      */
     public static void writeWord(OutputStream os, int v) throws IOException {
         os.write(v & 0xff);
@@ -823,7 +825,7 @@ public class MetaDo {
      *
      * @param os outputstream to write the dword to
      * @param v value to be written
-     * @throws IOException
+     * @throws IOException an {@link IOException}
      */
     public static void writeDWord(OutputStream os, int v) throws IOException {
         writeWord(os, v & 0xffff);

@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -105,7 +105,11 @@ public class PdfStructElem extends PdfObjectWrapper<PdfDictionary> implements IS
     }
 
     /**
-     * Method to to distinguish struct elements from other elements of the logical tree (like mcr or struct tree root).
+     * Method to distinguish struct elements from other elements of the logical tree (like mcr or struct tree root).
+     *
+     * @param dictionary the {@link PdfDictionary} to check on containing struct elements
+     * @return if the type of {@link PdfDictionary} is StructElem or {@link PdfDictionary} contains the required key S
+     * then true, otherwise false
      */
     public static boolean isStructElem(PdfDictionary dictionary) {
         // S is required key of the struct elem
@@ -471,8 +475,8 @@ public class PdfStructElem extends PdfObjectWrapper<PdfDictionary> implements IS
     /**
      * Returns files associated with structure element.
      *
-     * @param create iText will create AF array if it doesn't exist and create value is true
-     * @return associated files array.
+     * @param create defines whether AF arrays will be created if it doesn't exist
+     * @return associated files array
      */
     public PdfArray getAssociatedFiles(boolean create) {
         PdfArray afArray = getPdfObject().getAsArray(PdfName.AF);

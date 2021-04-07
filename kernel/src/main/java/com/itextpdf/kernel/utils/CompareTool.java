@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -46,8 +46,9 @@ package com.itextpdf.kernel.utils;
 import com.itextpdf.io.LogMessageConstant;
 import com.itextpdf.io.font.PdfEncodings;
 import com.itextpdf.io.util.FileUtil;
+import com.itextpdf.io.util.GhostscriptHelper;
+import com.itextpdf.io.util.ImageMagickHelper;
 import com.itextpdf.io.util.MessageFormatUtil;
-import com.itextpdf.io.util.SystemUtil;
 import com.itextpdf.io.util.UrlUtil;
 import com.itextpdf.kernel.counter.event.IMetaInfo;
 import com.itextpdf.kernel.geom.Rectangle;
@@ -107,14 +108,14 @@ import org.xml.sax.SAXException;
 
 /**
  * This class provides means to compare two PDF files both by content and visually
- * and gives the report of their differences.
- * <br><br>
+ * and gives the report on their differences.
+ * <p>
  * For visual comparison it uses external tools: Ghostscript and ImageMagick, which
  * should be installed on your machine. To allow CompareTool to use them, you need
- * to pass either java properties or environment variables with names "gsExec" and
- * "compareExec", which would contain the paths to the executables of correspondingly
+ * to pass either java properties or environment variables with names "ITEXT_GS_EXEC" and
+ * "ITEXT_MAGICK_COMPARE_EXEC", which would contain the commands to execute the
  * Ghostscript and ImageMagick tools.
- * <br><br>
+ * <p>
  * CompareTool class was mainly designed for the testing purposes of iText in order to
  * ensure that the same code produces the same PDF document. For this reason you will
  * often encounter such parameter names as "outDoc" and "cmpDoc" which stand for output
@@ -125,25 +126,17 @@ import org.xml.sax.SAXException;
  * for the content of the cmpDoc and "but was" part stands for the content of the outDoc.
  */
 public class CompareTool {
-    private static final String cannotOpenOutputDirectory = "Cannot open output directory for <filename>.";
-    private static final String gsFailed = "GhostScript failed for <filename>.";
-    private static final String unexpectedNumberOfPages = "Unexpected number of pages for <filename>.";
-    private static final String differentPages = "File file:///<filename> differs on page <pagenumber>.";
-    private static final String undefinedGsPath = "Path to GhostScript is not specified. Please use -DgsExec=<path_to_ghostscript> (e.g. -DgsExec=\"C:/Program Files/gs/gs9.14/bin/gswin32c.exe\")";
-    private static final String ignoredAreasPrefix = "ignored_areas_";
+    private static final String FILE_PROTOCOL = "file://";
+    private static final String UNEXPECTED_NUMBER_OF_PAGES = "Unexpected number of pages for <filename>.";
+    private static final String DIFFERENT_PAGES = "File " + FILE_PROTOCOL + "<filename> differs on page <pagenumber>.";
+    private static final String IGNORED_AREAS_PREFIX = "ignored_areas_";
 
-    private static final String gsParams = " -dSAFER -dNOPAUSE -dBATCH -sDEVICE=png16m -r150 -sOutputFile='<outputfile>' '<inputfile>'";
-    private static final String compareParams = " '<image1>' '<image2>' '<difference>'";
-
-    private static final String versionRegexp = "(iText\u00ae( pdfX(FA|fa)| DITO)?|iTextSharp\u2122) (\\d+\\.)+\\d+(-SNAPSHOT)?";
-    private static final String versionReplacement = "iText\u00ae <version>";
-    private static final String copyrightRegexp = "\u00a9\\d+-\\d+ iText Group NV";
-    private static final String copyrightReplacement = "\u00a9<copyright years> iText Group NV";
+    private static final String VERSION_REGEXP = "(iText\u00ae( pdfX(FA|fa)| DITO)?|iTextSharp\u2122) (\\d+\\.)+\\d+(-SNAPSHOT)?";
+    private static final String VERSION_REPLACEMENT = "iText\u00ae <version>";
+    private static final String COPYRIGHT_REGEXP = "\u00a9\\d+-\\d+ iText Group NV";
+    private static final String COPYRIGHT_REPLACEMENT = "\u00a9<copyright years> iText Group NV";
 
     private static final String NEW_LINES = "\\r|\\n";
-
-    private String gsExec;
-    private String compareExec;
 
     private String cmpPdf;
     private String cmpPdfName;
@@ -166,32 +159,35 @@ public class CompareTool {
     private boolean useCachedPagesForComparison = true;
     private IMetaInfo metaInfo;
 
-    /**
-     * Creates an instance of the CompareTool.
-     */
+    private String gsExec;
+    private String compareExec;
+
     public CompareTool() {
-        gsExec = SystemUtil.getPropertyOrEnvironmentVariable("gsExec");
-        compareExec = SystemUtil.getPropertyOrEnvironmentVariable("compareExec");
+    }
+
+    CompareTool(String gsExec, String compareExec) {
+        this.gsExec = gsExec;
+        this.compareExec = compareExec;
     }
 
     /**
      * Compares two PDF documents by content starting from Catalog dictionary and then recursively comparing
      * corresponding objects which are referenced from it. You can roughly imagine it as depth-first traversal
      * of the two trees that represent pdf objects structure of the documents.
-     * <br><br>
+     * <p>
      * The main difference between this method and the {@link #compareByContent(String, String, String, String)}
      * methods is the return value. This method returns a {@link CompareResult} class instance, which could be used
-     * in code, however compareByContent methods in case of the differences simply return String value, which could
+     * in code, whilst compareByContent methods in case of the differences simply return String value, which could
      * only be printed. Also, keep in mind that this method doesn't perform visual comparison of the documents.
-     * <br><br>
-     * For more explanations about what is outDoc and cmpDoc see last paragraph of the {@link CompareTool}
+     * <p>
+     * For more explanations about what outDoc and cmpDoc are see last paragraph of the {@link CompareTool}
      * class description.
      *
-     * @param outDocument the absolute path to the output file, which is to be compared to cmp-file.
-     * @param cmpDocument the absolute path to the cmp-file, which is to be compared to output file.
-     * @return the report of comparison of two files in the form of the custom class instance.
-     * See {@link CompareResult} for more info.
-     * @throws IOException
+     * @param outDocument a {@link PdfDocument} corresponding to the output file, which is to be compared with cmp-file.
+     * @param cmpDocument a {@link PdfDocument} corresponding to the cmp-file, which is to be compared with output file.
+     * @return the report on comparison of two files in the form of the custom class {@link CompareResult} instance.
+     * @throws IOException obsolete. Would be removed in 7.2.
+     * @see CompareResult
      */
     public CompareResult compareByCatalog(PdfDocument outDocument, PdfDocument cmpDocument) throws IOException {
         CompareResult compareResult = null;
@@ -228,7 +224,7 @@ public class CompareTool {
      * This option makes sense only for {@link CompareTool#compareByCatalog(PdfDocument, PdfDocument)} method.
      * <p>
      * By default, pages are treated as special objects and if they are met in the process of comparison, then they are
-     * not checked as objects, but rather simply checked that they has same page numbers in both documents.
+     * not checked as objects, but rather simply checked that they have same page numbers in both documents.
      * This behaviour is intended for the {@link CompareTool#compareByContent}
      * set of methods, because in them documents are compared in page by page basis. Thus, we don't need to check if pages
      * are of the same content when they are met in comparison process, we are sure that we will compare their content or
@@ -259,9 +255,9 @@ public class CompareTool {
     }
 
     /**
-     * Enables or disables the generation of the comparison report in the form of the xml document.
-     * <br>
-     * IMPORTANT NOTE: this flag affect only the comparison made by compareByContent methods!
+     * Enables or disables the generation of the comparison report in the form of an xml document.
+     * <p>
+     * IMPORTANT NOTE: this flag affects only the comparison performed by compareByContent methods!
      *
      * @param generateCompareByContentXmlReport true to enable xml report generation, false - to disable.
      * @return this CompareTool instance.
@@ -283,8 +279,10 @@ public class CompareTool {
     /**
      * Enables the comparison of the encryption properties of the documents. Encryption properties comparison
      * results are returned along with all other comparison results.
-     * <br>
-     * IMPORTANT NOTE: this flag affect only the comparison made by compareByContent methods!
+     * <p>
+     * IMPORTANT NOTE: this flag affects only the comparison performed by compareByContent methods!
+     * {@link #compareByCatalog(PdfDocument, PdfDocument)} doesn't compare encryption properties
+     * because encryption properties aren't part of the document's Catalog.
      *
      * @return this CompareTool instance.
      */
@@ -294,13 +292,15 @@ public class CompareTool {
     }
 
     /**
-     * Documents for comparison are opened in reader mode. This method is intended to alter {@link ReaderProperties}
-     * which are used to open output document. This is particularly useful for comparison of encrypted documents.
+     * Gets {@link ReaderProperties} to be passed later to the {@link PdfReader} of the output document.
      * <p>
-     * For more explanations about what is outDoc and cmpDoc see last paragraph of the {@link CompareTool}
+     * Documents for comparison are opened in reader mode. This method is intended to alter {@link ReaderProperties}
+     * which are used to open the output document. This is particularly useful for comparison of encrypted documents.
+     * <p>
+     * For more explanations about what outDoc and cmpDoc are see last paragraph of the {@link CompareTool}
      * class description.
      *
-     * @return {@link ReaderProperties} instance which will be later passed to the output document {@link PdfReader}.
+     * @return {@link ReaderProperties} instance to be passed later to the {@link PdfReader} of the output document.
      */
     public ReaderProperties getOutReaderProperties() {
         if (outProps == null) {
@@ -310,13 +310,15 @@ public class CompareTool {
     }
 
     /**
-     * Documents for comparison are opened in reader mode. This method is intended to alter {@link ReaderProperties}
-     * which are used to open cmp document. This is particularly useful for comparison of encrypted documents.
+     * Gets {@link ReaderProperties} to be passed later to the {@link PdfReader} of the cmp document.
      * <p>
-     * For more explanations about what is outDoc and cmpDoc see last paragraph of the {@link CompareTool}
+     * Documents for comparison are opened in reader mode. This method is intended to alter {@link ReaderProperties}
+     * which are used to open the cmp document. This is particularly useful for comparison of encrypted documents.
+     * <p>
+     * For more explanations about what outDoc and cmpDoc are see last paragraph of the {@link CompareTool}
      * class description.
      *
-     * @return {@link ReaderProperties} instance which will be later passed to the cmp document {@link PdfReader}.
+     * @return {@link ReaderProperties} instance to be passed later to the {@link PdfReader} of the cmp document.
      */
     public ReaderProperties getCmpReaderProperties() {
         if (cmpProps == null) {
@@ -328,9 +330,9 @@ public class CompareTool {
     /**
      * Compares two documents visually. For the comparison two external tools are used: Ghostscript and ImageMagick.
      * For more info about needed configuration for visual comparison process see {@link CompareTool} class description.
-     * <br>
-     * During comparison for every page of two documents an image file will be created in the folder specified by
-     * outPath absolute path. Then those page images will be compared and if there are any differences for some pages,
+     * <p>
+     * During comparison for every page of the two documents an image file will be created in the folder specified by
+     * outPath parameter. Then those page images will be compared and if there are any differences for some pages,
      * another image file will be created with marked differences on it.
      *
      * @param outPdf                the absolute path to the output file, which is to be compared to cmp-file.
@@ -338,8 +340,11 @@ public class CompareTool {
      * @param outPath               the absolute path to the folder, which will be used to store image files for visual comparison.
      * @param differenceImagePrefix file name prefix for image files with marked differences if there is any.
      * @return string containing list of the pages that are visually different, or null if there are no visual differences.
-     * @throws InterruptedException
-     * @throws IOException
+     * @throws InterruptedException if the current thread is interrupted by another thread while it is waiting
+     *                              for ghostscript or imagemagic processes, then the wait is ended and
+     *                              an {@link InterruptedException} is thrown.
+     * @throws IOException          is thrown if any of the input files are missing or any of the auxiliary files
+     *                              that are created during comparison process weren't possible to be created.
      */
     public String compareVisually(String outPdf, String cmpPdf, String outPath, String differenceImagePrefix) throws InterruptedException, IOException {
         return compareVisually(outPdf, cmpPdf, outPath, differenceImagePrefix, null);
@@ -348,11 +353,11 @@ public class CompareTool {
     /**
      * Compares two documents visually. For the comparison two external tools are used: Ghostscript and ImageMagick.
      * For more info about needed configuration for visual comparison process see {@link CompareTool} class description.
-     * <br>
+     * <p>
      * During comparison for every page of two documents an image file will be created in the folder specified by
-     * outPath absolute path. Then those page images will be compared and if there are any differences for some pages,
+     * outPath parameter. Then those page images will be compared and if there are any differences for some pages,
      * another image file will be created with marked differences on it.
-     * <br>
+     * <p>
      * It is possible to ignore certain areas of the document pages during visual comparison. This is useful for example
      * in case if documents should be the same except certain page area with date on it. In this case, in the folder
      * specified by the outPath, new pdf documents will be created with the black rectangles at the specified ignored
@@ -364,13 +369,16 @@ public class CompareTool {
      * @param differenceImagePrefix file name prefix for image files with marked differences if there is any.
      * @param ignoredAreas          a map with one-based page numbers as keys and lists of ignored rectangles as values.
      * @return string containing list of the pages that are visually different, or null if there are no visual differences.
-     * @throws InterruptedException
-     * @throws IOException
+     * @throws InterruptedException if the current thread is interrupted by another thread while it is waiting
+     *                              for ghostscript or imagemagic processes, then the wait is ended and
+     *                              an {@link InterruptedException} is thrown.
+     * @throws IOException          is thrown if any of the input files are missing or any of the auxiliary files
+     *                              that are created during comparison process weren't possible to be created.
      */
     public String compareVisually(String outPdf, String cmpPdf, String outPath, String differenceImagePrefix, Map<Integer, List<Rectangle>> ignoredAreas) throws InterruptedException, IOException {
         init(outPdf, cmpPdf);
-        System.out.println("Out pdf: file:///" + UrlUtil.toNormalizedURI(outPdf).getPath());
-        System.out.println("Cmp pdf: file:///" + UrlUtil.toNormalizedURI(cmpPdf).getPath() + "\n");
+        System.out.println("Out pdf: " + UrlUtil.getNormalizedFileUriString(outPdf));
+        System.out.println("Cmp pdf: " + UrlUtil.getNormalizedFileUriString(cmpPdf)+ "\n");
         return compareVisually(outPath, differenceImagePrefix, ignoredAreas);
     }
 
@@ -379,25 +387,22 @@ public class CompareTool {
      * corresponding objects which are referenced from them. You can roughly imagine it as depth-first traversal
      * of the two trees that represent pdf objects structure of the documents.
      * <p>
-     * Unlike {@link #compareByCatalog(PdfDocument, PdfDocument)} this method performs content comparison page by page
-     * and doesn't compare the tag structure, acroforms and all other things that doesn't belong to specific pages.
-     * <br>
      * When comparison by content is finished, if any differences were found, visual comparison is automatically started.
-     * For more info see {@link #compareVisually(String, String, String, String)}.
      * For this overload, differenceImagePrefix value is generated using diff_%outPdfFileName%_ format.
      * <p>
-     * For more explanations about what is outPdf and cmpPdf see last paragraph of the {@link CompareTool}
+     * For more explanations about what outPdf and cmpPdf are see last paragraph of the {@link CompareTool}
      * class description.
      *
      * @param outPdf  the absolute path to the output file, which is to be compared to cmp-file.
      * @param cmpPdf  the absolute path to the cmp-file, which is to be compared to output file.
      * @param outPath the absolute path to the folder, which will be used to store image files for visual comparison.
-     * @return string containing text report of the encountered content differences and also list of the pages that are
+     * @return string containing text report on the encountered content differences and also list of the pages that are
      * visually different, or null if there are no content and therefore no visual differences.
      * @throws InterruptedException if the current thread is interrupted by another thread while it is waiting
      *                              for ghostscript or imagemagic processes, then the wait is ended and an {@link InterruptedException} is thrown.
      * @throws IOException          is thrown if any of the input files are missing or any of the auxiliary files
-     *                              that are created during comparison process wasn't possible to be created.
+     *                              that are created during comparison process weren't possible to be created.
+     * @see #compareVisually(String, String, String, String)
      */
     public String compareByContent(String outPdf, String cmpPdf, String outPath) throws InterruptedException, IOException {
         return compareByContent(outPdf, cmpPdf, outPath, null, null, null, null);
@@ -407,27 +412,24 @@ public class CompareTool {
      * Compares two PDF documents by content starting from page dictionaries and then recursively comparing
      * corresponding objects which are referenced from them. You can roughly imagine it as depth-first traversal
      * of the two trees that represent pdf objects structure of the documents.
-     * <br><br>
-     * Unlike {@link #compareByCatalog(PdfDocument, PdfDocument)} this method performs content comparison page by page
-     * and doesn't compare the tag structure, acroforms and all other things that doesn't belong to specific pages.
-     * <br>
+     * <p>
      * When comparison by content is finished, if any differences were found, visual comparison is automatically started.
-     * For more info see {@link #compareVisually(String, String, String, String)}.
-     * <br><br>
-     * For more explanations about what is outPdf and cmpPdf see last paragraph of the {@link CompareTool}
+     * <p>
+     * For more explanations about what outPdf and cmpPdf are see last paragraph of the {@link CompareTool}
      * class description.
      *
      * @param outPdf                the absolute path to the output file, which is to be compared to cmp-file.
      * @param cmpPdf                the absolute path to the cmp-file, which is to be compared to output file.
      * @param outPath               the absolute path to the folder, which will be used to store image files for visual comparison.
-     * @param differenceImagePrefix file name prefix for image files with marked visual differences if there is any;
+     * @param differenceImagePrefix file name prefix for image files with marked visual differences if there are any;
      *                              if it's set to null the prefix defaults to diff_%outPdfFileName%_ format.
-     * @return string containing text report of the encountered content differences and also list of the pages that are
+     * @return string containing text report on the encountered content differences and also list of the pages that are
      * visually different, or null if there are no content and therefore no visual differences.
      * @throws InterruptedException if the current thread is interrupted by another thread while it is waiting
      *                              for ghostscript or imagemagic processes, then the wait is ended and an {@link InterruptedException} is thrown.
      * @throws IOException          is thrown if any of the input files are missing or any of the auxiliary files
-     *                              that are created during comparison process wasn't possible to be created.
+     *                              that are created during comparison process weren't possible to be created.
+     * @see #compareVisually(String, String, String, String)
      */
     public String compareByContent(String outPdf, String cmpPdf, String outPath, String differenceImagePrefix) throws InterruptedException, IOException {
         return compareByContent(outPdf, cmpPdf, outPath, differenceImagePrefix, null, null, null);
@@ -436,18 +438,15 @@ public class CompareTool {
     /**
      * This method overload is used to compare two encrypted PDF documents. Document passwords are passed with
      * outPass and cmpPass parameters.
-     * <br><br>
+     * <p>
      * Compares two PDF documents by content starting from page dictionaries and then recursively comparing
      * corresponding objects which are referenced from them. You can roughly imagine it as depth-first traversal
      * of the two trees that represent pdf objects structure of the documents.
-     * <br><br>
-     * Unlike {@link #compareByCatalog(PdfDocument, PdfDocument)} this method performs content comparison page by page
-     * and doesn't compare the tag structure, acroforms and all other things that doesn't belong to specific pages.
-     * <br>
+     * <p>
      * When comparison by content is finished, if any differences were found, visual comparison is automatically started.
      * For more info see {@link #compareVisually(String, String, String, String)}.
-     * <br><br>
-     * For more explanations about what is outPdf and cmpPdf see last paragraph of the {@link CompareTool}
+     * <p>
+     * For more explanations about what outPdf and cmpPdf are see last paragraph of the {@link CompareTool}
      * class description.
      *
      * @param outPdf                the absolute path to the output file, which is to be compared to cmp-file.
@@ -457,10 +456,13 @@ public class CompareTool {
      *                              if it's set to null the prefix defaults to diff_%outPdfFileName%_ format.
      * @param outPass               password for the encrypted document specified by the outPdf absolute path.
      * @param cmpPass               password for the encrypted document specified by the cmpPdf absolute path.
-     * @return string containing text report of the encountered content differences and also list of the pages that are
+     * @return string containing text report on the encountered content differences and also list of the pages that are
      * visually different, or null if there are no content and therefore no visual differences.
-     * @throws InterruptedException
-     * @throws IOException
+     * @throws InterruptedException if the current thread is interrupted by another thread while it is waiting
+     *                              for ghostscript or imagemagic processes, then the wait is ended and an {@link InterruptedException} is thrown.
+     * @throws IOException          is thrown if any of the input files are missing or any of the auxiliary files
+     *                              that are created during comparison process weren't possible to be created.
+     * @see #compareVisually(String, String, String, String)
      */
     public String compareByContent(String outPdf, String cmpPdf, String outPath, String differenceImagePrefix, byte[] outPass, byte[] cmpPass) throws InterruptedException, IOException {
         return compareByContent(outPdf, cmpPdf, outPath, differenceImagePrefix, null, outPass, cmpPass);
@@ -470,68 +472,63 @@ public class CompareTool {
      * Compares two PDF documents by content starting from page dictionaries and then recursively comparing
      * corresponding objects which are referenced from them. You can roughly imagine it as depth-first traversal
      * of the two trees that represent pdf objects structure of the documents.
-     * <br><br>
-     * Unlike {@link #compareByCatalog(PdfDocument, PdfDocument)} this method performs content comparison page by page
-     * and doesn't compare the tag structure, acroforms and all other things that doesn't belong to specific pages.
-     * <br>
+     * <p>
      * When comparison by content is finished, if any differences were found, visual comparison is automatically started.
-     * For more info see {@link #compareVisually(String, String, String, String, Map)}.
-     * <br><br>
-     * For more explanations about what is outPdf and cmpPdf see last paragraph of the {@link CompareTool}
+     * <p>
+     * For more explanations about what outPdf and cmpPdf are see last paragraph of the {@link CompareTool}
      * class description.
      *
      * @param outPdf                the absolute path to the output file, which is to be compared to cmp-file.
      * @param cmpPdf                the absolute path to the cmp-file, which is to be compared to output file.
      * @param outPath               the absolute path to the folder, which will be used to store image files for visual comparison.
-     * @param differenceImagePrefix file name prefix for image files with marked visual differences if there is any;
+     * @param differenceImagePrefix file name prefix for image files with marked visual differences if there are any;
      *                              if it's set to null the prefix defaults to diff_%outPdfFileName%_ format.
      * @param ignoredAreas          a map with one-based page numbers as keys and lists of ignored rectangles as values.
-     * @return string containing text report of the encountered content differences and also list of the pages that are
+     * @return string containing text report on the encountered content differences and also list of the pages that are
      * visually different, or null if there are no content and therefore no visual differences.
-     * @throws InterruptedException
-     * @throws IOException
+     * @throws InterruptedException if the current thread is interrupted by another thread while it is waiting
+     *                              for ghostscript or imagemagic processes, then the wait is ended and an {@link InterruptedException} is thrown.
+     * @throws IOException          is thrown if any of the input files are missing or any of the auxiliary files
+     *                              that are created during comparison process weren't possible to be created.
+     * @see #compareVisually(String, String, String, String)
      */
     public String compareByContent(String outPdf, String cmpPdf, String outPath, String differenceImagePrefix, Map<Integer, List<Rectangle>> ignoredAreas) throws InterruptedException, IOException {
-        init(outPdf, cmpPdf);
-        return compareByContent(outPath, differenceImagePrefix, ignoredAreas);
+        return compareByContent(outPdf, cmpPdf, outPath, differenceImagePrefix, ignoredAreas, null, null);
     }
 
     /**
      * This method overload is used to compare two encrypted PDF documents. Document passwords are passed with
      * outPass and cmpPass parameters.
-     * <br><br>
+     * <p>
      * Compares two PDF documents by content starting from page dictionaries and then recursively comparing
      * corresponding objects which are referenced from them. You can roughly imagine it as depth-first traversal
      * of the two trees that represent pdf objects structure of the documents.
-     * <br><br>
-     * Unlike {@link #compareByCatalog(PdfDocument, PdfDocument)} this method performs content comparison page by page
-     * and doesn't compare the tag structure, acroforms and all other things that doesn't belong to specific pages.
-     * <br>
+     * <p>
      * When comparison by content is finished, if any differences were found, visual comparison is automatically started.
-     * For more info see {@link #compareVisually(String, String, String, String, Map)}.
-     * <br><br>
-     * For more explanations about what is outPdf and cmpPdf see last paragraph of the {@link CompareTool}
+     * <p>
+     * For more explanations about what outPdf and cmpPdf are see last paragraph of the {@link CompareTool}
      * class description.
      *
      * @param outPdf                the absolute path to the output file, which is to be compared to cmp-file.
      * @param cmpPdf                the absolute path to the cmp-file, which is to be compared to output file.
      * @param outPath               the absolute path to the folder, which will be used to store image files for visual comparison.
-     * @param differenceImagePrefix file name prefix for image files with marked visual differences if there is any;
+     * @param differenceImagePrefix file name prefix for image files with marked visual differences if there are any;
      *                              if it's set to null the prefix defaults to diff_%outPdfFileName%_ format.
      * @param ignoredAreas          a map with one-based page numbers as keys and lists of ignored rectangles as values.
      * @param outPass               password for the encrypted document specified by the outPdf absolute path.
      * @param cmpPass               password for the encrypted document specified by the cmpPdf absolute path.
-     * @return string containing text report of the encountered content differences and also list of the pages that are
+     * @return string containing text report on the encountered content differences and also list of the pages that are
      * visually different, or null if there are no content and therefore no visual differences.
      * @throws InterruptedException if the current thread is interrupted by another thread while it is waiting
      *                              for ghostscript or imagemagic processes, then the wait is ended and an {@link InterruptedException} is thrown.
      * @throws IOException          is thrown if any of the input files are missing or any of the auxiliary files
-     *                              that are created during comparison process wasn't possible to be created.
+     *                              that are created during comparison process weren't possible to be created.
+     * @see #compareVisually(String, String, String, String)
      */
     public String compareByContent(String outPdf, String cmpPdf, String outPath, String differenceImagePrefix, Map<Integer, List<Rectangle>> ignoredAreas, byte[] outPass, byte[] cmpPass) throws InterruptedException, IOException {
         init(outPdf, cmpPdf);
-        System.out.println("Out pdf: file:///" + UrlUtil.toNormalizedURI(outPdf).getPath());
-        System.out.println("Cmp pdf: file:///" + UrlUtil.toNormalizedURI(cmpPdf).getPath() + "\n");
+        System.out.println("Out pdf: " + UrlUtil.getNormalizedFileUriString(outPdf));
+        System.out.println("Cmp pdf: " + UrlUtil.getNormalizedFileUriString(cmpPdf)+ "\n");
         setPassword(outPass, cmpPass);
         return compareByContent(outPath, differenceImagePrefix, ignoredAreas);
     }
@@ -543,7 +540,7 @@ public class CompareTool {
      * @param outDict dictionary to compare.
      * @param cmpDict dictionary to compare.
      * @return true if dictionaries are equal by content, otherwise false.
-     * @throws IOException
+     * @throws IOException obsolete. Would be removed in 7.2.
      */
     public boolean compareDictionaries(PdfDictionary outDict, PdfDictionary cmpDict) throws IOException {
         return compareDictionariesExtended(outDict, cmpDict, null, null);
@@ -558,7 +555,7 @@ public class CompareTool {
      * By default page dictionaries are excluded from the comparison when met and are instead compared in a special manner,
      * simply comparing their page numbers. This behavior can be disabled by calling {@link #disableCachedPagesComparison()}.
      * <p>
-     * For more explanations about what is outPdf and cmpPdf see last paragraph of the {@link CompareTool}
+     * For more explanations about what outPdf and cmpPdf are see last paragraph of the {@link CompareTool}
      * class description.
      *
      * @param outDict an indirect {@link PdfDictionary} from the output file, which is to be compared to cmp-file dictionary.
@@ -579,7 +576,7 @@ public class CompareTool {
      * By default page dictionaries are excluded from the comparison when met and are instead compared in a special manner,
      * simply comparing their page numbers. This behavior can be disabled by calling {@link #disableCachedPagesComparison()}.
      * <p>
-     * For more explanations about what is outPdf and cmpPdf see last paragraph of the {@link CompareTool}
+     * For more explanations about what outPdf and cmpPdf are see last paragraph of the {@link CompareTool}
      * class description.
      *
      * @param outDict      an indirect {@link PdfDictionary} from the output file, which is to be compared to cmp-file dictionary.
@@ -606,13 +603,37 @@ public class CompareTool {
     }
 
     /**
+     * Compares structures of two corresponding streams from out and cmp PDF documents. You can roughly
+     * imagine it as depth-first traversal of the two trees that represent pdf objects structure of the documents.
+     * <p>
+     * For more explanations about what outPdf and cmpPdf are see last paragraph of the {@link CompareTool}
+     * class description.
+     *
+     * @param outStream      a {@link PdfStream} from the output file, which is to be compared to cmp-file stream.
+     * @param cmpStream     a {@link PdfStream} from the cmp-file file, which is to be compared to output file stream.
+     * @return {@link CompareResult} instance containing differences between the two streams,
+     * or {@code null} if streams are equal.
+     */
+    public CompareResult compareStreamsStructure(PdfStream outStream, PdfStream cmpStream) {
+        CompareResult compareResult = new CompareResult(compareByContentErrorsLimit);
+        CompareTool.ObjectPath currentPath = new ObjectPath(cmpStream.getIndirectReference(), outStream.getIndirectReference());
+        if (!compareStreamsExtended(outStream, cmpStream, currentPath, compareResult)) {
+            assert !compareResult.isOk();
+            System.out.println(compareResult.getReport());
+            return compareResult;
+        }
+        assert compareResult.isOk();
+        return null;
+    }
+
+    /**
      * Simple method that compares two given PdfStreams by content. This is "deep" comparing, which means that all
      * nested objects are also compared by content.
      *
      * @param outStream stream to compare.
      * @param cmpStream stream to compare.
      * @return true if stream are equal by content, otherwise false.
-     * @throws IOException
+     * @throws IOException obsolete. Would be removed in 7.2.
      */
     public boolean compareStreams(PdfStream outStream, PdfStream cmpStream) throws IOException {
         return compareStreamsExtended(outStream, cmpStream, null, null);
@@ -625,7 +646,7 @@ public class CompareTool {
      * @param outArray array to compare.
      * @param cmpArray array to compare.
      * @return true if arrays are equal by content, otherwise false.
-     * @throws IOException
+     * @throws IOException obsolete. Would be removed in 7.2.
      */
     public boolean compareArrays(PdfArray outArray, PdfArray cmpArray) throws IOException {
         return compareArraysExtended(outArray, cmpArray, null, null);
@@ -680,7 +701,7 @@ public class CompareTool {
      *
      * @param outPdf the absolute path to the output file, which xmp is to be compared to cmp-file.
      * @param cmpPdf the absolute path to the cmp-file, which xmp is to be compared to output file.
-     * @return text report of the xmp differences, or null if there are no differences.
+     * @return text report on the xmp differences, or null if there are no differences.
      */
     public String compareXmp(String outPdf, String cmpPdf) {
         return compareXmp(outPdf, cmpPdf, false);
@@ -693,7 +714,7 @@ public class CompareTool {
      * @param cmpPdf                          the absolute path to the cmp-file, which xmp is to be compared to output file.
      * @param ignoreDateAndProducerProperties true, if to ignore differences in date or producer xmp metadata
      *                                        properties.
-     * @return text report of the xmp differences, or null if there are no differences.
+     * @return text report on the xmp differences, or null if there are no differences.
      */
     public String compareXmp(String outPdf, String cmpPdf, boolean ignoreDateAndProducerProperties) {
         init(outPdf, cmpPdf);
@@ -742,9 +763,10 @@ public class CompareTool {
      * @param xml1 first xml file data to compare.
      * @param xml2 second xml file data to compare.
      * @return true if xml structures are identical, false otherwise.
-     * @throws ParserConfigurationException
-     * @throws SAXException
-     * @throws IOException
+     * @throws ParserConfigurationException if a XML DocumentBuilder cannot be created
+     *                                      which satisfies the configuration requested.
+     * @throws SAXException                 if any XML parse errors occur.
+     * @throws IOException                  If any IO errors occur during reading XML files.
      */
     public boolean compareXmls(byte[] xml1, byte[] xml2) throws ParserConfigurationException, SAXException, IOException {
         return XmlUtils.compareXmls(new ByteArrayInputStream(xml1), new ByteArrayInputStream(xml2));
@@ -756,28 +778,32 @@ public class CompareTool {
      * @param outXmlFile absolute path to the out xml file to compare.
      * @param cmpXmlFile absolute path to the cmp xml file to compare.
      * @return true if xml structures are identical, false otherwise.
-     * @throws ParserConfigurationException
-     * @throws SAXException
-     * @throws IOException
+     * @throws ParserConfigurationException if a XML DocumentBuilder cannot be created
+     *                                      which satisfies the configuration requested.
+     * @throws SAXException                 if any XML parse errors occur.
+     * @throws IOException                  If any IO errors occur during reading XML files.
      */
     public boolean compareXmls(String outXmlFile, String cmpXmlFile) throws ParserConfigurationException, SAXException, IOException {
-        System.out.println("Out xml: file:///" + UrlUtil.toNormalizedURI(outXmlFile).getPath());
-        System.out.println("Cmp xml: file:///" + UrlUtil.toNormalizedURI(cmpXmlFile).getPath() + "\n");
-        return XmlUtils.compareXmls(new FileInputStream(outXmlFile), new FileInputStream(cmpXmlFile));
+        System.out.println("Out xml: " + UrlUtil.getNormalizedFileUriString(outXmlFile));
+        System.out.println("Cmp xml: " + UrlUtil.getNormalizedFileUriString(cmpXmlFile) + "\n");
+        try (InputStream outXmlStream = FileUtil.getInputStreamForFile(outXmlFile);
+                InputStream cmpXmlStream = FileUtil.getInputStreamForFile(cmpXmlFile)) {
+            return XmlUtils.compareXmls(outXmlStream, cmpXmlStream);
+        }
     }
 
     /**
+     * Compares document info dictionaries of two pdf documents.
+     * <p>
      * This method overload is used to compare two encrypted PDF documents. Document passwords are passed with
      * outPass and cmpPass parameters.
-     * <br><br>
-     * Compares document info dictionaries of two pdf documents.
      *
      * @param outPdf  the absolute path to the output file, which info is to be compared to cmp-file info.
      * @param cmpPdf  the absolute path to the cmp-file, which info is to be compared to output file info.
      * @param outPass password for the encrypted document specified by the outPdf absolute path.
      * @param cmpPass password for the encrypted document specified by the cmpPdf absolute path.
-     * @return text report of the differences in documents infos.
-     * @throws IOException
+     * @return text report on the differences in documents infos.
+     * @throws IOException if PDF reader cannot be created due to IO issues
      */
     public String compareDocumentInfo(String outPdf, String cmpPdf, byte[] outPass, byte[] cmpPass) throws IOException {
         System.out.print("[itext] INFO  Comparing document info.......");
@@ -809,20 +835,20 @@ public class CompareTool {
      *
      * @param outPdf the absolute path to the output file, which info is to be compared to cmp-file info.
      * @param cmpPdf the absolute path to the cmp-file, which info is to be compared to output file info.
-     * @return text report of the differences in documents infos.
-     * @throws IOException
+     * @return text report on the differences in documents infos.
+     * @throws IOException if PDF reader cannot be created due to IO issues
      */
     public String compareDocumentInfo(String outPdf, String cmpPdf) throws IOException {
         return compareDocumentInfo(outPdf, cmpPdf, null, null);
     }
 
     /**
-     * Compares if two documents has identical link annotations on corresponding pages.
+     * Checks if two documents have identical link annotations on corresponding pages.
      *
      * @param outPdf the absolute path to the output file, which links are to be compared to cmp-file links.
      * @param cmpPdf the absolute path to the cmp-file, which links are to be compared to output file links.
-     * @return text report of the differences in documents links.
-     * @throws IOException
+     * @return text report on the differences in documents links.
+     * @throws IOException if PDF reader cannot be created due to IO issues
      */
     public String compareLinkAnnotations(String outPdf, String cmpPdf) throws IOException {
         System.out.print("[itext] INFO  Comparing link annotations....");
@@ -856,16 +882,18 @@ public class CompareTool {
 
     /**
      * Compares tag structures of the two PDF documents.
-     * <br>
+     * <p>
      * This method creates xml files in the same folder with outPdf file. These xml files contain documents tag structures
      * converted into the xml structure. These xml files are compared if they are equal.
      *
      * @param outPdf the absolute path to the output file, which tags are to be compared to cmp-file tags.
      * @param cmpPdf the absolute path to the cmp-file, which tags are to be compared to output file tags.
      * @return text report of the differences in documents tags.
-     * @throws IOException
-     * @throws ParserConfigurationException
-     * @throws SAXException
+     * @throws IOException                 is thrown if any of the input files are missing or any of the auxiliary files
+     *                                     that are created during comparison process weren't possible to be created.
+     * @throws ParserConfigurationException if a XML DocumentBuilder cannot be created
+     *                                      which satisfies the configuration requested.
+     * @throws SAXException                 if any XML parse errors occur.
      */
     public String compareTagStructures(String outPdf, String cmpPdf) throws IOException, ParserConfigurationException, SAXException {
         System.out.print("[itext] INFO  Comparing tag structures......");
@@ -922,7 +950,8 @@ public class CompareTool {
     }
 
     String convertProducerLine(String producer) {
-        return producer.replaceAll(versionRegexp, versionReplacement).replaceAll(copyrightRegexp, copyrightReplacement);
+        return producer.replaceAll(VERSION_REGEXP, VERSION_REPLACEMENT).replaceAll(COPYRIGHT_REGEXP,
+                COPYRIGHT_REPLACEMENT);
     }
 
     private void init(String outPdf, String cmpPdf) {
@@ -949,12 +978,6 @@ public class CompareTool {
     }
 
     private String compareVisually(String outPath, String differenceImagePrefix, Map<Integer, List<Rectangle>> ignoredAreas, List<Integer> equalPages) throws IOException, InterruptedException {
-        if (gsExec == null) {
-            throw new CompareToolExecutionException(undefinedGsPath);
-        }
-        if (!(new File(gsExec).canExecute())) {
-            throw new CompareToolExecutionException(new File(gsExec).getAbsolutePath() + " is not an executable program");
-        }
         if (!outPath.endsWith("/")) {
             outPath = outPath + "/";
         }
@@ -975,8 +998,15 @@ public class CompareTool {
             createIgnoredAreasPdfs(outPath, ignoredAreas);
         }
 
-        runGhostScriptImageGeneration(outPath);
+        GhostscriptHelper ghostscriptHelper = null;
+        try {
+             ghostscriptHelper = new GhostscriptHelper(gsExec);
+        } catch (IllegalArgumentException e) {
+            throw new CompareToolExecutionException(e.getMessage());
+        }
 
+        ghostscriptHelper.runGhostScriptImageGeneration(outPdf, outPath, outImage);
+        ghostscriptHelper.runGhostScriptImageGeneration(cmpPdf, outPath, cmpImage);
         return compareImagesOfPdfs(outPath, differenceImagePrefix, equalPages);
     }
 
@@ -989,21 +1019,32 @@ public class CompareTool {
         }
         int cnt = Math.min(imageFiles.length, cmpImageFiles.length);
         if (cnt < 1) {
-            throw new CompareToolExecutionException("No files for comparing. The result or sample pdf file is not processed by GhostScript.");
+            throw new CompareToolExecutionException(
+                    "No files for comparing. The result or sample pdf file is not processed by GhostScript.");
         }
         Arrays.sort(imageFiles, new ImageNameComparator());
         Arrays.sort(cmpImageFiles, new ImageNameComparator());
-        String differentPagesFail = null;
-        boolean compareExecIsOk = compareExec != null && new File(compareExec).canExecute();
-        if (compareExec != null && !compareExecIsOk) {
-            throw new CompareToolExecutionException(new File(compareExec).getAbsolutePath() + " is not an executable program");
+
+        boolean compareExecIsOk;
+        String imageMagickInitError = null;
+        ImageMagickHelper imageMagickHelper = null;
+        try {
+            imageMagickHelper = new ImageMagickHelper(compareExec);
+            compareExecIsOk = true;
+        } catch (IllegalArgumentException e) {
+            compareExecIsOk = false;
+            imageMagickInitError = e.getMessage();
+            LoggerFactory.getLogger(CompareTool.class).warn(e.getMessage());
         }
+
         List<Integer> diffPages = new ArrayList<>();
+        String differentPagesFail = null;
 
         for (int i = 0; i < cnt; i++) {
             if (equalPages != null && equalPages.contains(i))
                 continue;
-            System.out.println("Comparing page " + Integer.toString(i + 1) + ": file:///" + UrlUtil.toNormalizedURI(imageFiles[i]).getPath() + " ...");
+            System.out.println("Comparing page " + Integer.toString(i + 1) + ": " + UrlUtil.getNormalizedFileUriString(imageFiles[i].getName()) + " ...");
+            System.out.println("Comparing page " + Integer.toString(i + 1) + ": " + UrlUtil.getNormalizedFileUriString(imageFiles[i].getName()) + " ...");
             FileInputStream is1 = new FileInputStream(imageFiles[i].getAbsolutePath());
             FileInputStream is2 = new FileInputStream(cmpImageFiles[i].getAbsolutePath());
             boolean cmpResult = compareStreams(is1, is2);
@@ -1013,11 +1054,13 @@ public class CompareTool {
                 differentPagesFail = "Page is different!";
                 diffPages.add(i + 1);
                 if (compareExecIsOk) {
-                    String currCompareParams = compareParams.replace("<image1>", imageFiles[i].getAbsolutePath())
-                            .replace("<image2>", cmpImageFiles[i].getAbsolutePath())
-                            .replace("<difference>", outPath + differenceImagePrefix + Integer.toString(i + 1) + ".png");
-                    if (!SystemUtil.runProcessAndWait(compareExec, currCompareParams))
-                        differentPagesFail += "\nPlease, examine " + outPath + differenceImagePrefix + Integer.toString(i + 1) + ".png for more details.";
+                    String diffName = outPath + differenceImagePrefix + Integer.toString(i + 1) + ".png";
+                    if (!imageMagickHelper.runImageMagickImageCompare(imageFiles[i].getAbsolutePath(),
+                            cmpImageFiles[i].getAbsolutePath(), diffName)) {
+                        File diffFile = new File(diffName);
+                        differentPagesFail += "\nPlease, examine " + FILE_PROTOCOL
+                                + UrlUtil.toNormalizedURI(diffFile).getPath() + " for more details.";
+                    }
                 }
                 System.out.println(differentPagesFail);
             } else {
@@ -1025,14 +1068,14 @@ public class CompareTool {
             }
         }
         if (differentPagesFail != null) {
-            String errorMessage = differentPages.replace("<filename>", UrlUtil.toNormalizedURI(outPdf).getPath()).replace("<pagenumber>", listDiffPagesAsString(diffPages));
+            String errorMessage = DIFFERENT_PAGES.replace("<filename>", UrlUtil.toNormalizedURI(outPdf).getPath()).replace("<pagenumber>", listDiffPagesAsString(diffPages));
             if (!compareExecIsOk) {
-                errorMessage += "\nYou can optionally specify path to ImageMagick compare tool (e.g. -DcompareExec=\"C:/Program Files/ImageMagick-6.5.4-2/compare.exe\") to visualize differences.";
+                errorMessage += "\n" + imageMagickInitError;
             }
             return errorMessage;
         } else {
             if (bUnexpectedNumberOfPages)
-                return unexpectedNumberOfPages.replace("<filename>", outPdf);
+                return UNEXPECTED_NUMBER_OF_PAGES.replace("<filename>", outPdf);
         }
 
         return null;
@@ -1051,8 +1094,8 @@ public class CompareTool {
     }
 
     private void createIgnoredAreasPdfs(String outPath, Map<Integer, List<Rectangle>> ignoredAreas) throws IOException {
-        PdfWriter outWriter = new PdfWriter(outPath + ignoredAreasPrefix + outPdfName);
-        PdfWriter cmpWriter = new PdfWriter(outPath + ignoredAreasPrefix + cmpPdfName);
+        PdfWriter outWriter = new PdfWriter(outPath + IGNORED_AREAS_PREFIX + outPdfName);
+        PdfWriter cmpWriter = new PdfWriter(outPath + IGNORED_AREAS_PREFIX + cmpPdfName);
 
         StampingProperties properties = new StampingProperties();
         properties.setEventCountingMetaInfo(metaInfo);
@@ -1081,7 +1124,7 @@ public class CompareTool {
         pdfOutDoc.close();
         pdfCmpDoc.close();
 
-        init(outPath + ignoredAreasPrefix + outPdfName, outPath + ignoredAreasPrefix + cmpPdfName);
+        init(outPath + IGNORED_AREAS_PREFIX + outPdfName, outPath + IGNORED_AREAS_PREFIX + cmpPdfName);
     }
 
     private void prepareOutputDirs(String outPath, String differenceImagePrefix) {
@@ -1108,32 +1151,11 @@ public class CompareTool {
         }
     }
 
-    /**
-     * Runs ghostscript to create images of pdfs.
-     *
-     * @param outPath Path to the output folder.
-     * @throws CompareToolExecutionException
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    private void runGhostScriptImageGeneration(String outPath) throws IOException, InterruptedException {
-        if (!FileUtil.directoryExists(outPath)) {
-            throw new CompareToolExecutionException(cannotOpenOutputDirectory.replace("<filename>", outPdf));
-        }
-
-        String currGsParams = gsParams.replace("<outputfile>", outPath + cmpImage).replace("<inputfile>", cmpPdf);
-        if (!SystemUtil.runProcessAndWait(gsExec, currGsParams)) {
-            throw new CompareToolExecutionException(gsFailed.replace("<filename>", cmpPdf));
-        }
-        currGsParams = gsParams.replace("<outputfile>", outPath + outImage).replace("<inputfile>", outPdf);
-        if (!SystemUtil.runProcessAndWait(gsExec, currGsParams)) {
-            throw new CompareToolExecutionException(gsFailed.replace("<filename>", outPdf));
-        }
-    }
-
     private void printOutCmpDirectories() {
-        System.out.println("Out file folder: file:///" + UrlUtil.toNormalizedURI(new File(outPdf).getParentFile()).getPath());
-        System.out.println("Cmp file folder: file:///" + UrlUtil.toNormalizedURI(new File(cmpPdf).getParentFile()).getPath());
+        System.out.println("Out file folder: " + FILE_PROTOCOL
+                + UrlUtil.toNormalizedURI(new File(outPdf).getParentFile()).getPath());
+        System.out.println("Cmp file folder: " + FILE_PROTOCOL
+                + UrlUtil.toNormalizedURI(new File(cmpPdf).getParentFile()).getPath());
     }
 
     private String compareByContent(String outPath, String differenceImagePrefix, Map<Integer, List<Rectangle>> ignoredAreas) throws InterruptedException, IOException {
@@ -1418,7 +1440,7 @@ public class CompareTool {
         return null;
     }
 
-    private boolean compareObjects(PdfObject outObj, PdfObject cmpObj, ObjectPath currentPath, CompareResult compareResult) {
+    protected boolean compareObjects(PdfObject outObj, PdfObject cmpObj, ObjectPath currentPath, CompareResult compareResult) {
         PdfObject outDirectObj = null;
         PdfObject cmpDirectObj = null;
         if (outObj != null)
@@ -1475,7 +1497,7 @@ public class CompareTool {
                 }
             }
 
-            // If at least on of the page dictionaries is in the document's page tree, we don't proceed with deep comparison,
+            // If at least one of the page dictionaries is in the document's page tree, we don't proceed with deep comparison,
             // because pages are compared at different level, so we compare only their index.
             // However only if both page dictionaries are not in the document's page trees, we continue to comparing them as normal dictionaries.
             if (cmpPagesRef.contains(cmpRefKey) || outPagesRef.contains(outRefKey)) {
@@ -1490,31 +1512,24 @@ public class CompareTool {
         }
 
         if (cmpDirectObj.isDictionary()) {
-            if (!compareDictionariesExtended((PdfDictionary) outDirectObj, (PdfDictionary) cmpDirectObj, currentPath, compareResult))
-                return false;
+            return compareDictionariesExtended((PdfDictionary) outDirectObj, (PdfDictionary) cmpDirectObj, currentPath, compareResult);
         } else if (cmpDirectObj.isStream()) {
-            if (!compareStreamsExtended((PdfStream) outDirectObj, (PdfStream) cmpDirectObj, currentPath, compareResult))
-                return false;
+            return compareStreamsExtended((PdfStream) outDirectObj, (PdfStream) cmpDirectObj, currentPath, compareResult);
         } else if (cmpDirectObj.isArray()) {
-            if (!compareArraysExtended((PdfArray) outDirectObj, (PdfArray) cmpDirectObj, currentPath, compareResult))
-                return false;
+            return compareArraysExtended((PdfArray) outDirectObj, (PdfArray) cmpDirectObj, currentPath, compareResult);
         } else if (cmpDirectObj.isName()) {
-            if (!compareNamesExtended((PdfName) outDirectObj, (PdfName) cmpDirectObj, currentPath, compareResult))
-                return false;
+            return compareNamesExtended((PdfName) outDirectObj, (PdfName) cmpDirectObj, currentPath, compareResult);
         } else if (cmpDirectObj.isNumber()) {
-            if (!compareNumbersExtended((PdfNumber) outDirectObj, (PdfNumber) cmpDirectObj, currentPath, compareResult))
-                return false;
+            return compareNumbersExtended((PdfNumber) outDirectObj, (PdfNumber) cmpDirectObj, currentPath, compareResult);
         } else if (cmpDirectObj.isString()) {
-            if (!compareStringsExtended((PdfString) outDirectObj, (PdfString) cmpDirectObj, currentPath, compareResult))
-                return false;
+            return compareStringsExtended((PdfString) outDirectObj, (PdfString) cmpDirectObj, currentPath, compareResult);
         } else if (cmpDirectObj.isBoolean()) {
-            if (!compareBooleansExtended((PdfBoolean) outDirectObj, (PdfBoolean) cmpDirectObj, currentPath, compareResult))
-                return false;
+            return compareBooleansExtended((PdfBoolean) outDirectObj, (PdfBoolean) cmpDirectObj, currentPath, compareResult);
         } else if (outDirectObj.isNull() && cmpDirectObj.isNull()) {
+            return true;
         } else {
             throw new UnsupportedOperationException();
         }
-        return true;
     }
 
     private boolean compareStreamsExtended(PdfStream outStream, PdfStream cmpStream, ObjectPath currentPath, CompareResult compareResult) {
@@ -1856,14 +1871,14 @@ public class CompareTool {
         /**
          * Creates new empty instance of CompareResult with given limit of difference messages.
          *
-         * @param messageLimit maximum number of difference messages handled by this CompareResult.
+         * @param messageLimit maximum number of difference messages to be handled by this CompareResult.
          */
         public CompareResult(int messageLimit) {
             this.messageLimit = messageLimit;
         }
 
         /**
-         * Is used to define if documents are considered equal after comparison.
+         * Verifies if documents are considered equal after comparison.
          *
          * @return true if documents are equal, false otherwise.
          */
@@ -1872,7 +1887,7 @@ public class CompareTool {
         }
 
         /**
-         * Returns number of differences between two documents met during comparison.
+         * Returns number of differences between two documents detected during comparison.
          *
          * @return number of differences.
          */
@@ -1883,7 +1898,7 @@ public class CompareTool {
         /**
          * Converts this CompareResult into text form.
          *
-         * @return text report of the differences between two documents.
+         * @return text report on the differences between two documents.
          */
         public String getReport() {
             StringBuilder sb = new StringBuilder();
@@ -1901,7 +1916,7 @@ public class CompareTool {
         /**
          * Returns map with {@link ObjectPath} as keys and difference descriptions as values.
          *
-         * @return differences map which could be used to find in the document objects that are different.
+         * @return differences map which could be used to find in the document the objects that are different.
          */
         public Map<ObjectPath, String> getDifferences() {
             return differences;
@@ -1911,8 +1926,10 @@ public class CompareTool {
          * Converts this CompareResult into xml form.
          *
          * @param stream output stream to which xml report will be written.
-         * @throws ParserConfigurationException
-         * @throws TransformerException
+         * @throws ParserConfigurationException if a XML DocumentBuilder cannot be created
+         *                                      which satisfies the configuration requested.
+         * @throws TransformerException         if it is not possible to create an XML Transformer instance or
+         *                                      an unrecoverable error occurs during the course of the transformation.
          */
         public void writeReportToXml(OutputStream stream) throws ParserConfigurationException, TransformerException {
             Document xmlReport = XmlUtils.initNewXmlDocument();
@@ -1946,8 +1963,8 @@ public class CompareTool {
     }
 
     /**
-     * Class that helps to find two corresponding objects in the comparing documents and also keeps track of the
-     * already met in comparing process parent indirect objects.
+     * Class that helps to find two corresponding objects in the compared documents and also keeps track of the
+     * already met during comparing process parent indirect objects.
      * <p>
      * You could say that ObjectPath instance consists of two parts: direct path and indirect path. Direct path defines
      * path to the currently comparing objects in relation to base objects. It could be empty, which would mean that
@@ -1974,13 +1991,13 @@ public class CompareTool {
          * @param baseCmpObject base object in cmp document.
          * @param baseOutObject base object in out document.
          */
-        protected ObjectPath(PdfIndirectReference baseCmpObject, PdfIndirectReference baseOutObject) {
+        public ObjectPath(PdfIndirectReference baseCmpObject, PdfIndirectReference baseOutObject) {
             this.baseCmpObject = baseCmpObject;
             this.baseOutObject = baseOutObject;
             indirects.push(new IndirectPathItem(baseCmpObject, baseOutObject));
         }
 
-        private ObjectPath(PdfIndirectReference baseCmpObject, PdfIndirectReference baseOutObject,
+        public ObjectPath(PdfIndirectReference baseCmpObject, PdfIndirectReference baseOutObject,
                            Stack<LocalPathItem> path, Stack<IndirectPathItem> indirects) {
             this.baseCmpObject = baseCmpObject;
             this.baseOutObject = baseOutObject;
@@ -1992,7 +2009,7 @@ public class CompareTool {
          * Creates a new ObjectPath instance with two new given base objects, which are supposed to be nested in the base
          * objects of the current instance of the ObjectPath. This method is used to avoid infinite loop in case of
          * circular references in pdf documents objects structure.
-         * <br>
+         * <p>
          * Basically, this method creates copy of the current ObjectPath instance, but resets information of the direct
          * paths, and also adds current ObjectPath instance base objects to the indirect references chain that denotes
          * a path to the new base objects.
@@ -2136,7 +2153,21 @@ public class CompareTool {
 
         @Override
         public int hashCode() {
-            int hashCode = (baseCmpObject != null ? baseCmpObject.hashCode() : 0) * 31 + (baseOutObject != null ? baseOutObject.hashCode() : 0);
+            // TODO: DEVSIX-4756 indirect reference hashCode should use hashCode method of indirect
+            //  reference. For now we need to write custom logic as some tests rely on sequential
+            //  reopening of the same document which affects with not equal indirect reference
+            //  hashCodes (after the update which starts counting the document in indirect reference
+            //  hashCode)
+            int baseCmpObjectHashCode = 0;
+            if (baseCmpObject != null) {
+                baseCmpObjectHashCode = baseCmpObject.getObjNumber() * 31 + baseCmpObject.getGenNumber();
+            }
+            int baseOutObjectHashCode = 0;
+            if (baseOutObject != null) {
+                baseOutObjectHashCode = baseOutObject.getObjNumber() * 31 + baseOutObject.getGenNumber();
+            }
+
+            int hashCode = baseCmpObjectHashCode * 31 + baseOutObjectHashCode;
             for (LocalPathItem pathItem : path) {
                 hashCode *= 31;
                 hashCode += pathItem.hashCode();
@@ -2146,8 +2177,42 @@ public class CompareTool {
 
         @Override
         public boolean equals(Object obj) {
-            return obj.getClass() == getClass() && baseCmpObject.equals(((ObjectPath) obj).baseCmpObject) && baseOutObject.equals(((ObjectPath) obj).baseOutObject) &&
-                    path.equals(((ObjectPath) obj).path);
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            ObjectPath that = (ObjectPath) obj;
+
+            // TODO: DEVSIX-4756 indirect reference comparing should use equals method of indirect
+            //  reference. For now we need to write custom logic as some tests rely on sequential
+            //  reopening of the same document which affects with not equal indirect references
+            //  (after the update which starts counting the document in indirect reference equality)
+            boolean isBaseCmpObjectEqual;
+            if (baseCmpObject == that.baseCmpObject) {
+                isBaseCmpObjectEqual = true;
+            } else if (baseCmpObject == null
+                    || that.baseCmpObject == null
+                    || baseCmpObject.getClass() != that.baseCmpObject.getClass()) {
+                isBaseCmpObjectEqual = false;
+            } else {
+                isBaseCmpObjectEqual = baseCmpObject.getObjNumber() == that.baseCmpObject.getObjNumber()
+                        && baseCmpObject.getGenNumber() == that.baseCmpObject.getGenNumber();
+            }
+            boolean isBaseOutObjectEqual;
+            if (baseOutObject == that.baseOutObject) {
+                isBaseOutObjectEqual = true;
+            } else if (baseOutObject == null
+                    || that.baseOutObject == null
+                    || baseOutObject.getClass() != that.baseOutObject.getClass()) {
+                isBaseOutObjectEqual = false;
+            } else {
+                isBaseOutObjectEqual = baseOutObject.getObjNumber() == that.baseOutObject.getObjNumber()
+                        && baseOutObject.getGenNumber() == that.baseOutObject.getGenNumber();
+            }
+
+            return isBaseCmpObjectEqual && isBaseOutObjectEqual && path.equals(((ObjectPath) obj).path);
         }
 
         @Override
@@ -2431,7 +2496,16 @@ public class CompareTool {
 
     }
 
+    /**
+     * Exceptions thrown when errors occur during generation and comparison of images obtained on the basis of pdf
+     * files.
+     */
     public class CompareToolExecutionException extends RuntimeException {
+        /**
+         * Creates a new {@link CompareToolExecutionException}.
+         *
+         * @param msg the detail message.
+         */
         public CompareToolExecutionException(String msg) {
             super(msg);
         }

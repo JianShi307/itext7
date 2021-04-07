@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -70,9 +70,9 @@ class XfdfReader {
     private static Logger logger = LoggerFactory.getLogger(XfdfReader.class);
 
     /**
-     * The method merges existing XfdfObject into pdf document associated with it.
+     * Merges existing XfdfObject into pdf document associated with it.
      *
-     * @param xfdfObject      The object ot be merged.
+     * @param xfdfObject      The object to be merged.
      * @param pdfDocument     The associated pdf document.
      * @param pdfDocumentName The name of the associated pdf document.
      */
@@ -86,7 +86,7 @@ class XfdfReader {
         } else {
             logger.warn(LogMessageConstant.XFDF_NO_F_OBJECT_TO_COMPARE);
         }
-        //TODO check for ids original/modified compatability with those in pdf document
+        //TODO DEVSIX-4026 check for ids original/modified compatability with those in pdf document
 
         PdfAcroForm form = PdfAcroForm.getAcroForm(pdfDocument, false);
         if (form != null) {
@@ -96,7 +96,12 @@ class XfdfReader {
 
     }
 
-
+    /**
+     * Merges existing FieldsObject and children FieldObject entities into the form of the pdf document
+     * associated with it.
+     * @param fieldsObject object containing acroform fields data to be merged.
+     * @param form acroform to be filled with xfdf data.
+     */
     private void mergeFields(FieldsObject fieldsObject, PdfAcroForm form) {
         if (fieldsObject != null && fieldsObject.getFieldList() != null && !fieldsObject.getFieldList().isEmpty()) {
 
@@ -113,6 +118,12 @@ class XfdfReader {
         }
     }
 
+    /**
+     * Merges existing XfdfObject into pdf document associated with it.
+     *
+     * @param annotsObject    The AnnotsObject with children AnnotObject entities to be mapped into PdfAnnotations.
+     * @param pdfDocument     The associated pdf document.
+     */
     private void mergeAnnotations(AnnotsObject annotsObject, PdfDocument pdfDocument) {
         List<AnnotObject> annotList = null;
         if (annotsObject != null) {
@@ -143,7 +154,7 @@ class XfdfReader {
         String annotName = annotObject.getName();
         if (annotName != null) {
             switch (annotName) {
-                //TODO add all attributes properly one by one
+                //TODO DEVSIX-4027 add all attributes properly one by one
                 case XfdfConstants.TEXT:
                     PdfTextAnnotation pdfTextAnnotation = new PdfTextAnnotation(XfdfObjectUtils.convertRectFromString(annotObject.getAttributeValue(XfdfConstants.RECT)));
                     addCommonAnnotationAttributes(pdfTextAnnotation, annotObject);
@@ -210,7 +221,9 @@ class XfdfReader {
                     addCommonAnnotationAttributes(pdfCircleAnnotation, annotObject);
                     addMarkupAnnotationAttributes(pdfCircleAnnotation, annotObject);
 
-                    pdfCircleAnnotation.setRectangleDifferences(XfdfObjectUtils.convertFringeFromString(annotObject.getAttributeValue(XfdfConstants.FRINGE)));
+                    if (annotObject.getAttributeValue(XfdfConstants.FRINGE) != null) {
+                        pdfCircleAnnotation.setRectangleDifferences(XfdfObjectUtils.convertFringeFromString(annotObject.getAttributeValue(XfdfConstants.FRINGE)));
+                    }
 
                     pdfDocument.getPage(Integer.parseInt(annotObject.getAttribute(XfdfConstants.PAGE).getValue()))
                             .addAnnotation(pdfCircleAnnotation);
@@ -221,7 +234,9 @@ class XfdfReader {
                     addCommonAnnotationAttributes(pdfSquareAnnotation, annotObject);
                     addMarkupAnnotationAttributes(pdfSquareAnnotation, annotObject);
 
-                    pdfSquareAnnotation.setRectangleDifferences(XfdfObjectUtils.convertFringeFromString(annotObject.getAttributeValue(XfdfConstants.FRINGE)));
+                    if (annotObject.getAttributeValue(XfdfConstants.FRINGE) != null) {
+                        pdfSquareAnnotation.setRectangleDifferences(XfdfObjectUtils.convertFringeFromString(annotObject.getAttributeValue(XfdfConstants.FRINGE)));
+                    }
 
                     pdfDocument.getPage(Integer.parseInt(annotObject.getAttribute(XfdfConstants.PAGE).getValue()))
                             .addAnnotation(pdfSquareAnnotation);

@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -66,6 +66,7 @@ public class DocumentRenderer extends RootRenderer {
 
     protected Document document;
     protected List<Integer> wrappedContentPage = new ArrayList<>();
+    protected TargetCounterHandler targetCounterHandler = new TargetCounterHandler();
 
     public DocumentRenderer(Document document) {
         this(document, true);
@@ -75,6 +76,24 @@ public class DocumentRenderer extends RootRenderer {
         this.document = document;
         this.immediateFlush = immediateFlush;
         this.modelElement = document;
+    }
+
+    /**
+     * Get handler for target-counters.
+     *
+     * @return the {@link TargetCounterHandler} instance
+     */
+    public TargetCounterHandler getTargetCounterHandler() {
+        return targetCounterHandler;
+    }
+
+    /**
+     * Indicates if relayout is required for targetCounterHandler.
+     *
+     * @return true if relayout is required, false otherwise
+     */
+    public boolean isRelayoutRequired() {
+        return targetCounterHandler.isRelayoutRequired();
     }
 
     @Override
@@ -93,7 +112,7 @@ public class DocumentRenderer extends RootRenderer {
     }
 
     protected LayoutArea updateCurrentArea(LayoutResult overflowResult) {
-        flushWaitingDrawingElements();
+        flushWaitingDrawingElements(false);
         LayoutTaggingHelper taggingHelper = this.<LayoutTaggingHelper>getProperty(Property.TAGGING_HELPER);
         if (taggingHelper != null) {
             taggingHelper.releaseFinishedHints();

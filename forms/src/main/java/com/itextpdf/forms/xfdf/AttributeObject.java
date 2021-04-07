@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -44,13 +44,18 @@ package com.itextpdf.forms.xfdf;
 
 
 /**
- * Represents the attribute of any xfdf element.
+ * Represents the attribute of any XFDF element.
  */
 public class AttributeObject {
 
     private String name;
     private String value;
 
+    /**
+     * Creates an instance with given attribute name and value.
+     * @param name the name of the attribute, constrained by XML attributes specification.
+     * @param value the value of the attribute, constrained by XML attributes specification.
+     */
     public AttributeObject(String name, String value) {
         if(name == null || value == null) {
             throw new XfdfException(XfdfConstants.ATTRIBUTE_NAME_OR_VALUE_MISSING);
@@ -59,10 +64,18 @@ public class AttributeObject {
         this.value = value;
     }
 
+    /**
+     * Returns attribute name.
+     * @return a string representation of attribute name, case-sensitive as per XML specification.
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Returns attribute value.
+     * @return a string representation of attribute value.
+     */
     public String getValue() {
         return value;
     }

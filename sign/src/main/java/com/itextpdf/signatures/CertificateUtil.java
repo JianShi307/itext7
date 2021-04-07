@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -93,7 +93,8 @@ public class CertificateUtil {
      * Gets the URL of the Certificate Revocation List for a Certificate
      * @param certificate	the Certificate
      * @return	the String where you can check if the certificate was revoked
-     * @throws CertificateParsingException
+     * @throws CertificateParsingException throws if invalid DER-encoded certificate is parsed or
+     * unsupported DER features are found in the certificate
      */
     public static String getCRLURL(X509Certificate certificate) throws CertificateParsingException {
         ASN1Primitive obj;

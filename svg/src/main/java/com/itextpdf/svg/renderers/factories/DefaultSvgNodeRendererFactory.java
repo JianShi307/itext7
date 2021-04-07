@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -46,8 +46,9 @@ import com.itextpdf.io.util.MessageFormatUtil;
 import com.itextpdf.styledxmlparser.node.IElementNode;
 import com.itextpdf.svg.exceptions.SvgLogMessageConstant;
 import com.itextpdf.svg.exceptions.SvgProcessingException;
+import com.itextpdf.svg.renderers.INoDrawSvgNodeRenderer;
 import com.itextpdf.svg.renderers.ISvgNodeRenderer;
-import com.itextpdf.svg.renderers.impl.NoDrawOperationSvgNodeRenderer;
+import com.itextpdf.svg.renderers.impl.DefsSvgNodeRenderer;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -67,8 +68,7 @@ public class DefaultSvgNodeRendererFactory implements ISvgNodeRendererFactory {
     private Collection<String> ignoredTags = new HashSet<>();
 
     /**
-     * Default constructor which uses the default {@link ISvgNodeRendererMapper}
-     * implementation.
+     * Default constructor with default {@link ISvgNodeRenderer} creation logic.
      */
     public DefaultSvgNodeRendererFactory() {
         this(new DefaultSvgNodeRendererMapper());
@@ -80,7 +80,11 @@ public class DefaultSvgNodeRendererFactory implements ISvgNodeRendererFactory {
      *
      * @param mapper the custom mapper implementation - if null, then we fall
      * back to the {@link DefaultSvgNodeRendererMapper}
+     * @deprecated Will be removed in 7.2. The user should use the custom
+     * {@link ISvgNodeRendererFactory} implementation (or the custom
+     * {@link DefaultSvgNodeRendererFactory} extension) to create extensions of the factory.
      */
+    @Deprecated
     public DefaultSvgNodeRendererFactory(ISvgNodeRendererMapper mapper) {
         if (mapper != null) {
             rendererMap.putAll(mapper.getMapping());
@@ -114,7 +118,8 @@ public class DefaultSvgNodeRendererFactory implements ISvgNodeRendererFactory {
             throw new SvgProcessingException(SvgLogMessageConstant.COULDNOTINSTANTIATE, ex).setMessageParams(tag.name());
         }
 
-        if (parent != null && !(parent instanceof NoDrawOperationSvgNodeRenderer)) {
+        // DefsSvgNodeRenderer should not have parental relationship with any renderer, it only serves as a storage
+        if (parent != null && !(result instanceof INoDrawSvgNodeRenderer) && !(parent instanceof DefsSvgNodeRenderer)) {
             result.setParent(parent);
         }
 

@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -52,10 +52,10 @@ import com.itextpdf.layout.IPropertyContainer;
  */
 public final class Property {
 
-    private Property() {
-    }
-
     public static final int ACTION = 1;
+    public static final int ALIGN_CONTENT = 130;
+    public static final int ALIGN_ITEMS = 134;
+    public static final int ALIGN_SELF = 129;
     public static final int APPEARANCE_STREAM_LAYOUT = 82;
     public static final int AREA_BREAK_TYPE = 2;
     public static final int AUTO_SCALE = 3;
@@ -87,6 +87,10 @@ public final class Property {
     public static final int FILL_AVAILABLE_AREA = 86;
     public static final int FILL_AVAILABLE_AREA_ON_SPLIT = 87;
     public static final int FIRST_LINE_INDENT = 18;
+    public static final int FLEX_BASIS = 131;
+    public static final int FLEX_GROW = 132;
+    public static final int FLEX_SHRINK = 133;
+    public static final int FLEX_WRAP = 128;
     public static final int FLOAT = 99;
     public static final int FLUSH_ON_DRAW = 19;
 
@@ -128,14 +132,17 @@ public final class Property {
      **/
     public static final int HORIZONTAL_SCALING = 29;
     public static final int HYPHENATION = 30;
+    public static final int ID = 126;
     public static final int IGNORE_FOOTER = 96;
     public static final int IGNORE_HEADER = 97;
     public static final int ITALIC_SIMULATION = 31;
+    public static final int JUSTIFY_CONTENT = 135;
     public static final int KEEP_TOGETHER = 32;
     public static final int KEEP_WITH_NEXT = 81;
     public static final int LEADING = 33;
     public static final int LEFT = 34;
     public static final int LINE_DRAWER = 35;
+    public static final int LINE_HEIGHT = 124;
     public static final int LINK_ANNOTATION = 88;
     public static final int LIST_START = 36;
     public static final int LIST_SYMBOL = 37;
@@ -156,7 +163,9 @@ public final class Property {
     public static final int MIN_WIDTH = 80;
     public static final int NO_SOFT_WRAP_INLINE = 118;
 
+    public static final int OBJECT_FIT = 125;
     public static final int OPACITY = 92;
+    public static final int ORPHANS_CONTROL = 121;
     public static final int OUTLINE = 106;
     public static final int OUTLINE_OFFSET = 107;
     /**
@@ -165,6 +174,7 @@ public final class Property {
      */
     @Deprecated
     public static final int OVERFLOW = 102;
+    public static final int OVERFLOW_WRAP = 127;
     public static final int OVERFLOW_X = 103;
     public static final int OVERFLOW_Y = 104;
     public static final int PADDING_BOTTOM = 47;
@@ -173,6 +183,7 @@ public final class Property {
     public static final int PADDING_TOP = 50;
     public static final int PAGE_NUMBER = 51;
     public static final int POSITION = 52;
+    public static final int RENDERING_MODE = 123;
     public static final int RIGHT = 54;
     public static final int ROTATION_ANGLE = 55;
     public static final int ROTATION_INITIAL_HEIGHT = 56;
@@ -208,6 +219,7 @@ public final class Property {
      * Value of 1 is equivalent to no scaling
      **/
     public static final int VERTICAL_SCALING = 76;
+    public static final int WIDOWS_CONTROL = 122;
     public static final int WIDTH = 77;
     public static final int WORD_SPACING = 78;
 
@@ -217,7 +229,7 @@ public final class Property {
      * related to textual operations. Indicates whether or not this type of property is inheritable.
      */
     private static final boolean[] INHERITED_PROPERTIES;
-    private static final int MAX_INHERITED_PROPERTY_ID = 119;
+    private static final int MAX_INHERITED_PROPERTY_ID = 127;
 
     static {
         INHERITED_PROPERTIES = new boolean[MAX_INHERITED_PROPERTY_ID + 1];
@@ -244,6 +256,7 @@ public final class Property {
         INHERITED_PROPERTIES[Property.KEEP_TOGETHER] = true;
         INHERITED_PROPERTIES[Property.LEADING] = true;
         INHERITED_PROPERTIES[Property.NO_SOFT_WRAP_INLINE] = true;
+        INHERITED_PROPERTIES[Property.ORPHANS_CONTROL] = true;
         INHERITED_PROPERTIES[Property.SPACING_RATIO] = true;
         INHERITED_PROPERTIES[Property.SPLIT_CHARACTERS] = true;
         INHERITED_PROPERTIES[Property.STROKE_COLOR] = true;
@@ -252,9 +265,16 @@ public final class Property {
         INHERITED_PROPERTIES[Property.TEXT_RENDERING_MODE] = true;
         INHERITED_PROPERTIES[Property.TEXT_RISE] = true;
         INHERITED_PROPERTIES[Property.UNDERLINE] = true;
+        INHERITED_PROPERTIES[Property.WIDOWS_CONTROL] = true;
         INHERITED_PROPERTIES[Property.WORD_SPACING] = true;
         INHERITED_PROPERTIES[Property.TAGGING_HELPER] = true;
         INHERITED_PROPERTIES[Property.TYPOGRAPHY_CONFIG] = true;
+        INHERITED_PROPERTIES[Property.RENDERING_MODE] = true;
+        INHERITED_PROPERTIES[Property.LINE_HEIGHT] = true;
+        INHERITED_PROPERTIES[Property.OVERFLOW_WRAP] = true;
+    }
+
+    private Property() {
     }
 
     /**

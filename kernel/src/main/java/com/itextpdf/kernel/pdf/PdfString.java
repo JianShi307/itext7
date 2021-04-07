@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -105,6 +105,9 @@ public class PdfString extends PdfPrimitiveObject {
 
     /**
      * Only PdfReader can use this method!
+     *
+     * @param content    byte content the {@link PdfString} will be created from
+     * @param hexWriting boolean indicating if hex writing will be used
      */
     protected PdfString(byte[] content, boolean hexWriting) {
         super(content);
@@ -141,6 +144,8 @@ public class PdfString extends PdfPrimitiveObject {
 
     /**
      * Gets the encoding of this string.
+     *
+     * @return the name of the encoding specifying the byte representation of current {@link PdfString} value
      */
     public String getEncoding() {
         return encoding;
@@ -149,6 +154,8 @@ public class PdfString extends PdfPrimitiveObject {
     /**
      * Returns the Unicode {@code String} value of this
      * {@code PdfString}-object.
+     *
+     * @return Unicode string value created by current {@link PdfString} object
      */
     public String toUnicodeString() {
         if (encoding != null && encoding.length() != 0) {
@@ -255,7 +262,7 @@ public class PdfString extends PdfPrimitiveObject {
     /**
      * Encrypt content of {@code value} and set as content. {@code generateContent()} won't be called.
      *
-     * @param encrypt @see PdfEncryption
+     * @param encrypt {@link PdfEncryption} instance
      * @return true if value was encrypted, otherwise false.
      */
     protected boolean encrypt(PdfEncryption encrypt) {

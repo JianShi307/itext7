@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -399,10 +399,7 @@ public final class InlineImageParsingUtils {
     private static boolean inlineImageStreamBytesAreComplete(byte[] samples, PdfDictionary imageDictionary) {
         try {
             Map<PdfName, IFilterHandler> filters = new HashMap<>(FilterHandlers.getDefaultFilterHandlers());
-            DoNothingFilter stubfilter = new DoNothingFilter();
-            filters.put(PdfName.DCTDecode, stubfilter);
-            filters.put(PdfName.JBIG2Decode, stubfilter);
-            filters.put(PdfName.JPXDecode, stubfilter);
+            filters.put(PdfName.JBIG2Decode, new DoNothingFilter());
             filters.put(PdfName.FlateDecode, new FlateDecodeStrictFilter());
             PdfReader.decodeBytes(samples, imageDictionary, filters);
         } catch (Exception ex) {

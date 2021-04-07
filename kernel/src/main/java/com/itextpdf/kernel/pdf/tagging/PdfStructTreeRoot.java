@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -302,10 +302,13 @@ public class PdfStructTreeRoot extends PdfObjectWrapper<PdfDictionary> implement
      * NOTE: Do not remove tags when iterating over returned collection, this could
      * lead to the ConcurrentModificationException, because returned collection is backed by the internal list of the
      * actual page tags.
+     *
+     * @param page {@link PdfPage} to obtain unmodifiable collection of marked content references
+     * @return the unmodifiable collection of marked content references on page, if no Mcrs defined returns null
      */
     public Collection<PdfMcr> getPageMarkedContentReferences(PdfPage page) {
-        Map<Integer, PdfMcr> pageMcrs = getParentTreeHandler().getPageMarkedContentReferences(page);
-        return pageMcrs != null ? Collections.unmodifiableCollection(pageMcrs.values()) : null;
+        ParentTreeHandler.PageMcrsContainer pageMcrs = getParentTreeHandler().getPageMarkedContentReferences(page);
+        return pageMcrs != null ? Collections.unmodifiableCollection(pageMcrs.getAllMcrsAsCollection()) : null;
     }
 
     public PdfMcr findMcrByMcid(PdfDictionary pageDict, int mcid) {
@@ -437,8 +440,8 @@ public class PdfStructTreeRoot extends PdfObjectWrapper<PdfDictionary> implement
     /**
      * Returns files associated with structure tree root.
      *
-     * @param create iText will create AF array if it doesn't exist and create value is true
-     * @return associated files array.
+     * @param create defines whether AF arrays will be created if it doesn't exist
+     * @return associated files array
      */
     public PdfArray getAssociatedFiles(boolean create) {
         PdfArray afArray = getPdfObject().getAsArray(PdfName.AF);

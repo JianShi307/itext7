@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -48,6 +48,7 @@ import com.itextpdf.io.source.ByteArrayOutputStream;
 import com.itextpdf.io.source.ByteUtils;
 import com.itextpdf.io.source.RandomAccessFileOrArray;
 import com.itextpdf.io.util.MessageFormatUtil;
+import com.itextpdf.kernel.KernelLogMessageConstant;
 import com.itextpdf.kernel.PdfException;
 import com.itextpdf.kernel.ProductInfo;
 import com.itextpdf.kernel.Version;
@@ -66,6 +67,7 @@ import com.itextpdf.kernel.log.CounterManager;
 import com.itextpdf.kernel.log.ICounter;
 import com.itextpdf.kernel.numbering.EnglishAlphabetNumbering;
 import com.itextpdf.kernel.numbering.RomanNumbering;
+import com.itextpdf.kernel.pdf.PdfReader.StrictnessLevel;
 import com.itextpdf.kernel.pdf.annot.PdfAnnotation;
 import com.itextpdf.kernel.pdf.annot.PdfLinkAnnotation;
 import com.itextpdf.kernel.pdf.annot.PdfWidgetAnnotation;
@@ -83,14 +85,13 @@ import com.itextpdf.kernel.xmp.XMPMeta;
 import com.itextpdf.kernel.xmp.XMPMetaFactory;
 import com.itextpdf.kernel.xmp.options.PropertyOptions;
 import com.itextpdf.kernel.xmp.options.SerializeOptions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -103,12 +104,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Main enter point to work with PDF document.
  */
 public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
 
     private static final long serialVersionUID = -7041578979319799646L;
+
+    private static IPdfPageFactory pdfPageFactory = new PdfPageFactory();
 
     /**
      * Currently active page.
@@ -190,7 +196,6 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
     protected boolean isClosing = false;
 
     protected boolean closed = false;
-
 
     /**
      * flag determines whether to write unused objects to result document
@@ -332,10 +337,25 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
         this.xmpMetadata = xmpMetadata;
     }
 
+    /**
+     * Sets the XMP Metadata.
+     *
+     * @param xmpMeta the xmpMetadata to set
+     * @param serializeOptions serialization options
+     *
+     * @throws XMPException on serialization errors
+     */
     public void setXmpMetadata(XMPMeta xmpMeta, SerializeOptions serializeOptions) throws XMPException {
         setXmpMetadata(XMPMetaFactory.serializeToBuffer(xmpMeta, serializeOptions));
     }
 
+    /**
+     * Sets the XMP Metadata.
+     *
+     * @param xmpMeta the xmpMetadata to set
+     *
+     * @throws XMPException on serialization errors
+     */
     public void setXmpMetadata(XMPMeta xmpMeta) throws XMPException {
         SerializeOptions serializeOptions = new SerializeOptions();
         serializeOptions.setPadding(2000);
@@ -344,6 +364,8 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
 
     /**
      * Gets XMPMetadata.
+     *
+     * @return the XMPMetadata
      */
     public byte[] getXmpMetadata() {
         return getXmpMetadata(false);
@@ -454,7 +476,7 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
      */
     public PdfPage addNewPage(PageSize pageSize) {
         checkClosingStatus();
-        PdfPage page = new PdfPage(this, pageSize);
+        PdfPage page = getPageFactory().createPdfPage(this, pageSize);
         checkAndAddPage(page);
         dispatchEvent(new PdfDocumentEvent(PdfDocumentEvent.START_PAGE, page));
         dispatchEvent(new PdfDocumentEvent(PdfDocumentEvent.INSERT_PAGE, page));
@@ -482,7 +504,7 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
      */
     public PdfPage addNewPage(int index, PageSize pageSize) {
         checkClosingStatus();
-        PdfPage page = new PdfPage(this, pageSize);
+        PdfPage page = getPageFactory().createPdfPage(this, pageSize);
         checkAndAddPage(index, page);
         currentPage = page;
         dispatchEvent(new PdfDocumentEvent(PdfDocumentEvent.START_PAGE, page));
@@ -617,7 +639,11 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
      */
     public void removePage(int pageNum) {
         checkClosingStatus();
-        PdfPage removedPage = catalog.getPageTree().removePage(pageNum);
+
+        PdfPage removedPage = getPage(pageNum);
+        if (removedPage != null && removedPage.isFlushed() && (isTagged() || hasAcroForm())) {
+            throw new PdfException(PdfException.FLUSHED_PAGE_CANNOT_BE_REMOVED);
+        }
 
         if (removedPage != null) {
             catalog.removeOutlines(removedPage);
@@ -625,14 +651,15 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
             if (isTagged()) {
                 getTagStructureContext().removePageTags(removedPage);
             }
-            // TODO should we remove everything (outlines, tags) if page won't be removed in the end, because it's already flushed? wouldn't tags be also flushed?
-            if (!removedPage.getPdfObject().isFlushed()) {
+            if (!removedPage.isFlushed()) {
                 removedPage.getPdfObject().remove(PdfName.Parent);
                 removedPage.getPdfObject().getIndirectReference().setFree();
             }
 
             dispatchEvent(new PdfDocumentEvent(PdfDocumentEvent.REMOVE_PAGE, removedPage));
         }
+
+        catalog.getPageTree().removePage(pageNum);
     }
 
     /**
@@ -1071,6 +1098,11 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
      * Copies a range of pages from current document to {@code toDocument}.
      * Use this method if you want to copy pages across tagged documents.
      * This will keep resultant PDF structure consistent.
+     * <p>
+     * If outlines destination names are the same in different documents, all
+     * such outlines will lead to a single location in the resultant document.
+     * In this case iText will log a warning. This can be avoided by renaming
+     * destinations names in the source document.
      *
      * @param pageFrom         start of the range of pages to be copied.
      * @param pageTo           end of the range of pages to be copied.
@@ -1087,6 +1119,11 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
      * and {@code pageTo} are included in list of copied pages.
      * Use this method if you want to copy pages across tagged documents.
      * This will keep resultant PDF structure consistent.
+     * <p>
+     * If outlines destination names are the same in different documents, all
+     * such outlines will lead to a single location in the resultant document.
+     * In this case iText will log a warning. This can be avoided by renaming
+     * destinations names in the source document.
      *
      * @param pageFrom         1-based start of the range of pages to be copied.
      * @param pageTo           1-based end (inclusive) of the range of pages to be copied. This page is included in list of copied pages.
@@ -1110,6 +1147,11 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
      * is inclusive, both {@code page} and {@code pageTo} are included in list of copied pages.
      * Use this method if you want to copy pages across tagged documents.
      * This will keep resultant PDF structure consistent.
+     * <p>
+     * If outlines destination names are the same in different documents, all
+     * such outlines will lead to a single location in the resultant document.
+     * In this case iText will log a warning. This can be avoided by renaming
+     * destinations names in the source document.
      *
      * @param pageFrom   1-based start of the range of pages to be copied.
      * @param pageTo     1-based end (inclusive) of the range of pages to be copied. This page is included in list of copied pages.
@@ -1125,6 +1167,11 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
      * is inclusive, both {@code page} and {@code pageTo} are included in list of copied pages.
      * Use this method if you want to copy pages across tagged documents.
      * This will keep resultant PDF structure consistent.
+     * <p>
+     * If outlines destination names are the same in different documents, all
+     * such outlines will lead to a single location in the resultant document.
+     * In this case iText will log a warning. This can be avoided by renaming
+     * destinations names in the source document.
      *
      * @param pageFrom   1-based start of the range of pages to be copied.
      * @param pageTo     1-based end (inclusive) of the range of pages to be copied. This page is included in list of copied pages.
@@ -1142,6 +1189,11 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
      * Copies a range of pages from current document to {@code toDocument}.
      * Use this method if you want to copy pages across tagged documents.
      * This will keep resultant PDF structure consistent.
+     * <p>
+     * If outlines destination names are the same in different documents, all
+     * such outlines will lead to a single location in the resultant document.
+     * In this case iText will log a warning. This can be avoided by renaming
+     * destinations names in the source document.
      *
      * @param pagesToCopy      list of pages to be copied.
      * @param toDocument       a document to copy pages to.
@@ -1156,6 +1208,11 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
      * Copies a range of pages from current document to {@code toDocument}.
      * Use this method if you want to copy pages across tagged documents.
      * This will keep resultant PDF structure consistent.
+     * <p>
+     * If outlines destination names are the same in different documents, all
+     * such outlines will lead to a single location in the resultant document.
+     * In this case iText will log a warning. This can be avoided by renaming
+     * destinations names in the source document.
      *
      * @param pagesToCopy      list of pages to be copied.
      * @param toDocument       a document to copy pages to.
@@ -1180,6 +1237,7 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
 
         int pageInsertIndex = insertBeforePage;
         boolean insertInBetween = insertBeforePage < toDocument.getNumberOfPages() + 1;
+
         for (Integer pageNum : pagesToCopy) {
             PdfPage page = getPage((int) pageNum);
             PdfPage newPage = page.copyTo(toDocument, copier);
@@ -1208,6 +1266,11 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
         }
 
         copyLinkAnnotations(toDocument, page2page);
+
+        // Copying OCGs should go after copying LinkAnnotations
+        if (getCatalog() != null && getCatalog().getPdfObject().getAsDictionary(PdfName.OCProperties) != null) {
+            OcgPropertiesCopier.copyOCGProperties(this, toDocument, page2page);
+        }
 
         // It's important to copy tag structure after link annotations were copied, because object content items in tag
         // structure are not copied in case if their's OBJ key is annotation and doesn't contain /P entry.
@@ -1241,6 +1304,11 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
      * Copies a range of pages from current document to {@code toDocument} appending copied pages to the end.
      * Use this method if you want to copy pages across tagged documents.
      * This will keep resultant PDF structure consistent.
+     * <p>
+     * If outlines destination names are the same in different documents, all
+     * such outlines will lead to a single location in the resultant document.
+     * In this case iText will log a warning. This can be avoided by renaming
+     * destinations names in the source document.
      *
      * @param pagesToCopy list of pages to be copied.
      * @param toDocument  a document to copy pages to.
@@ -1254,6 +1322,11 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
      * Copies a range of pages from current document to {@code toDocument} appending copied pages to the end.
      * Use this method if you want to copy pages across tagged documents.
      * This will keep resultant PDF structure consistent.
+     * <p>
+     * If outlines destination names are the same in different documents, all
+     * such outlines will lead to a single location in the resultant document.
+     * In this case iText will log a warning. This can be avoided by renaming
+     * destinations names in the source document.
      *
      * @param pagesToCopy list of pages to be copied.
      * @param toDocument  a document to copy pages to.
@@ -1342,8 +1415,9 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
     /**
      * This method returns a complete outline tree of the whole document.
      *
-     * @param updateOutlines if the flag is true, the method read the whole document and creates outline tree.
-     *                       If false the method gets cached outline tree (if it was cached via calling getOutlines method before).
+     * @param updateOutlines if the flag is {@code true}, the method reads the whole document and creates outline tree.
+     *                       If the flag is {@code false}, the method gets cached outline tree
+     *                       (if it was cached via calling getOutlines method before).
      * @return fully initialize {@link PdfOutline} object.
      */
     public PdfOutline getOutlines(boolean updateOutlines) {
@@ -1375,6 +1449,8 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
 
     /**
      * Gets static copy of cross reference table.
+     *
+     * @return  a static copy of cross reference table
      */
     public List<PdfIndirectReference> listIndirectReferences() {
         checkClosingStatus();
@@ -1669,14 +1745,18 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
 
     /**
      * Create a new instance of {@link PdfFont} or load already created one.
+     *
+     * @param dictionary {@link PdfDictionary} that presents {@link PdfFont}.
+     *
+     * @return instance of {@link PdfFont}
      * <p>
      * Note, PdfFont which created with {@link PdfFontFactory#createFont(PdfDictionary)} won't be cached
      * until it will be added to {@link com.itextpdf.kernel.pdf.canvas.PdfCanvas} or {@link PdfResources}.
      */
     public PdfFont getFont(PdfDictionary dictionary) {
-        assert dictionary.getIndirectReference() != null;
-        if (documentFonts.containsKey(dictionary.getIndirectReference())) {
-            return documentFonts.get(dictionary.getIndirectReference());
+        PdfIndirectReference indirectReference = dictionary.getIndirectReference();
+        if (indirectReference != null && documentFonts.containsKey(indirectReference)) {
+            return documentFonts.get(indirectReference);
         } else {
             return addFont(PdfFontFactory.createFont(dictionary));
         }
@@ -1705,6 +1785,8 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
     /**
      * Adds a {@link PdfFont} instance to this document so that this font is flushed automatically
      * on document close. As a side effect, the underlying font dictionary is made indirect if it wasn't the case yet
+     *
+     * @param font a {@link PdfFont} instance to add
      *
      * @return the same PdfFont instance.
      */
@@ -1735,6 +1817,14 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
         return fingerPrint;
     }
 
+    /**
+     * Find {@link PdfFont} from loaded fonts with corresponding fontProgram and encoding or CMAP.
+     *
+     * @param fontProgram a font name or path to a font program
+     * @param encoding an encoding or CMAP
+     *
+     * @return the font instance, or null if font wasn't found
+     */
     public PdfFont findFont(String fontProgram, String encoding) {
         for (PdfFont font : documentFonts.values()) {
             if (!font.isFlushed() && font.isBuiltWith(fontProgram, encoding))
@@ -1834,29 +1924,10 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
                 pdfVersion = reader.headerPdfVersion;
                 trailer = new PdfDictionary(reader.trailer);
 
-                PdfArray id = reader.trailer.getAsArray(PdfName.ID);
-
-                if (id != null) {
-                   if (id.size() == 2) {
-                       originalDocumentId = id.getAsString(0);
-                       modifiedDocumentId = id.getAsString(1);
-                   }
-
-                   if (originalDocumentId == null || modifiedDocumentId == null) {
-                       Logger logger = LoggerFactory.getLogger(PdfDocument.class);
-                       logger.error(LogMessageConstant.DOCUMENT_IDS_ARE_CORRUPTED);
-                   }
-                }
+                readDocumentIds();
 
                 catalog = new PdfCatalog((PdfDictionary) trailer.get(PdfName.Root, true));
-                if (catalog.getPdfObject().containsKey(PdfName.Version)) {
-                    // The version of the PDF specification to which the document conforms (for example, 1.4)
-                    // if later than the version specified in the file's header
-                    PdfVersion catalogVersion = PdfVersion.fromPdfName(catalog.getPdfObject().getAsName(PdfName.Version));
-                    if (catalogVersion.compareTo(pdfVersion) > 0) {
-                        pdfVersion = catalogVersion;
-                    }
-                }
+                updatePdfVersionFromCatalog();
                 PdfStream xmpMetadataStream = catalog.getPdfObject().getAsStream(PdfName.Metadata);
                 if (xmpMetadataStream != null) {
                     xmpMetadata = xmpMetadataStream.getBytes();
@@ -1942,8 +2013,8 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
                 }
                 file.close();
                 writer.write((byte) '\n');
-                //TODO log if full compression differs
-                writer.properties.isFullCompression = reader.hasXrefStm();
+
+                overrideFullCompressionInWriterProperties(writer.properties, reader.hasXrefStm());
 
                 writer.crypto = reader.decrypt;
 
@@ -2016,6 +2087,9 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
 
     /**
      * Update XMP metadata values from {@link PdfDocumentInfo}.
+     *
+     * @return the XMPMetadata
+     * @throws XMPException if the file is not well-formed XML or if parsing fails.
      */
     protected XMPMeta updateDefaultXmpMetadata() throws XMPException {
         XMPMeta xmpMeta = XMPMetaFactory.parseFromBuffer(getXmpMetadata(true));
@@ -2037,6 +2111,9 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
         return documentFonts.values();
     }
 
+    /**
+     * Flushes all newly added or loaded fonts.
+     */
     protected void flushFonts() {
         if (properties.appendMode) {
             for (PdfFont font : getDocumentFonts()) {
@@ -2099,6 +2176,19 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
     }
 
     /**
+     * Returns the factory for creating page instances.
+     *
+     * @return implementation of {@link IPdfPageFactory} for current document
+     */
+    protected IPdfPageFactory getPageFactory() {
+        return pdfPageFactory;
+    }
+
+    long getDocumentId() {
+        return documentId;
+    }
+
+    /**
      * Gets iText version info.
      *
      * @return iText version info.
@@ -2107,20 +2197,31 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
         return versionInfo;
     }
 
+    boolean hasAcroForm() {
+        return getCatalog().getPdfObject().containsKey(PdfName.AcroForm);
+    }
+
     private void updateProducerInInfoDictionary() {
         String producer = null;
         if (reader == null) {
             producer = versionInfo.getVersion();
         } else {
             if (info.getPdfObject().containsKey(PdfName.Producer)) {
-                producer = info.getPdfObject().getAsString(PdfName.Producer).toUnicodeString();
+                final PdfString producerPdfStr = info.getPdfObject().getAsString(PdfName.Producer);
+                producer = producerPdfStr == null ? null : producerPdfStr.toUnicodeString();
             }
             producer = addModifiedPostfix(producer);
         }
         info.getPdfObject().put(PdfName.Producer, new PdfString(producer));
     }
 
-    private void tryInitTagStructure(PdfDictionary str) {
+    /**
+     * Initializes the new instance of document's structure tree root {@link PdfStructTreeRoot}.
+     * See ISO 32000-1, section 14.7.2 Structure Hierarchy.
+     *
+     * @param str dictionary to create structure tree root
+     */
+    protected void tryInitTagStructure(PdfDictionary str) {
         try {
             structTreeRoot = new PdfStructTreeRoot(str, this);
             structParentIndex = getStructTreeRoot().getParentTreeNextKey();
@@ -2304,10 +2405,6 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
         names.setModified();
     }
 
-    private static boolean isXmpMetaHasProperty(XMPMeta xmpMeta, String schemaNS, String propName) throws XMPException {
-        return xmpMeta.getProperty(schemaNS, propName) != null;
-    }
-
     @SuppressWarnings("unused")
     private byte[] getSerializedBytes() {
         ByteArrayOutputStream bos = null;
@@ -2338,10 +2435,6 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
         }
     }
 
-    private long getDocumentId() {
-        return documentId;
-    }
-
     private void writeObject(ObjectOutputStream out) throws IOException {
         if (tagStructureContext != null) {
             LoggerFactory.getLogger(getClass()).warn(LogMessageConstant.TAG_STRUCTURE_CONTEXT_WILL_BE_REINITIALIZED_ON_SERIALIZATION);
@@ -2351,42 +2444,6 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
 
     private boolean writerHasEncryption() {
         return writer.properties.isStandardEncryptionUsed() || writer.properties.isPublicKeyEncryptionUsed();
-    }
-
-    /**
-     * A structure storing documentId, object number and generation number. This structure is using to calculate
-     * an unique object key during the copy process.
-     */
-    static class IndirectRefDescription {
-        final long docId;
-        final int objNr;
-        final int genNr;
-
-        IndirectRefDescription(PdfIndirectReference reference) {
-            this.docId = reference.getDocument().getDocumentId();
-            this.objNr = reference.getObjNumber();
-            this.genNr = reference.getGenNumber();
-        }
-
-        @Override
-        public int hashCode() {
-            int result = (int) docId;
-            result *= 31;
-            result += objNr;
-            result *= 31;
-            result += genNr;
-            return result;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            IndirectRefDescription that = (IndirectRefDescription) o;
-
-            return docId == that.docId && objNr == that.objNr && genNr == that.genNr;
-        }
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -2413,5 +2470,59 @@ public class PdfDocument implements IEventDispatcher, Closeable, Serializable {
             buf.append(versionInfo.getVersion());
             return buf.toString();
         }
+    }
+
+    private void updatePdfVersionFromCatalog() {
+        if (catalog.getPdfObject().containsKey(PdfName.Version)) {
+            // The version of the PDF specification to which the document conforms (for example, 1.4)
+            // if later than the version specified in the file's header
+            try {
+                PdfVersion catalogVersion = PdfVersion.fromPdfName(catalog.getPdfObject().getAsName(PdfName.Version));
+                if (catalogVersion.compareTo(pdfVersion) > 0) {
+                    pdfVersion = catalogVersion;
+                }
+            } catch (IllegalArgumentException e) {
+                processReadingError(LogMessageConstant.DOCUMENT_VERSION_IN_CATALOG_CORRUPTED);
+            }
+        }
+    }
+
+    private void readDocumentIds() {
+        PdfArray id = reader.trailer.getAsArray(PdfName.ID);
+
+        if (id != null) {
+            if (id.size() == 2) {
+                originalDocumentId = id.getAsString(0);
+                modifiedDocumentId = id.getAsString(1);
+            }
+
+            if (originalDocumentId == null || modifiedDocumentId == null) {
+                processReadingError(LogMessageConstant.DOCUMENT_IDS_ARE_CORRUPTED);
+            }
+        }
+    }
+
+    private void processReadingError(String errorMessage) {
+        if (StrictnessLevel.CONSERVATIVE.isStricter(reader.getStrictnessLevel())) {
+            Logger logger = LoggerFactory.getLogger(PdfDocument.class);
+            logger.error(errorMessage);
+        } else {
+            throw new PdfException(errorMessage);
+        }
+    }
+
+    private static void overrideFullCompressionInWriterProperties(WriterProperties properties, boolean readerHasXrefStream) {
+        if (Boolean.TRUE == properties.isFullCompression && !readerHasXrefStream) {
+            Logger logger = LoggerFactory.getLogger(PdfDocument.class);
+            logger.warn(KernelLogMessageConstant.FULL_COMPRESSION_APPEND_MODE_XREF_TABLE_INCONSISTENCY);
+        } else if (Boolean.FALSE == properties.isFullCompression && readerHasXrefStream) {
+            Logger logger = LoggerFactory.getLogger(PdfDocument.class);
+            logger.warn(KernelLogMessageConstant.FULL_COMPRESSION_APPEND_MODE_XREF_STREAM_INCONSISTENCY);
+        }
+        properties.isFullCompression = readerHasXrefStream;
+    }
+
+    private static boolean isXmpMetaHasProperty(XMPMeta xmpMeta, String schemaNS, String propName) throws XMPException {
+        return xmpMeta.getProperty(schemaNS, propName) != null;
     }
 }

@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -196,13 +196,17 @@ public final class PdfEncryptor {
 
     /**
      * Gets the content from a recipient.
+     *
+     * @param recipientInfo          recipient information
+     * @param certificateKey         private certificate key
+     * @param certificateKeyProvider the name of the certificate key provider
+     * @return content from a recipient info
+     * @throws CMSException if the content cannot be recovered.
      */
     public static byte[] getContent(RecipientInformation recipientInfo, PrivateKey certificateKey, String certificateKeyProvider) throws CMSException {
         Recipient jceKeyTransRecipient = new JceKeyTransEnvelopedRecipient(certificateKey).setProvider(certificateKeyProvider);
         return recipientInfo.getContent(jceKeyTransRecipient);
     }
-
-
 
     /**
      * Sets the {@link IMetaInfo} that will be used during {@link PdfDocument} creation.

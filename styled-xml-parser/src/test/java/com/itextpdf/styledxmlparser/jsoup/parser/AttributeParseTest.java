@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -85,7 +85,7 @@ public class AttributeParseTest extends ExtendedITextTest {
         String html = "<a\r\nfoo='bar\r\nqux'\r\nbar\r\n=\r\ntwo>One</a>";
         Element el = Jsoup.parse(html).select("a").first();
         assertEquals(2, el.attributes().size());
-        assertEquals("bar\r\nqux", el.attr("foo")); // currently preserves newlines in quoted attributes. todo confirm if should.
+        assertEquals("bar\r\nqux", el.attr("foo"));
         assertEquals("two", el.attr("bar"));
     }
 

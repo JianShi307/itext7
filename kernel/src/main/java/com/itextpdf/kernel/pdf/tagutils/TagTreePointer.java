@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -168,7 +168,8 @@ public class TagTreePointer {
      * NOTE: It's important to set a {@code null} for this value, when tagging of this stream content is finished.
      *
      * @param contentStream the content stream which content will be tagged with this instance of {@code TagTreePointer}
-     *                      or {@code null} if content stream tagging is finished.
+     *                      or {@code null} if content stream tagging is finished
+     * @return current {@link TagTreePointer} instance
      */
     public TagTreePointer setContentStreamForTagging(PdfStream contentStream) {
         this.contentStream = contentStream;

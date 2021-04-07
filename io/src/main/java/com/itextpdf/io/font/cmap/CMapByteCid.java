@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -80,10 +80,12 @@ public class CMapByteCid extends AbstractCMap {
     }
 
     /**
+     * Decode byte sequence.
      *
-     * @param cidBytes
-     * @param offset
-     * @param length
+     * @param cidBytes byteCodeBytes
+     * @param offset   number of bytes to skip before starting to return chars from the sequence
+     * @param length   number of bytes to process
+     * @return string that contains decoded representation of the given sequence
      */
     public String decodeSequence(byte[] cidBytes, int offset, int length) {
         StringBuilder sb = new StringBuilder();

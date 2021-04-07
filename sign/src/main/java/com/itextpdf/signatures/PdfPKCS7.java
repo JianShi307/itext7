@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -538,10 +538,11 @@ public class PdfPKCS7 {
      */
     public Calendar getSignDate() {
         Calendar dt = getTimeStampDate();
-        if (dt == SignUtils.UNDEFINED_TIMESTAMP_DATE)
+        if (dt == TimestampConstants.UNDEFINED_TIMESTAMP_DATE) {
             return this.signDate;
-        else
+        } else {
             return dt;
+        }
     }
 
     /**
@@ -608,7 +609,10 @@ public class PdfPKCS7 {
     private PdfName filterSubtype;
 
     /**
-     * Getter for the ID of the digest algorithm, e.g. "2.16.840.1.101.3.4.2.1"
+     * Getter for the ID of the digest algorithm, e.g. "2.16.840.1.101.3.4.2.1".
+     * See ISO-32000-1, section 12.8.3.3 PKCS#7 Signatures as used in ISO 32000
+     *
+     * @return the ID of the digest algorithm
      */
     public String getDigestAlgorithmOid() {
         return digestAlgorithmOid;
@@ -631,7 +635,10 @@ public class PdfPKCS7 {
     private String digestEncryptionAlgorithmOid;
 
     /**
-     * Getter for the digest encryption algorithm
+     * Getter for the digest encryption algorithm.
+     * See ISO-32000-1, section 12.8.3.3 PKCS#7 Signatures as used in ISO 32000
+     *
+     * @return the encryption algorithm
      */
     public String getDigestEncryptionAlgorithmOid() {
         return digestEncryptionAlgorithmOid;
@@ -639,6 +646,7 @@ public class PdfPKCS7 {
 
     /**
      * Get the algorithm used to calculate the message digest, e.g. "SHA1withRSA".
+     * See ISO-32000-1, section 12.8.3.3 PKCS#7 Signatures as used in ISO 32000
      *
      * @return the algorithm used to calculate the message digest
      */
@@ -972,7 +980,6 @@ public class PdfPKCS7 {
      * exactly the same as in {@link #getEncodedPKCS7(byte[])}.
      * <p>
      * A simple example:
-     * <p>
      * <pre>
      * Calendar cal = Calendar.getInstance();
      * PdfPKCS7 pk7 = new PdfPKCS7(key, chain, null, "SHA1", null, false);
@@ -1008,7 +1015,6 @@ public class PdfPKCS7 {
      * exactly the same as in {@link #getEncodedPKCS7(byte[])}.
      * <p>
      * A simple example:
-     * <p>
      * <pre>
      * Calendar cal = Calendar.getInstance();
      * PdfPKCS7 pk7 = new PdfPKCS7(key, chain, null, "SHA1", null, false);
@@ -1470,18 +1476,24 @@ public class PdfPKCS7 {
     }
 
     /**
-     * Gets the timestamp date
+     * Gets the timestamp date.
      *
-     * @return a date
+     * In case the signed document doesn't contain timestamp,
+     * {@link TimestampConstants#UNDEFINED_TIMESTAMP_DATE} will be returned.
+     *
+     * @return the timestamp date
      */
     public Calendar getTimeStampDate() {
-        if (timeStampToken == null)
-            return (Calendar) SignUtils.UNDEFINED_TIMESTAMP_DATE;
+        if (timeStampToken == null) {
+            return (Calendar) TimestampConstants.UNDEFINED_TIMESTAMP_DATE;
+        }
         return SignUtils.getTimeStampDate(timeStampToken);
     }
 
     /**
-     * Returns the filter subtype.
+     * Getter for the filter subtype.
+     *
+     * @return the filter subtype
      */
     public PdfName getFilterSubtype() {
         return filterSubtype;

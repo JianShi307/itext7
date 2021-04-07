@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -47,6 +47,7 @@ import com.itextpdf.io.source.ByteBuffer;
 import com.itextpdf.io.source.ByteUtils;
 
 import java.nio.charset.StandardCharsets;
+
 import java.util.Map;
 
 public class PdfName extends PdfPrimitiveObject implements Comparable<PdfName> {
@@ -150,6 +151,7 @@ public class PdfName extends PdfPrimitiveObject implements Comparable<PdfName> {
     public static final PdfName BaseFont = createDirectName("BaseFont");
     public static final PdfName BaseEncoding = createDirectName("BaseEncoding");
     public static final PdfName BaselineShift = createDirectName("BaselineShift");
+    public static final PdfName BaseState = createDirectName("BaseState");
     public static final PdfName BaseVersion = createDirectName("BaseVersion");
     public static final PdfName Bates = createDirectName("Bates");
     public static final PdfName BBox = createDirectName("BBox");

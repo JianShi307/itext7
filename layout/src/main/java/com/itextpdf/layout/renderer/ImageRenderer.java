@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -62,6 +62,7 @@ import com.itextpdf.layout.layout.MinMaxWidthLayoutResult;
 import com.itextpdf.layout.minmaxwidth.MinMaxWidth;
 import com.itextpdf.layout.minmaxwidth.MinMaxWidthUtils;
 import com.itextpdf.layout.property.FloatPropertyValue;
+import com.itextpdf.layout.property.ObjectFit;
 import com.itextpdf.layout.property.OverflowPropertyValue;
 import com.itextpdf.layout.property.Property;
 import com.itextpdf.layout.property.UnitValue;
@@ -69,6 +70,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.itextpdf.io.util.MessageFormatUtil;
+import com.itextpdf.layout.renderer.objectfit.ObjectFitApplyingResult;
+import com.itextpdf.layout.renderer.objectfit.ObjectFitCalculator;
 import com.itextpdf.layout.tagging.LayoutTaggingHelper;
 
 import java.util.List;
@@ -84,6 +87,9 @@ public class ImageRenderer extends AbstractRenderer implements ILeafElementRende
     float[] matrix = new float[6];
     private Float height;
     private Float width;
+    private float renderedImageHeight;
+    private float renderedImageWidth;
+    private boolean doesObjectFitRequireCutting;
     private Rectangle initialOccupiedAreaBBox;
     private float rotatedDeltaX;
     private float rotatedDeltaY;
@@ -146,8 +152,10 @@ public class ImageRenderer extends AbstractRenderer implements ILeafElementRende
         }
         occupiedArea = new LayoutArea(area.getPageNumber(), new Rectangle(layoutBox.getX(), layoutBox.getY() + layoutBox.getHeight(), 0, 0));
 
-        float imageItselfScaledWidth = (float) width;
-        float imageItselfScaledHeight = (float) height;
+        TargetCounterHandler.addPageByID(this);
+
+        float imageContainerWidth = (float) width;
+        float imageContainerHeight = (float) height;
 
         if (isFixedLayout()) {
             fixedXPosition = this.getPropertyAsFloat(Property.LEFT);
@@ -163,21 +171,32 @@ public class ImageRenderer extends AbstractRenderer implements ILeafElementRende
         initialOccupiedAreaBBox = getOccupiedAreaBBox().clone();
         float scaleCoef = adjustPositionAfterRotation((float) angle, layoutBox.getWidth(), layoutBox.getHeight());
 
-        imageItselfScaledHeight *= scaleCoef;
-        imageItselfScaledWidth *= scaleCoef;
+        imageContainerHeight *= scaleCoef;
+        imageContainerWidth *= scaleCoef;
 
-        initialOccupiedAreaBBox.moveDown(imageItselfScaledHeight);
-        initialOccupiedAreaBBox.setHeight(imageItselfScaledHeight);
-        initialOccupiedAreaBBox.setWidth(imageItselfScaledWidth);
+        initialOccupiedAreaBBox.moveDown(imageContainerHeight);
+        initialOccupiedAreaBBox.setHeight(imageContainerHeight);
+        initialOccupiedAreaBBox.setWidth(imageContainerWidth);
         if (xObject instanceof PdfFormXObject) {
             t.scale(scaleCoef, scaleCoef);
         }
 
-        getMatrix(t, imageItselfScaledWidth, imageItselfScaledHeight);
+        float imageItselfWidth;
+        float imageItselfHeight;
+
+        applyObjectFit(modelElement.getObjectFit(), imageWidth, imageHeight);
+        if (modelElement.getObjectFit() == ObjectFit.FILL) {
+            imageItselfWidth = imageContainerWidth;
+            imageItselfHeight = imageContainerHeight;
+        } else {
+            imageItselfWidth = renderedImageWidth;
+            imageItselfHeight = renderedImageHeight;
+        }
+        getMatrix(t, imageItselfWidth, imageItselfHeight);
 
         // indicates whether the placement is forced
         boolean isPlacingForced = false;
-        if (width > layoutBox.getWidth() || height > layoutBox.getHeight()) {
+        if (width > layoutBox.getWidth() + EPS || height > layoutBox.getHeight() + EPS) {
             if (Boolean.TRUE.equals(getPropertyAsBoolean(Property.FORCED_PLACEMENT)) || (width > layoutBox.getWidth() && processOverflowX) || (height > layoutBox.getHeight() && processOverflowY)) {
                 isPlacingForced = true;
             } else {
@@ -190,7 +209,10 @@ public class ImageRenderer extends AbstractRenderer implements ILeafElementRende
 
         occupiedArea.getBBox().moveDown((float) height);
         if (borders[3] != null) {
-            height += (float) Math.sin((float) angle) * borders[3].getWidth();
+            final float delta = (float) Math.sin((float) angle) * borders[3].getWidth();
+            final float renderScaling = renderedImageHeight / (float) height;
+            height += delta;
+            renderedImageHeight += delta * renderScaling;
         }
         occupiedArea.getBBox().setHeight((float) height);
         occupiedArea.getBBox().setWidth((float) width);
@@ -208,7 +230,7 @@ public class ImageRenderer extends AbstractRenderer implements ILeafElementRende
 
         if (0 != leftMargin.getValue() || 0 != topMargin.getValue()) {
             translateImage(leftMargin.getValue(), topMargin.getValue(), t);
-            getMatrix(t, imageItselfScaledWidth, imageItselfScaledHeight);
+            getMatrix(t, imageContainerWidth, imageContainerHeight);
         }
 
         applyBorderBox(occupiedArea.getBBox(), borders, true);
@@ -311,12 +333,20 @@ public class ImageRenderer extends AbstractRenderer implements ILeafElementRende
             }
         }
 
+        beginObjectFitImageClipping(canvas);
+
         PdfXObject xObject = ((Image) (getModelElement())).getXObject();
         beginElementOpacityApplying(drawContext);
-        canvas.addXObject(xObject, matrix[0], matrix[1], matrix[2], matrix[3], (float) fixedXPosition + deltaX, (float) fixedYPosition);
+
+        final float renderedImageShiftX = ((float) width - renderedImageWidth) / 2;
+        final float renderedImageShiftY = ((float) height - renderedImageHeight) / 2;
+        canvas.addXObject(xObject, matrix[0], matrix[1], matrix[2], matrix[3], (float) fixedXPosition +
+                deltaX + renderedImageShiftX, (float) fixedYPosition + renderedImageShiftY);
 
         endElementOpacityApplying(drawContext);
+        endObjectFitImageClipping(canvas);
         endTransformationIfApplied(drawContext.getCanvas());
+
         if (Boolean.TRUE.equals(getPropertyAsBoolean(Property.FLUSH_ON_DRAW))) {
             xObject.flush();
         }
@@ -397,6 +427,29 @@ public class ImageRenderer extends AbstractRenderer implements ILeafElementRende
         }
 
         return this;
+    }
+
+    private void applyObjectFit(ObjectFit objectFit, float imageWidth, float imageHeight) {
+        final ObjectFitApplyingResult result = ObjectFitCalculator.calculateRenderedImageSize(objectFit,
+                imageWidth, imageHeight, (float) width, (float) height);
+        renderedImageWidth = (float) result.getRenderedImageWidth();
+        renderedImageHeight = (float) result.getRenderedImageHeight();
+        doesObjectFitRequireCutting = result.isImageCuttingRequired();
+    }
+
+    private void beginObjectFitImageClipping(PdfCanvas canvas) {
+        if (doesObjectFitRequireCutting) {
+            canvas.saveState();
+            final Rectangle clippedArea = new Rectangle((float) fixedXPosition,
+                    (float) fixedYPosition, (float) width, (float) height);
+            canvas.rectangle(clippedArea).clip().endPath();
+        }
+    }
+
+    private void endObjectFitImageClipping(PdfCanvas canvas) {
+        if (doesObjectFitRequireCutting) {
+            canvas.restoreState();
+        }
     }
 
     private void calculateImageDimensions(Rectangle layoutBox, AffineTransform t, PdfXObject xObject) {

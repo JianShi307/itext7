@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -91,6 +91,7 @@ public class TrueTypeCollection {
      *
      * @param ttcIndex the index for the TTC font
      * @return TrueTypeFont
+     * @throws java.io.IOException in case TTC index does not exist in this TTC file
      */
     public FontProgram getFontByTccIndex(int ttcIndex) throws java.io.IOException {
         if (ttcIndex > TTCSize - 1) {

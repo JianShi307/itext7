@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -186,7 +186,9 @@ public class PdfFunction extends PdfObjectWrapper<PdfObject> {
             PdfDictionary dictionary = new PdfDictionary();
             dictionary.put(PdfName.FunctionType, new PdfNumber(3));
             dictionary.put(PdfName.Domain, domain);
-            dictionary.put(PdfName.Range, range);
+            if (range != null) {
+                dictionary.put(PdfName.Range, range);
+            }
             dictionary.put(PdfName.Functions, functions);
             dictionary.put(PdfName.Bounds, bounds);
             dictionary.put(PdfName.Encode, encode);

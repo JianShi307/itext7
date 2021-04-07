@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -141,6 +141,9 @@ public class PdfType1Font extends PdfSimpleFont<Type1Font> {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected boolean isBuiltInFont() {
         return ((Type1Font) getFontProgram()).isBuiltInFont();

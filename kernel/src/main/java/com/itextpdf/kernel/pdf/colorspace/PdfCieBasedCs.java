@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -206,6 +206,7 @@ public abstract class PdfCieBasedCs extends PdfColorSpace {
         }
 
         public IccBased(final InputStream iccStream) {
+		    // TODO DEVSIX-4217 add parsing of the Range
             this(getInitialPdfArray(iccStream, null));
         }
 

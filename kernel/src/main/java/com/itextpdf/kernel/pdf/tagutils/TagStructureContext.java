@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -67,6 +67,7 @@ import com.itextpdf.kernel.pdf.tagging.StandardRoles;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -86,14 +87,17 @@ import org.slf4j.LoggerFactory;
  */
 public class TagStructureContext {
 
-    private static final Set<String> allowedRootTagRoles = new HashSet<>();
+    private static final Set<String> ALLOWED_ROOT_TAG_ROLES;
 
     static {
-        allowedRootTagRoles.add(StandardRoles.DOCUMENT);
-        allowedRootTagRoles.add(StandardRoles.PART);
-        allowedRootTagRoles.add(StandardRoles.ART);
-        allowedRootTagRoles.add(StandardRoles.SECT);
-        allowedRootTagRoles.add(StandardRoles.DIV);
+        // HashSet is required in order to autoport correctly in .Net
+        HashSet<String> tempSet = new HashSet<>();
+        tempSet.add(StandardRoles.DOCUMENT);
+        tempSet.add(StandardRoles.PART);
+        tempSet.add(StandardRoles.ART);
+        tempSet.add(StandardRoles.SECT);
+        tempSet.add(StandardRoles.DIV);
+        ALLOWED_ROOT_TAG_ROLES = Collections.unmodifiableSet(tempSet);
     }
 
     private PdfDocument document;
@@ -316,8 +320,10 @@ public class TagStructureContext {
     /**
      * Removes annotation content item from the tag structure.
      * If annotation is not added to the document or is not tagged, nothing will happen.
+     *
+     * @param annotation the {@link PdfAnnotation} that will be removed from the tag structure
      * @return {@link TagTreePointer} instance which points at annotation tag parent if annotation was removed,
-     * otherwise returns null.
+     * otherwise returns null
      */
     public TagTreePointer removeAnnotationTag(PdfAnnotation annotation) {
         PdfStructElem structElem = null;
@@ -365,8 +371,9 @@ public class TagStructureContext {
     /**
      * Removes all tags that belong only to this page. The logic which defines if tag belongs to the page is described
      * at {@link #flushPageTags(PdfPage)}.
+     *
      * @param page page that defines which tags are to be removed
-     * @return current {@link TagStructureContext} instance.
+     * @return current {@link TagStructureContext} instance
      */
     public TagStructureContext removePageTags(PdfPage page) {
         PdfStructTreeRoot structTreeRoot = document.getStructTreeRoot();
@@ -392,7 +399,9 @@ public class TagStructureContext {
      * <br><br>
      * If some of the page's tags have waiting state (see {@link WaitingTagsManager} these tags are considered
      * as not yet finished ones, and they and their children won't be flushed.
-     * @param page a page which tags will be flushed.
+     *
+     * @param page a page which tags will be flushed
+     * @return current {@link TagStructureContext} instance
      */
     public TagStructureContext flushPageTags(PdfPage page) {
         PdfStructTreeRoot structTreeRoot = document.getStructTreeRoot();
@@ -559,7 +568,7 @@ public class TagStructureContext {
         if (targetTagStructureVersionIs2()) {
             return StandardRoles.DOCUMENT.equals(role);
         } else {
-            return allowedRootTagRoles.contains(role);
+            return ALLOWED_ROOT_TAG_ROLES.contains(role);
         }
     }
 

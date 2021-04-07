@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -96,11 +96,11 @@ public class TableTest extends ExtendedITextTest {
     public static final String sourceFolder = "./src/test/resources/com/itextpdf/layout/TableTest/";
     public static final String destinationFolder = "./target/test/com/itextpdf/layout/TableTest/";
 
-    static final String textContent = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas porttitor congue massa. Fusce posuere, magna sed pulvinar ultricies, purus lectus malesuada libero, sit amet commodo magna eros quis urna.\n" +
+    private static final String TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas porttitor congue massa. Fusce posuere, magna sed pulvinar ultricies, purus lectus malesuada libero, sit amet commodo magna eros quis urna.\n" +
             "Nunc viverra imperdiet enim. Fusce est. Vivamus a tellus.\n" +
             "Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Proin pharetra nonummy pede. Mauris et orci.\n";
-    static final String shortTextContent = "Nunc viverra imperdiet enim. Fusce est. Vivamus a tellus.";
-    static final String middleTextContent = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas porttitor congue massa. Fusce posuere, magna sed pulvinar ultricies, purus lectus malesuada libero, sit amet commodo magna eros quis urna.\n" +
+    private static final String SHORT_TEXT_CONTENT = "Nunc viverra imperdiet enim. Fusce est. Vivamus a tellus.";
+    private static final String MIDDLE_TEXT_CONTENT = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas porttitor congue massa. Fusce posuere, magna sed pulvinar ultricies, purus lectus malesuada libero, sit amet commodo magna eros quis urna.\n" +
             "Nunc viverra imperdiet enim. Fusce est. Vivamus a tellus.";
 
     @Rule
@@ -618,7 +618,7 @@ public class TableTest extends ExtendedITextTest {
         PdfDocument pdfDoc = new PdfDocument(new PdfWriter(outFileName));
         Document doc = new Document(pdfDoc);
 
-        doc.add(new Paragraph(textContent));
+        doc.add(new Paragraph(TEXT_CONTENT));
 
         Table table = new Table(new float[]{50, 50, 50})
                 .addCell(new Cell().add(new Paragraph("cell 1, 1")))
@@ -651,19 +651,19 @@ public class TableTest extends ExtendedITextTest {
         Document doc = new Document(pdfDoc);
 
         Table table = new Table(new float[]{130, 130, 260})
-                .addCell(new Cell(3, 2).add(new Paragraph("cell 1:2, 1:3\n" + textContent + textContent)))
-                .addCell(new Cell().add(new Paragraph("cell 1, 3\n" + textContent)))
-                .addCell(new Cell().add(new Paragraph("cell 2, 3\n" + textContent)))
-                .addCell(new Cell().add(new Paragraph("cell 3, 3\n" + textContent)))
+                .addCell(new Cell(3, 2).add(new Paragraph("cell 1:2, 1:3\n" + TEXT_CONTENT + TEXT_CONTENT)))
+                .addCell(new Cell().add(new Paragraph("cell 1, 3\n" + TEXT_CONTENT)))
+                .addCell(new Cell().add(new Paragraph("cell 2, 3\n" + TEXT_CONTENT)))
+                .addCell(new Cell().add(new Paragraph("cell 3, 3\n" + TEXT_CONTENT)))
                 .addCell(new Cell().add(new Image(ImageDataFactory.create(sourceFolder + "red.png"))))
-                .addCell(new Cell().add(new Paragraph("cell 4, 2\n" + shortTextContent)))
-                .addCell(new Cell().add(new Paragraph("cell 4, 3\n" + middleTextContent)))
-                .addCell(new Cell().add(new Paragraph("cell 5, 1\n" + shortTextContent)))
-                .addCell(new Cell().add(new Paragraph("cell 5, 2\n" + shortTextContent)))
-                .addCell(new Cell().add(new Paragraph("cell 5, 3\n" + middleTextContent)))
-                .addCell(new Cell().add(new Paragraph("cell 6, 1\n" + middleTextContent)))
-                .addCell(new Cell().add(new Paragraph("cell 6, 2\n" + middleTextContent)))
-                .addCell(new Cell().add(new Paragraph("cell 6, 3\n" + middleTextContent)));
+                .addCell(new Cell().add(new Paragraph("cell 4, 2\n" + SHORT_TEXT_CONTENT)))
+                .addCell(new Cell().add(new Paragraph("cell 4, 3\n" + MIDDLE_TEXT_CONTENT)))
+                .addCell(new Cell().add(new Paragraph("cell 5, 1\n" + SHORT_TEXT_CONTENT)))
+                .addCell(new Cell().add(new Paragraph("cell 5, 2\n" + SHORT_TEXT_CONTENT)))
+                .addCell(new Cell().add(new Paragraph("cell 5, 3\n" + MIDDLE_TEXT_CONTENT)))
+                .addCell(new Cell().add(new Paragraph("cell 6, 1\n" + MIDDLE_TEXT_CONTENT)))
+                .addCell(new Cell().add(new Paragraph("cell 6, 2\n" + MIDDLE_TEXT_CONTENT)))
+                .addCell(new Cell().add(new Paragraph("cell 6, 3\n" + MIDDLE_TEXT_CONTENT)));
         doc.add(table);
         doc.close();
         Assert.assertNull(new CompareTool().compareByContent(outFileName, cmpFileName, destinationFolder, testName + "_diff"));
@@ -683,14 +683,14 @@ public class TableTest extends ExtendedITextTest {
 
         Table table = new Table(new float[]{130, 130, 260})
                 .addCell(new Cell().add(new Image(ImageDataFactory.create(sourceFolder + "red.png"))))
-                .addCell(new Cell().add(new Paragraph("cell 4, 2\n" + shortTextContent)))
-                .addCell(new Cell().add(new Paragraph("cell 4, 3\n" + middleTextContent)))
-                .addCell(new Cell().add(new Paragraph("cell 5, 1\n" + shortTextContent)))
-                .addCell(new Cell().add(new Paragraph("cell 5, 2\n" + shortTextContent)))
-                .addCell(new Cell().add(new Paragraph("cell 5, 3\n" + middleTextContent)))
-                .addCell(new Cell().add(new Paragraph("cell 6, 1\n" + middleTextContent)))
-                .addCell(new Cell().add(new Paragraph("cell 6, 2\n" + middleTextContent)))
-                .addCell(new Cell().add(new Paragraph("cell 6, 3\n" + middleTextContent)));
+                .addCell(new Cell().add(new Paragraph("cell 4, 2\n" + SHORT_TEXT_CONTENT)))
+                .addCell(new Cell().add(new Paragraph("cell 4, 3\n" + MIDDLE_TEXT_CONTENT)))
+                .addCell(new Cell().add(new Paragraph("cell 5, 1\n" + SHORT_TEXT_CONTENT)))
+                .addCell(new Cell().add(new Paragraph("cell 5, 2\n" + SHORT_TEXT_CONTENT)))
+                .addCell(new Cell().add(new Paragraph("cell 5, 3\n" + MIDDLE_TEXT_CONTENT)))
+                .addCell(new Cell().add(new Paragraph("cell 6, 1\n" + MIDDLE_TEXT_CONTENT)))
+                .addCell(new Cell().add(new Paragraph("cell 6, 2\n" + MIDDLE_TEXT_CONTENT)))
+                .addCell(new Cell().add(new Paragraph("cell 6, 3\n" + MIDDLE_TEXT_CONTENT)));
         doc.add(table);
         doc.close();
         Assert.assertNull(new CompareTool().compareByContent(outFileName, cmpFileName, destinationFolder, testName + "_diff"));
@@ -794,6 +794,28 @@ public class TableTest extends ExtendedITextTest {
                 .flush();
         table.complete();
 
+        doc.close();
+        Assert.assertNull(new CompareTool().compareByContent(outFileName, cmpFileName, destinationFolder, testName + "_diff"));
+    }
+
+    @Test
+    public void widthInPercentShouldBeResetAfterOverflow() throws IOException, InterruptedException {
+        String testName = "widthInPercentShouldBeResetAfterOverflow.pdf";
+        String outFileName = destinationFolder + testName;
+        String cmpFileName = sourceFolder + "cmp_" + testName;
+
+        PdfDocument pdfDoc = new PdfDocument(new PdfWriter(outFileName));
+        Document doc = new Document(pdfDoc);
+
+        doc.add(new Div().setHeight(730).setWidth(523));
+        Table table = new Table(2).useAllAvailableWidth().setFixedLayout()
+                .addCell(new Cell().add(new Paragraph("Hello")).setWidth(UnitValue.createPercentValue(20)))
+                .addCell(new Cell().add(new Paragraph("World")).setWidth(UnitValue.createPercentValue(80)));
+        // will be added on the first page
+        doc.add(table);
+
+        // will be added on the second page
+        doc.add(table);
         doc.close();
         Assert.assertNull(new CompareTool().compareByContent(outFileName, cmpFileName, destinationFolder, testName + "_diff"));
     }
@@ -2912,6 +2934,227 @@ public class TableTest extends ExtendedITextTest {
 
         doc.add(table);
         doc.close();
+    }
+
+    @Test
+    // TODO DEVSIX-3716
+    public void cellWithBigRowspanCompletedRowTooTest() throws IOException, InterruptedException {
+        String testName = "cellWithBigRowspanCompletedRowTooTest.pdf";
+        String outFileName = destinationFolder + testName;
+        String cmpFileName = sourceFolder + "cmp_" + testName;
+
+        PdfDocument pdfDoc = new PdfDocument(new PdfWriter(outFileName));
+        Document doc = new Document(pdfDoc);
+
+        Div div = new Div();
+        div.setHeight(700);
+
+        Table table = new Table(2);
+        table.setBorder(new SolidBorder(1));
+        table.setHorizontalBorderSpacing(5);
+        table.setVerticalBorderSpacing(5);
+
+        table.addCell(new Cell(7, 1).add(new Paragraph("Rowspan 7")).setBackgroundColor(ColorConstants.RED));
+        for (int i = 0; i < 7; i++) {
+            table.addCell(new Cell().add(new Paragraph("Rowspan 1")));
+        }
+
+        // test separated borders when j == 0 and collapsed borders when j == 1
+        table.setBorderCollapse(BorderCollapsePropertyValue.SEPARATE);
+        for (int j = 0; j < 2; j++) {
+            doc.add(div);
+            doc.add(table);
+
+            if (0 == j) {
+                doc.add(new AreaBreak());
+                table.setBorderCollapse(BorderCollapsePropertyValue.COLLAPSE);
+            }
+        }
+
+        doc.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFileName, cmpFileName, destinationFolder, testName + "_diff"));
+    }
+
+    @Test
+    // TODO DEVSIX-3716
+    public void cellWithBigRowspanCompletedRowNotTest() throws IOException, InterruptedException {
+        String testName = "cellWithBigRowspanCompletedRowNotTest.pdf";
+        String outFileName = destinationFolder + testName;
+        String cmpFileName = sourceFolder + "cmp_" + testName;
+
+        PdfDocument pdfDoc = new PdfDocument(new PdfWriter(outFileName));
+        Document doc = new Document(pdfDoc);
+
+        Div div = new Div();
+        div.setHeight(700);
+
+        Table table = new Table(2);
+        table.setBorder(new SolidBorder(1));
+        table.setHorizontalBorderSpacing(5);
+        table.setVerticalBorderSpacing(5);
+
+        table.addCell(new Cell(7, 1).add(new Paragraph("Rowspan 7")).setBackgroundColor(ColorConstants.RED));
+        table.addCell(new Cell().add(new Paragraph(TEXT_CONTENT)));
+        for (int i = 0; i < 6; i++) {
+            table.addCell(new Cell().add(new Paragraph("Rowspan 1")));
+        }
+
+        // test separated borders when j == 0 and collapsed borders when j == 1
+        table.setBorderCollapse(BorderCollapsePropertyValue.SEPARATE);
+        for (int j = 0; j < 2; j++) {
+            doc.add(div);
+            doc.add(table);
+
+            if (0 == j) {
+                doc.add(new AreaBreak());
+                table.setBorderCollapse(BorderCollapsePropertyValue.COLLAPSE);
+            }
+        }
+
+        doc.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFileName, cmpFileName, destinationFolder, testName + "_diff"));
+    }
+
+    @Test
+    public void inheritHeaderPropsWhileMinMaxWidthCalculationsTest() throws IOException, InterruptedException {
+        String filename = "inheritHeaderPropsWhileMinMaxWidthCalculations.pdf";
+
+        PdfDocument pdf = new PdfDocument(new PdfWriter(destinationFolder + filename));
+        Document document = new Document(pdf);
+
+        Paragraph p = new Paragraph("Some text is placed at the beginning"
+                + " of the page, so that page isn't being empty.");
+        document.add(p);
+
+        Table table = new Table(new float[1]);
+
+        // The header's text is longer than the body's text, hence the width
+        // of the table will be calculated by the header.
+        table.addHeaderCell(new Cell().add(new Paragraph("Hello")));
+        table.addCell(new Cell().add(new Paragraph("He")));
+        
+        // If this property is not inherited while calculating min/max widths,
+        // then while layouting header will request more space than the layout box's width
+        table.getHeader().setBold();
+        document.add(table);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(destinationFolder + filename,
+                sourceFolder + "cmp_" + filename, destinationFolder, "diff"));
+    }
+
+    @Test
+    // TODO DEVSIX-5250 The first column should be fully red
+    public void bigRowSpanTooFarFullTest() throws IOException, InterruptedException {
+        String filename = "bigRowSpanTooFarFullTest.pdf";
+
+        PdfDocument pdf = new PdfDocument(new PdfWriter(destinationFolder + filename));
+        Document document = new Document(pdf);
+
+        Table table = new Table(2);
+
+        int bigRowSpan = 5;
+        table.addCell(
+                new Cell(bigRowSpan, 1)
+                        .add(new Paragraph("row span " + bigRowSpan))
+                        .setBackgroundColor(ColorConstants.RED));
+        for (int i = 0; i < bigRowSpan; i++) {
+            table.addCell(
+                    new Cell()
+                            .add(new Paragraph(Integer.toString(i)))
+                            .setHeight(375)
+                            .setBackgroundColor(ColorConstants.BLUE));
+        }
+
+        document.add(table);
+        document.add(new AreaBreak());
+
+        table.setBorderCollapse(BorderCollapsePropertyValue.SEPARATE);
+        document.add(table);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(destinationFolder + filename,
+                sourceFolder + "cmp_" + filename, destinationFolder));
+    }
+
+    @Test
+    // TODO DEVSIX-5250 The first column should be fully red, but on page 2 it is not
+    public void bigRowSpanTooFarPartialTest() throws IOException, InterruptedException {
+        String filename = "bigRowSpanTooFarPartialTest.pdf";
+
+        PdfDocument pdf = new PdfDocument(new PdfWriter(destinationFolder + filename));
+        Document document = new Document(pdf);
+
+        Table table = new Table(2);
+
+        int bigRowSpan = 5;
+        table.addCell(
+                new Cell(bigRowSpan, 1)
+                        .add(new Paragraph("row span " + bigRowSpan))
+                        .setHeight(800)
+                        .setBackgroundColor(ColorConstants.RED));
+        for (int i = 0; i < bigRowSpan; i++) {
+            table.addCell(
+                    new Cell()
+                            .add(new Paragraph(Integer.toString(i)))
+                            .setHeight(375)
+                            .setBackgroundColor(ColorConstants.BLUE));
+        }
+
+        document.add(table);
+        document.add(new AreaBreak());
+
+        table.setBorderCollapse(BorderCollapsePropertyValue.SEPARATE);
+        document.add(table);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(destinationFolder + filename,
+                sourceFolder + "cmp_" + filename, destinationFolder));
+    }
+
+    @Test
+    @LogMessages(messages = {
+            @LogMessage(messageTemplate = LogMessageConstant.ELEMENT_DOES_NOT_FIT_AREA, count = 1)
+    })
+    // TODO DEVSIX-5250 The first column should be fully red
+    public void bigRowSpanTooFarNothingTest() throws IOException, InterruptedException {
+        String filename = "bigRowSpanTooFarNothingTest.pdf";
+
+        PdfDocument pdf = new PdfDocument(new PdfWriter(destinationFolder + filename));
+        Document document = new Document(pdf);
+
+        Table table = new Table(2);
+
+        int bigRowSpan = 5;
+        table.addCell(
+                new Cell(bigRowSpan, 1)
+                        .add(new Paragraph("row span " + bigRowSpan))
+                        .setHeight(800)
+                        .setKeepTogether(true)
+                        .setBackgroundColor(ColorConstants.RED));
+        for (int i = 0; i < bigRowSpan; i++) {
+            table.addCell(
+                    new Cell()
+                            .add(new Paragraph(Integer.toString(i)))
+                            .setHeight(375)
+                            .setBackgroundColor(ColorConstants.BLUE));
+        }
+
+        document.add(table);
+        document.add(new AreaBreak());
+
+        table.setBorderCollapse(BorderCollapsePropertyValue.SEPARATE);
+        document.add(table);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(destinationFolder + filename,
+                sourceFolder + "cmp_" + filename, destinationFolder));
     }
 
     private static class RotatedDocumentRenderer extends DocumentRenderer {

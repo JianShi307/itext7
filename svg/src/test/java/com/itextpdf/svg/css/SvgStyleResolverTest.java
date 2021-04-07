@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -60,6 +60,7 @@ import com.itextpdf.svg.css.impl.SvgStyleResolver;
 import com.itextpdf.svg.processors.impl.SvgConverterProperties;
 import com.itextpdf.svg.processors.impl.SvgProcessorContext;
 import com.itextpdf.test.ExtendedITextTest;
+import com.itextpdf.test.LogLevelConstants;
 import com.itextpdf.test.annotations.LogMessage;
 import com.itextpdf.test.annotations.LogMessages;
 import com.itextpdf.test.annotations.type.UnitTest;
@@ -105,9 +106,69 @@ public class SvgStyleResolverTest extends ExtendedITextTest{
         expected.put("ry", "53");
         expected.put("stroke-width", "1.5");
         expected.put("stroke", "#da0000");
+        expected.put("font-size", "12pt");
 
 
         Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void svgCssResolverStylesheetTest() {
+        Element jsoupLink = new Element(Tag.valueOf(SvgConstants.Tags.LINK), "");
+        Attributes linkAttributes = jsoupLink.attributes();
+        linkAttributes.put(new Attribute(SvgConstants.Attributes.XMLNS, "http://www.w3.org/1999/xhtml"));
+        linkAttributes.put(new Attribute(SvgConstants.Attributes.REL, SvgConstants.Attributes.STYLESHEET));
+        linkAttributes.put(new Attribute(SvgConstants.Attributes.HREF, "styleSheetWithLinkStyle.css"));
+        linkAttributes.put(new Attribute("type", "text/css"));
+        JsoupElementNode node = new JsoupElementNode(jsoupLink);
+
+        SvgConverterProperties scp = new SvgConverterProperties();
+        scp.setBaseUri(baseUri);
+
+        SvgProcessorContext processorContext = new SvgProcessorContext(scp);
+        SvgStyleResolver sr = new SvgStyleResolver(node, processorContext);
+        Map<String, String> attr = sr.resolveStyles(node, new SvgCssContext());
+
+        Map<String, String> expectedAttr = new HashMap<>();
+        expectedAttr.put(SvgConstants.Attributes.XMLNS, "http://www.w3.org/1999/xhtml");
+        expectedAttr.put(SvgConstants.Attributes.REL, SvgConstants.Attributes.STYLESHEET);
+        expectedAttr.put(SvgConstants.Attributes.HREF, "styleSheetWithLinkStyle.css");
+        expectedAttr.put(SvgConstants.Attributes.FONT_SIZE, "12pt");
+        expectedAttr.put("type", "text/css");
+        // Attribute from external stylesheet
+        expectedAttr.put(SvgConstants.Attributes.FILL, "black");
+
+        Assert.assertEquals(expectedAttr, attr);
+    }
+
+    @Test
+    @LogMessages(messages = {
+            @LogMessage(messageTemplate = LogMessageConstant.UNABLE_TO_RETRIEVE_STREAM_WITH_GIVEN_BASE_URI, logLevel = LogLevelConstants.ERROR),
+    })
+    public void svgCssResolverInvalidNameStylesheetTest() {
+        Element jsoupLink = new Element(Tag.valueOf(SvgConstants.Tags.LINK), "");
+        Attributes linkAttributes = jsoupLink.attributes();
+        linkAttributes.put(new Attribute(SvgConstants.Attributes.XMLNS, "http://www.w3.org/1999/xhtml"));
+        linkAttributes.put(new Attribute(SvgConstants.Attributes.REL, SvgConstants.Attributes.STYLESHEET));
+        linkAttributes.put(new Attribute(SvgConstants.Attributes.HREF, "!invalid name!externalSheet.css"));
+        linkAttributes.put(new Attribute("type", "text/css"));
+        JsoupElementNode node = new JsoupElementNode(jsoupLink);
+
+        SvgConverterProperties scp = new SvgConverterProperties();
+        scp.setBaseUri(baseUri);
+
+        SvgProcessorContext processorContext = new SvgProcessorContext(scp);
+        SvgStyleResolver sr = new SvgStyleResolver(node, processorContext);
+        Map<String, String> attr = sr.resolveStyles(node, new SvgCssContext());
+
+        Map<String, String> expectedAttr = new HashMap<>();
+        expectedAttr.put(SvgConstants.Attributes.XMLNS, "http://www.w3.org/1999/xhtml");
+        expectedAttr.put(SvgConstants.Attributes.REL, SvgConstants.Attributes.STYLESHEET);
+        expectedAttr.put(SvgConstants.Attributes.HREF,  "!invalid name!externalSheet.css");
+        expectedAttr.put(SvgConstants.Attributes.FONT_SIZE,  "12pt");
+        expectedAttr.put("type", "text/css");
+
+        Assert.assertEquals(expectedAttr, attr);
     }
 
     @Test
@@ -149,11 +210,11 @@ public class SvgStyleResolverTest extends ExtendedITextTest{
 
     @Test
     public void overrideDefaultStyleTest() {
-        ICssResolver styleResolver = new SvgStyleResolver();
+        ICssResolver styleResolver = new SvgStyleResolver(new SvgProcessorContext(new SvgConverterProperties()));
         Element svg = new Element(Tag.valueOf("svg"), "");
         svg.attributes().put(SvgConstants.Attributes.STROKE, "white");
         INode svgNode = new JsoupElementNode(svg);
-        Map<String, String> resolvedStyles = styleResolver.resolveStyles(svgNode, null);
+        Map<String, String> resolvedStyles = styleResolver.resolveStyles(svgNode, new SvgCssContext());
 
         Assert.assertEquals("white", resolvedStyles.get(SvgConstants.Attributes.STROKE));
     }
@@ -182,6 +243,7 @@ public class SvgStyleResolverTest extends ExtendedITextTest{
         expected.put("stroke-width", "1.76388889");
         expected.put("stroke", "#da0000");
         expected.put("stroke-opacity", "1");
+        expected.put("font-size", "12pt");
 
         Assert.assertEquals(expected, actual);
     }

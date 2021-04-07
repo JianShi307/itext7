@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -55,17 +55,55 @@ import java.util.Map;
  */
 public class SvgProcessorResult implements ISvgProcessorResult {
 
-    private Map<String, ISvgNodeRenderer> namedObjects;
-    private ISvgNodeRenderer root;
-    private FontProvider fontProvider;
-    private FontSet tempFonts;
+    private final Map<String, ISvgNodeRenderer> namedObjects;
+    private final ISvgNodeRenderer root;
 
+    /**
+     * @deprecated  Will be removed in 7.2.
+     */
+    @Deprecated
+    private final FontProvider fontProvider;
+
+    /**
+     * @deprecated  Will be removed in 7.2.
+     */
+    @Deprecated
+    private final FontSet tempFonts;
+    private final SvgProcessorContext context;
+
+    /**
+     * Creates new {@link SvgProcessorResult} entity.
+     * @param namedObjects a map of named-objects with their id's as {@link String} keys and
+     *                     the {@link ISvgNodeRenderer} objects as values.
+     * @param root a wrapped {@link ISvgNodeRenderer} root renderer.
+     * @param fontProvider a {@link FontProvider} instance.
+     * @param tempFonts a {@link FontSet} containing temporary fonts.
+     * @deprecated use {@link SvgProcessorResult#SvgProcessorResult(Map, ISvgNodeRenderer, SvgProcessorContext)} instead.
+     * Will be removed in 7.2.
+     */
+    @Deprecated
     public SvgProcessorResult(Map<String, ISvgNodeRenderer> namedObjects, ISvgNodeRenderer root,
                               FontProvider fontProvider, FontSet tempFonts) {
         this.namedObjects = namedObjects;
         this.root = root;
         this.fontProvider = fontProvider;
         this.tempFonts = tempFonts;
+        this.context = new SvgProcessorContext(new SvgConverterProperties());
+    }
+
+    /**
+     * Creates new {@link SvgProcessorResult} entity.
+     * @param namedObjects a map of named-objects with their id's as {@link String} keys and
+     *                     the {@link ISvgNodeRenderer} objects as values.
+     * @param root a wrapped {@link ISvgNodeRenderer} root renderer.
+     * @param context a {@link SvgProcessorContext} instance.
+     */
+    public SvgProcessorResult(Map<String, ISvgNodeRenderer> namedObjects, ISvgNodeRenderer root, SvgProcessorContext context) {
+        this.namedObjects = namedObjects;
+        this.root = root;
+        this.context = context;
+        this.fontProvider = context.getFontProvider();
+        this.tempFonts = context.getTempFonts();
     }
 
     @Override
@@ -86,6 +124,14 @@ public class SvgProcessorResult implements ISvgProcessorResult {
     @Override
     public FontSet getTempFonts() {
         return tempFonts;
+    }
+
+    /**
+     * Gets processor context, containing {@link FontProvider} and {@link FontSet} of temporary fonts inside.
+     * @return {@link SvgProcessorContext} instance
+     */
+    public SvgProcessorContext getContext() {
+        return context;
     }
 
     @Override

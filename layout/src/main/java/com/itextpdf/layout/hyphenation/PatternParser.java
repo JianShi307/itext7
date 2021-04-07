@@ -18,7 +18,11 @@
 package com.itextpdf.layout.hyphenation;
 
 import com.itextpdf.io.util.ResourceUtil;
+
+import java.io.StringReader;
+import javax.xml.parsers.SAXParser;
 import org.xml.sax.Attributes;
+import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -81,7 +85,7 @@ public class PatternParser extends DefaultHandler {
      * Parses a hyphenation pattern file.
      * @param filename the filename
      * @throws HyphenationException In case of an exception while parsing
-     * @throws FileNotFoundException
+     * @throws FileNotFoundException If the specified file is not found
      */
     public void parse(String filename) throws HyphenationException, FileNotFoundException {
         parse(new FileInputStream(filename), filename);
@@ -118,7 +122,10 @@ public class PatternParser extends DefaultHandler {
             factory.setNamespaceAware(true);
             factory.setValidating(false);
             factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-            return factory.newSAXParser().getXMLReader();
+            SAXParser saxParser = factory.newSAXParser();
+            XMLReader xmlReader = saxParser.getXMLReader();
+            xmlReader.setEntityResolver(new SafeEmptyEntityResolver());
+            return xmlReader;
         } catch (Exception e) {
             // Converting checked exceptions to unchecked RuntimeException (java-specific comment).
             //
@@ -271,7 +278,7 @@ public class PatternParser extends DefaultHandler {
 
     /**
      * {@inheritDoc}
-     * @throws SAXException
+     * @throws SAXException if parsing of hyphenation classes resource xml has failed.
      */
     public void startElement(String uri, String local, String raw,
                              Attributes attrs) throws SAXException {
@@ -430,5 +437,11 @@ public class PatternParser extends DefaultHandler {
         return str.toString();
     }
 
+    // Prevents XXE attacks
+    private static class SafeEmptyEntityResolver implements EntityResolver {
+        public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
+            return new InputSource(new StringReader(""));
+        }
+    }
 
 }

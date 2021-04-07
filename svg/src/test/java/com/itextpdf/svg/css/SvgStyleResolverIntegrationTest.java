@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -42,24 +42,31 @@
  */
 package com.itextpdf.svg.css;
 
-
+import com.itextpdf.kernel.geom.PageSize;
+import com.itextpdf.styledxmlparser.LogMessageConstant;
 import com.itextpdf.styledxmlparser.node.IDocumentNode;
 import com.itextpdf.styledxmlparser.node.impl.jsoup.JsoupXmlParser;
+import com.itextpdf.svg.exceptions.SvgLogMessageConstant;
 import com.itextpdf.svg.processors.impl.DefaultSvgProcessor;
 import com.itextpdf.svg.renderers.IBranchSvgNodeRenderer;
 import com.itextpdf.svg.renderers.ISvgNodeRenderer;
 import com.itextpdf.svg.renderers.SvgIntegrationTest;
 import com.itextpdf.svg.renderers.impl.PathSvgNodeRenderer;
 import com.itextpdf.test.ITextTest;
+import com.itextpdf.test.LogLevelConstants;
+import com.itextpdf.test.annotations.LogMessage;
+import com.itextpdf.test.annotations.LogMessages;
 import com.itextpdf.test.annotations.type.IntegrationTest;
+
+import java.io.IOException;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 @Category(IntegrationTest.class)
 public class SvgStyleResolverIntegrationTest extends SvgIntegrationTest {
@@ -91,7 +98,7 @@ public class SvgStyleResolverIntegrationTest extends SvgIntegrationTest {
                 "</svg>\n";
         JsoupXmlParser xmlParser = new JsoupXmlParser();
         IDocumentNode root = xmlParser.parse(svg);
-        IBranchSvgNodeRenderer nodeRenderer = (IBranchSvgNodeRenderer) new DefaultSvgProcessor().process(root).getRootRenderer();
+        IBranchSvgNodeRenderer nodeRenderer = (IBranchSvgNodeRenderer) new DefaultSvgProcessor().process(root, null).getRootRenderer();
 
         Map<String, String> actual = new HashMap<>();
         //Traverse to ellipse
@@ -134,7 +141,7 @@ public class SvgStyleResolverIntegrationTest extends SvgIntegrationTest {
                 "</svg>\n";
         JsoupXmlParser xmlParser = new JsoupXmlParser();
         IDocumentNode root = xmlParser.parse(svg);
-        IBranchSvgNodeRenderer nodeRenderer = (IBranchSvgNodeRenderer) new DefaultSvgProcessor().process(root).getRootRenderer();
+        IBranchSvgNodeRenderer nodeRenderer = (IBranchSvgNodeRenderer) new DefaultSvgProcessor().process(root, null).getRootRenderer();
 
         Map<String, String> actual = new HashMap<>();
         //Traverse to ellipse
@@ -171,7 +178,7 @@ public class SvgStyleResolverIntegrationTest extends SvgIntegrationTest {
                 "</svg>";
         JsoupXmlParser xmlParser = new JsoupXmlParser();
         IDocumentNode root = xmlParser.parse(svg);
-        IBranchSvgNodeRenderer nodeRenderer = (IBranchSvgNodeRenderer) new DefaultSvgProcessor().process(root).getRootRenderer();
+        IBranchSvgNodeRenderer nodeRenderer = (IBranchSvgNodeRenderer) new DefaultSvgProcessor().process(root, null).getRootRenderer();
 
         PathSvgNodeRenderer pathSvgNodeRenderer = (PathSvgNodeRenderer) ((IBranchSvgNodeRenderer) nodeRenderer.getChildren().get(0)).getChildren().get(0);
 
@@ -204,6 +211,20 @@ public class SvgStyleResolverIntegrationTest extends SvgIntegrationTest {
         convertAndCompare(sourceFolder, destinationFolder, "fontWeightTest");
     }
 
+
+    @Test
+    @LogMessages(messages = @LogMessage(messageTemplate = SvgLogMessageConstant.UNMAPPEDTAG, logLevel = LogLevelConstants.WARN))
+    // TODO DEVSIX-4275 investigate why fill style not processed
+    public void externalStyleSheetWithFillStyleTest() throws com.itextpdf.io.IOException, InterruptedException, java.io.IOException {
+        convertAndCompare(sourceFolder, destinationFolder, "externalStyleSheetWithFillStyleTest");
+    }
+
+    @Test
+    @LogMessages(messages = @LogMessage(messageTemplate = SvgLogMessageConstant.UNMAPPEDTAG, logLevel = LogLevelConstants.WARN))
+    public void externalStyleSheetWithStrokeStyleTest() throws com.itextpdf.io.IOException, InterruptedException, java.io.IOException {
+        convertAndCompare(sourceFolder, destinationFolder, "externalStyleSheetWithStrokeStyleTest");
+    }
+
     @Test
     //TODO DEVSIX-2264: that test shall fail after the fix.
     public void googleFontsTest() throws com.itextpdf.io.IOException, InterruptedException, java.io.IOException {
@@ -226,18 +247,25 @@ public class SvgStyleResolverIntegrationTest extends SvgIntegrationTest {
     // TODO: update cmp files when DEVSIX-2286 resolved
     public void svgWithExternalCSStoCustomPage() throws IOException,InterruptedException {
         // Take a note this method differs from the one used in Default Page test
-        convertAndCompare(sourceFolder, destinationFolder, "internalCss");
+        convertAndCompare(sourceFolder, destinationFolder, "externalCss_custom", PageSize.A3.rotate());
     }
 
     @Test
     // TODO: update cmp files when DEVSIX-2286 resolved
     public void svgWithInternalCSStoCustomPage() throws IOException,InterruptedException {
-        convertAndCompare(sourceFolder, destinationFolder, "internalCss_custom");
+        convertAndCompare(sourceFolder, destinationFolder, "internalCss_custom", PageSize.A3.rotate());
     }
 
     @Test
     // TODO: update cmp files when DEVSIX-2286 resolved
     public void multipleSVGtagsWithDiffStylesFromExternalCSS() throws IOException,InterruptedException {
-        convertAndCompare(sourceFolder, destinationFolder, "externalCss_palette");
+        convertAndCompare(sourceFolder, destinationFolder, "externalCss_palette", PageSize.A3.rotate());
+    }
+
+    @Test
+    @LogMessages(messages = {@LogMessage(messageTemplate = LogMessageConstant.UNKNOWN_ABSOLUTE_METRIC_LENGTH_PARSED)})
+    // TODO DEVSIX-4140 font-relative values doesn't support
+    public void relativeStyleInheritanceTest() throws IOException,InterruptedException {
+        convertAndCompare(sourceFolder, destinationFolder, "relativeStyleInheritanceTest");
     }
 }

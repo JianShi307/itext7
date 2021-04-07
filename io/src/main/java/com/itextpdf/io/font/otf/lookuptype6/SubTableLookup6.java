@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -87,9 +87,10 @@ public abstract class SubTableLookup6 extends ContextualSubTable {
     /**
      * Checks if given glyph line at the given position matches given rule.
      *
-     * @param line
-     * @param rule
-     * @param startIdx
+     * @param line glyph line to be checked
+     * @param rule rule to be compared with a given line
+     * @param startIdx glyph line position
+     * @return true if given glyph line at the given position matches given rule
      */
     protected boolean checkIfLookaheadContextMatch(GlyphLine line, ContextualSubstRule rule, int startIdx) {
         int j;
@@ -108,8 +109,9 @@ public abstract class SubTableLookup6 extends ContextualSubTable {
     /**
      * Checks if given glyph line at the given position matches given rule.
      *
-     * @param line
-     * @param rule
+     * @param line glyph line to be checked
+     * @param rule rule to be compared with a given line
+     * @return true if given glyph line matches given rule
      */
     protected boolean checkIfBacktrackContextMatch(GlyphLine line, ContextualSubstRule rule) {
         int j;

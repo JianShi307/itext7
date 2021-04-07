@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -52,12 +52,24 @@ import com.itextpdf.layout.property.VerticalAlignment;
 /**
  * Container object for style properties of an element. A style can be used as
  * an effective way to define multiple equal properties to several elements.
- * Used in {@link AbstractElement}
+ * Used in {@link AbstractElement}.
+ *
+ * The properties set via Style have a lower priority than directly set properties.
+ * For example, if the same property is set directly and added via Style, then,
+ * no matter in which order they are set, the one set directly will be chosen.
  */
 public class Style extends ElementPropertyContainer<Style> {
 
+    public Style() {
+    }
+
+    public Style(Style style) {
+        properties.putAll(style.properties);
+    }
+
     /**
      * Gets the current left margin width of the element.
+     *
      * @return the left margin width, as a {@link UnitValue} object
      */
     public UnitValue getMarginLeft() {
@@ -66,6 +78,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Sets the left margin width of the element.
+     *
      * @param value the new left margin width
      * @return this element
      */
@@ -77,6 +90,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Gets the current right margin width of the element.
+     *
      * @return the right margin width, as a {@link UnitValue} object
      */
     public UnitValue getMarginRight() {
@@ -85,6 +99,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Sets the right margin width of the element.
+     *
      * @param value the new right margin width
      * @return this element
      */
@@ -96,6 +111,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Gets the current top margin width of the element.
+     *
      * @return the top margin width, as a {@link UnitValue} object
      */
     public UnitValue getMarginTop() {
@@ -104,6 +120,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Sets the top margin width of the element.
+     *
      * @param value the new top margin width
      * @return this element
      */
@@ -115,6 +132,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Gets the current bottom margin width of the element.
+     *
      * @return the bottom margin width, as a {@link UnitValue} object
      */
     public UnitValue getMarginBottom() {
@@ -123,6 +141,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Sets the bottom margin width of the element.
+     *
      * @param value the new bottom margin width
      * @return this element
      */
@@ -145,10 +164,10 @@ public class Style extends ElementPropertyContainer<Style> {
     /**
      * Sets the margins around the element to a series of new widths.
      *
-     * @param marginTop the new margin top width
-     * @param marginRight the new margin right width
+     * @param marginTop    the new margin top width
+     * @param marginRight  the new margin right width
      * @param marginBottom the new margin bottom width
-     * @param marginLeft the new margin left width
+     * @param marginLeft   the new margin left width
      * @return this element
      */
     public Style setMargins(float marginTop, float marginRight, float marginBottom, float marginLeft) {
@@ -161,6 +180,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Gets the current left padding width of the element.
+     *
      * @return the left padding width, as a {@link UnitValue} object
      */
     public UnitValue getPaddingLeft() {
@@ -169,6 +189,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Sets the left padding width of the element.
+     *
      * @param value the new left padding width
      * @return this element
      */
@@ -180,6 +201,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Gets the current right padding width of the element.
+     *
      * @return the right padding width, as a {@link UnitValue} object
      */
     public UnitValue getPaddingRight() {
@@ -188,6 +210,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Sets the right padding width of the element.
+     *
      * @param value the new right padding width
      * @return this element
      */
@@ -199,6 +222,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Gets the current top padding width of the element.
+     *
      * @return the top padding width, as a {@link UnitValue} object
      */
     public UnitValue getPaddingTop() {
@@ -207,6 +231,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Sets the top padding width of the element.
+     *
      * @param value the new top padding width
      * @return this element
      */
@@ -218,6 +243,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Gets the current bottom padding width of the element.
+     *
      * @return the bottom padding width, as a {@link UnitValue} object
      */
     public UnitValue getPaddingBottom() {
@@ -226,6 +252,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Sets the bottom padding width of the element.
+     *
      * @param value the new bottom padding width
      * @return this element
      */
@@ -248,10 +275,10 @@ public class Style extends ElementPropertyContainer<Style> {
     /**
      * Sets the paddings around the element to a series of new widths.
      *
-     * @param paddingTop the new padding top width
-     * @param paddingRight the new padding right width
+     * @param paddingTop    the new padding top width
+     * @param paddingRight  the new padding right width
      * @param paddingBottom the new padding bottom width
-     * @param paddingLeft the new padding left width
+     * @param paddingLeft   the new padding left width
      * @return this element
      */
     public Style setPaddings(float paddingTop, float paddingRight, float paddingBottom, float paddingLeft) {
@@ -276,12 +303,14 @@ public class Style extends ElementPropertyContainer<Style> {
     /**
      * Sets a ratio which determines in which proportion will word spacing and character spacing
      * be applied when horizontal alignment is justified.
+     *
      * @param ratio the ratio coefficient. It must be between 0 and 1, inclusive.
      *              It means that <strong>ratio</strong> part of the free space will
      *              be compensated by word spacing, and <strong>1-ratio</strong> part of the free space will
      *              be compensated by character spacing.
      *              If <strong>ratio</strong> is 1, additional character spacing will not be applied.
      *              If <strong>ratio</strong> is 0, additional word spacing will not be applied.
+     * @return this element
      */
     public Style setSpacingRatio(float ratio) {
         setProperty(Property.SPACING_RATIO, ratio);
@@ -291,6 +320,7 @@ public class Style extends ElementPropertyContainer<Style> {
     /**
      * Returns whether the {@link BlockElement} should be kept together as much
      * as possible.
+     *
      * @return the current value of the {@link Property#KEEP_TOGETHER} property
      */
     public Boolean isKeepTogether() {
@@ -300,6 +330,7 @@ public class Style extends ElementPropertyContainer<Style> {
     /**
      * Sets whether the {@link BlockElement} should be kept together as much
      * as possible.
+     *
      * @param keepTogether the new value of the {@link Property#KEEP_TOGETHER} property
      * @return this element
      */
@@ -396,6 +427,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Sets the max-height of the element as point-unit value.
+     *
      * @param maxHeight a floating point value for the new max-height
      * @return the block element itself
      */
@@ -429,6 +461,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Sets the min-height of the element as point-unit value.
+     *
      * @param minHeight a floating point value for the new min-height
      * @return the block element itself
      */
@@ -451,6 +484,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Sets the max-width of the element as point-unit value.
+     *
      * @param maxWidth a floating point value for the new max-width
      * @return the block element itself
      */
@@ -472,6 +506,7 @@ public class Style extends ElementPropertyContainer<Style> {
 
     /**
      * Sets the min-width of the element as point-unit value.
+     *
      * @param minWidth a floating point value for the new min-width
      * @return the block element itself
      */

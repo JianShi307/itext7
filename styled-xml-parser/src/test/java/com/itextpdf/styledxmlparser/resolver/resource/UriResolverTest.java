@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -42,7 +42,6 @@
  */
 package com.itextpdf.styledxmlparser.resolver.resource;
 
-import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.test.ExtendedITextTest;
 import com.itextpdf.test.annotations.type.UnitTest;
 import org.junit.Assert;
@@ -265,8 +264,6 @@ public class UriResolverTest extends ExtendedITextTest {
     }
 
     @Test
-    //TODO RND-1019 this test should fail in .Net version when RND-1019 is resolved this method produces a behavior that is not consistant in java vs .Net
-    // the whitespace characters are
     public void uriResolverTest16B() throws MalformedURLException {
         String absolutePathRoot = Paths.get("").toAbsolutePath().getRoot().toUri().toURL().toString();
 
@@ -356,6 +353,15 @@ public class UriResolverTest extends ExtendedITextTest {
         UriResolver resolver = new UriResolver(baseUri);
 
         Assert.assertEquals(expectedUrl, resolver.resolveAgainstBaseUri(relativePath).toExternalForm());
+    }
+
+    @Test
+    public void uriResolverPercentSignTest() throws MalformedURLException {
+        String absolutePathRoot = Paths.get("").toAbsolutePath().getRoot().toUri().toURL().toString();
+        
+        UriResolver resolver = new UriResolver(absolutePathRoot + "%homepath%");
+
+        Assert.assertEquals(absolutePathRoot + "%25homepath%25", resolver.getBaseUri());
     }
 
     private void testPaths(UriResolver resolver, String path) throws MalformedURLException {

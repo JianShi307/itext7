@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -76,7 +76,6 @@ import java.util.Map;
 /**
  * Utility class that provides several convenience methods concerning digital signatures.
  */
-// TODO: REFACTOR. At this moment this serves as storage for some signature-related methods from iText 5 AcroFields
 public class SignatureUtil {
 
     private PdfDocument document;
@@ -341,7 +340,7 @@ public class SignatureUtil {
      *
      * @param field the signature field name
      * @return an InputStream covering the revision. Returns null if it's not a signature field
-     * @throws IOException
+     * @throws IOException signals that an I/O exception has occurred.
      */
     public InputStream extractRevision(String field) throws IOException {
         getSignatureNames();
@@ -421,7 +420,6 @@ public class SignatureUtil {
                 else
                     totalRevisions = sorter.size() + 1;
             } catch (IOException e) {
-                // TODO: add exception handling (at least some logger)
             }
             for (int k = 0; k < sorter.size(); ++k) {
                 Object[] objs = sorter.get(k);

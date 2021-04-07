@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -189,6 +189,8 @@ public class TrueTypeFont extends FontProgram {
     /**
      * The offset from the start of the file to the table directory.
      * It is 0 for TTF and may vary for TTC depending on the chosen font.
+     *
+     * @return directory Offset
      */
     public int getDirectoryOffset() {
         return fontParser.directoryOffset;

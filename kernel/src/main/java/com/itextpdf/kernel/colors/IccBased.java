@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -53,7 +53,6 @@ public class IccBased extends Color {
     private static final long serialVersionUID = -2204252409856288615L;
 
     public IccBased(PdfCieBasedCs.IccBased cs) {
-        // TODO if zero is outside of the Range, default value should be the nearest to the zero valid value
         this(cs, new float[cs.getNumberOfComponents()]);
     }
 

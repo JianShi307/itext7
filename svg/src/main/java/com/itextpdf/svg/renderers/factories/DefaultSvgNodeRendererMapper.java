@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -44,18 +44,23 @@ package com.itextpdf.svg.renderers.factories;
 
 import com.itextpdf.svg.SvgConstants;
 import com.itextpdf.svg.renderers.ISvgNodeRenderer;
-import com.itextpdf.svg.renderers.impl.ClipPathSvgNodeRenderer;
-import com.itextpdf.svg.renderers.impl.GroupSvgNodeRenderer;
 import com.itextpdf.svg.renderers.impl.CircleSvgNodeRenderer;
+import com.itextpdf.svg.renderers.impl.ClipPathSvgNodeRenderer;
+import com.itextpdf.svg.renderers.impl.DefsSvgNodeRenderer;
 import com.itextpdf.svg.renderers.impl.EllipseSvgNodeRenderer;
+import com.itextpdf.svg.renderers.impl.GroupSvgNodeRenderer;
 import com.itextpdf.svg.renderers.impl.ImageSvgNodeRenderer;
 import com.itextpdf.svg.renderers.impl.LineSvgNodeRenderer;
-import com.itextpdf.svg.renderers.impl.NoDrawOperationSvgNodeRenderer;
+import com.itextpdf.svg.renderers.impl.LinearGradientSvgNodeRenderer;
+import com.itextpdf.svg.renderers.impl.MarkerSvgNodeRenderer;
 import com.itextpdf.svg.renderers.impl.PathSvgNodeRenderer;
+import com.itextpdf.svg.renderers.impl.PatternSvgNodeRenderer;
 import com.itextpdf.svg.renderers.impl.PolygonSvgNodeRenderer;
 import com.itextpdf.svg.renderers.impl.PolylineSvgNodeRenderer;
 import com.itextpdf.svg.renderers.impl.RectangleSvgNodeRenderer;
+import com.itextpdf.svg.renderers.impl.StopSvgNodeRenderer;
 import com.itextpdf.svg.renderers.impl.SvgTagSvgNodeRenderer;
+import com.itextpdf.svg.renderers.impl.SymbolSvgNodeRenderer;
 import com.itextpdf.svg.renderers.impl.TextSvgBranchRenderer;
 import com.itextpdf.svg.renderers.impl.TextSvgTSpanBranchRenderer;
 import com.itextpdf.svg.renderers.impl.UseSvgNodeRenderer;
@@ -70,7 +75,14 @@ import java.util.Map;
  * default in the {@link DefaultSvgNodeRendererFactory}. It contains the mapping
  * of the default implementations, provided by this project for the standard SVG
  * tags as defined in the SVG Specification.
+ *
+ * @deprecated The public access to this class will be removed in 7.2. The class itself can become
+ * either package private or the inner private static class for
+ * the {@link DefaultSvgNodeRendererFactory}. Users should override {@link ISvgNodeRendererFactory}
+ * (or at least {@link DefaultSvgNodeRendererFactory}) and should not deal with the mapping class
+ * as it's more of an implementation detail.
  */
+@Deprecated
 public class DefaultSvgNodeRendererMapper implements ISvgNodeRendererMapper {
 
     @Override
@@ -79,16 +91,21 @@ public class DefaultSvgNodeRendererMapper implements ISvgNodeRendererMapper {
 
         result.put(SvgConstants.Tags.CIRCLE, CircleSvgNodeRenderer.class);
         result.put(SvgConstants.Tags.CLIP_PATH, ClipPathSvgNodeRenderer.class);
-        result.put(SvgConstants.Tags.DEFS, NoDrawOperationSvgNodeRenderer.class);
+        result.put(SvgConstants.Tags.DEFS, DefsSvgNodeRenderer.class);
         result.put(SvgConstants.Tags.ELLIPSE, EllipseSvgNodeRenderer.class);
         result.put(SvgConstants.Tags.G, GroupSvgNodeRenderer.class);
         result.put(SvgConstants.Tags.IMAGE, ImageSvgNodeRenderer.class);
         result.put(SvgConstants.Tags.LINE, LineSvgNodeRenderer.class);
+        result.put(SvgConstants.Tags.LINEAR_GRADIENT, LinearGradientSvgNodeRenderer.class);
+        result.put(SvgConstants.Tags.MARKER, MarkerSvgNodeRenderer.class);
+        result.put(SvgConstants.Tags.PATTERN, PatternSvgNodeRenderer.class);
         result.put(SvgConstants.Tags.PATH, PathSvgNodeRenderer.class);
         result.put(SvgConstants.Tags.POLYGON, PolygonSvgNodeRenderer.class);
         result.put(SvgConstants.Tags.POLYLINE, PolylineSvgNodeRenderer.class);
         result.put(SvgConstants.Tags.RECT, RectangleSvgNodeRenderer.class);
+        result.put(SvgConstants.Tags.STOP, StopSvgNodeRenderer.class);
         result.put(SvgConstants.Tags.SVG, SvgTagSvgNodeRenderer.class);
+        result.put(SvgConstants.Tags.SYMBOL, SymbolSvgNodeRenderer.class);
         result.put(SvgConstants.Tags.TEXT, TextSvgBranchRenderer.class);
         result.put(SvgConstants.Tags.TSPAN, TextSvgTSpanBranchRenderer.class);
         result.put(SvgConstants.Tags.USE, UseSvgNodeRenderer.class);
@@ -148,18 +165,12 @@ public class DefaultSvgNodeRendererMapper implements ISvgNodeRendererMapper {
 
         ignored.add(SvgConstants.Tags.HKERN);
 
-        ignored.add(SvgConstants.Tags.LINEAR_GRADIENT);
-
-        ignored.add(SvgConstants.Tags.MARKER);
         ignored.add(SvgConstants.Tags.MASK);
         ignored.add(SvgConstants.Tags.METADATA);
         ignored.add(SvgConstants.Tags.MISSING_GLYPH);
 
-        ignored.add(SvgConstants.Tags.PATTERN);
-
         ignored.add(SvgConstants.Tags.RADIAL_GRADIENT);
 
-        ignored.add(SvgConstants.Tags.STOP);
         ignored.add(SvgConstants.Tags.STYLE);
 
         ignored.add(SvgConstants.Tags.TITLE);

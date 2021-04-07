@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -107,7 +107,7 @@ public final class RawImageHelper {
     /**
      * Update original image with Raw Image parameters.
      *
-     * @param image
+     * @param image to update its parameters with Raw Image parameters.
      * @param width the exact width of the image
      * @param height the exact height of the image
      * @param components 1,3 or 4 for GrayScale, RGB and CMYK

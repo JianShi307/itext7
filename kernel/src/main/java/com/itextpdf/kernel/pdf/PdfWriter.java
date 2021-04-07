@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -47,6 +47,7 @@ import com.itextpdf.io.LogMessageConstant;
 import com.itextpdf.io.source.ByteArrayOutputStream;
 import com.itextpdf.io.source.ByteUtils;
 import com.itextpdf.io.util.FileUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +87,7 @@ public class PdfWriter extends PdfOutputStream implements Serializable {
      * It stores hashes of the indirect reference from the source document and the corresponding
      * indirect references of the copied objects from the new document.
      */
-    private Map<PdfDocument.IndirectRefDescription, PdfIndirectReference> copiedObjects = new LinkedHashMap<>();
+    private Map<PdfIndirectReference, PdfIndirectReference> copiedObjects = new LinkedHashMap<>();
 
     /**
      * Is used in smart mode to serialize and store serialized objects content.
@@ -100,6 +101,9 @@ public class PdfWriter extends PdfOutputStream implements Serializable {
      * Create a PdfWriter writing to the passed File and with default writer properties.
      *
      * @param file File to write to.
+     * @throws FileNotFoundException if the file exists but is a directory
+     *                               rather than a regular file, does not exist but cannot
+     *                               be created, or cannot be opened for any other reason
      */
     public PdfWriter(java.io.File file) throws FileNotFoundException {
         this(file.getAbsolutePath());
@@ -126,7 +130,9 @@ public class PdfWriter extends PdfOutputStream implements Serializable {
      * Create a PdfWriter writing to the passed filename and with default writer properties.
      *
      * @param filename filename of the resulting pdf.
-     * @throws FileNotFoundException
+     * @throws FileNotFoundException if the file exists but is a directory
+     *                               rather than a regular file, does not exist but cannot
+     *                               be created, or cannot be opened for any other reason
      */
     public PdfWriter(String filename) throws FileNotFoundException {
         this(filename, new WriterProperties());
@@ -137,7 +143,9 @@ public class PdfWriter extends PdfOutputStream implements Serializable {
      *
      * @param filename   filename of the resulting pdf.
      * @param properties writerproperties to use.
-     * @throws FileNotFoundException
+     * @throws FileNotFoundException if the file exists but is a directory
+     *                               rather than a regular file, does not exist but cannot
+     *                               be created, or cannot be opened for any other reason
      */
     public PdfWriter(String filename, WriterProperties properties) throws FileNotFoundException {
         this(FileUtil.getBufferedOutputStream(filename), properties);
@@ -167,6 +175,7 @@ public class PdfWriter extends PdfOutputStream implements Serializable {
      * For more details @see {@link com.itextpdf.io.source.DeflaterOutputStream}.
      *
      * @param compressionLevel compression level.
+     * @return this {@link PdfWriter} instance
      */
     public PdfWriter setCompressionLevel(int compressionLevel) {
         this.properties.setCompressionLevel(compressionLevel);
@@ -183,6 +192,7 @@ public class PdfWriter extends PdfOutputStream implements Serializable {
      * of the resulting PDF document.
      *
      * @param smartMode True for enabling smart mode.
+     * @return this {@link PdfWriter} instance
      */
     public PdfWriter setSmartMode(boolean smartMode) {
         this.properties.smartMode = smartMode;
@@ -193,7 +203,9 @@ public class PdfWriter extends PdfOutputStream implements Serializable {
      * Write an integer to the underlying stream
      *
      * @param b integer to write
-     * @throws java.io.IOException
+     * @throws java.io.IOException if an I/O error occurs. In particular,
+     *                             an <code>IOException</code> may be thrown if the output stream
+     *                             has been closed.
      */
     @Override
     public void write(int b) throws java.io.IOException {
@@ -207,7 +219,9 @@ public class PdfWriter extends PdfOutputStream implements Serializable {
      * Write a byte array to the underlying stream
      *
      * @param b byte array to write
-     * @throws java.io.IOException
+     * @throws java.io.IOException if an I/O error occurs. In particular,
+     *                             an <code>IOException</code> may be thrown if the output stream
+     *                             has been closed.
      */
     @Override
     public void write(byte[] b) throws java.io.IOException {
@@ -223,7 +237,9 @@ public class PdfWriter extends PdfOutputStream implements Serializable {
      * @param b   byte array to slice and write.
      * @param off starting index of the slice.
      * @param len length of the slice.
-     * @throws java.io.IOException
+     * @throws java.io.IOException if an I/O error occurs. In particular,
+     *                             an <code>IOException</code> may be thrown if the output stream
+     *                             has been closed.
      */
     @Override
     public void write(byte[] b, int off, int len) throws java.io.IOException {
@@ -237,7 +253,9 @@ public class PdfWriter extends PdfOutputStream implements Serializable {
     /**
      * Close the writer and underlying streams.
      *
-     * @throws IOException
+     * @throws java.io.IOException if an I/O error occurs. In particular,
+     *                             an <code>IOException</code> may be thrown if the output stream
+     *                             has been closed previously.
      */
     @Override
     public void close() throws IOException {
@@ -338,14 +356,10 @@ public class PdfWriter extends PdfOutputStream implements Serializable {
         }
 
         PdfIndirectReference indirectReference = obj.getIndirectReference();
-
-        PdfDocument.IndirectRefDescription copiedObjectKey = null;
         boolean tryToFindDuplicate = !allowDuplicating && indirectReference != null;
 
         if (tryToFindDuplicate) {
-            copiedObjectKey = new PdfDocument.IndirectRefDescription(indirectReference);
-
-            PdfIndirectReference copiedIndirectReference = copiedObjects.get(copiedObjectKey);
+            PdfIndirectReference copiedIndirectReference = copiedObjects.get(indirectReference);
             if (copiedIndirectReference != null) {
                 return copiedIndirectReference.getRefersTo();
             }
@@ -356,21 +370,18 @@ public class PdfWriter extends PdfOutputStream implements Serializable {
             serializedContent = smartModeSerializer.serializeObject(obj);
             PdfIndirectReference objectRef = smartModeSerializer.getSavedSerializedObject(serializedContent);
             if (objectRef != null) {
-                copiedObjects.put(copiedObjectKey, objectRef);
+                copiedObjects.put(indirectReference, objectRef);
                 return objectRef.refersTo;
             }
         }
 
         PdfObject newObject = obj.newInstance();
         if (indirectReference != null) {
-            if (copiedObjectKey == null) {
-                copiedObjectKey = new PdfDocument.IndirectRefDescription(indirectReference);
-            }
             PdfIndirectReference indRef = newObject.makeIndirect(documentTo).getIndirectReference();
             if (serializedContent != null) {
                 smartModeSerializer.saveSerializedObject(serializedContent, indRef);
             }
-            copiedObjects.put(copiedObjectKey, indRef);
+            copiedObjects.put(indirectReference, indRef);
         }
         newObject.copyContent(obj, documentTo);
 
@@ -381,7 +392,7 @@ public class PdfWriter extends PdfOutputStream implements Serializable {
      * Writes object to body of PDF document.
      *
      * @param pdfObj object to write.
-     * @throws IOException
+     * @throws IOException obsolete. {@code throws} declaration would be removed in 7.2
      */
     protected void writeToBody(PdfObject pdfObj) throws IOException {
         if (crypto != null) {
@@ -405,7 +416,9 @@ public class PdfWriter extends PdfOutputStream implements Serializable {
 
     /**
      * Flushes all objects which have not been flushed yet.
-     * @param forbiddenToFlush a {@link Set} of {@link PdfIndirectReference references} that are forbidden to be flushed automatically.
+     *
+     * @param forbiddenToFlush a {@link Set} of {@link PdfIndirectReference references} that are forbidden to be flushed
+     *                         automatically.
      */
     protected void flushWaitingObjects(Set<PdfIndirectReference> forbiddenToFlush) {
         PdfXrefTable xref = document.getXref();
@@ -433,7 +446,9 @@ public class PdfWriter extends PdfOutputStream implements Serializable {
 
     /**
      * Flushes all modified objects which have not been flushed yet. Used in case incremental updates.
-     * @param forbiddenToFlush a {@link Set} of {@link PdfIndirectReference references} that are forbidden to be flushed automatically.
+     *
+     * @param forbiddenToFlush a {@link Set} of {@link PdfIndirectReference references} that are forbidden to be flushed
+     *                         automatically.
      */
     protected void flushModifiedWaitingObjects(Set<PdfIndirectReference> forbiddenToFlush) {
         PdfXrefTable xref = document.getXref();
@@ -463,16 +478,17 @@ public class PdfWriter extends PdfOutputStream implements Serializable {
      * @param docId id of the source document
      */
     void flushCopiedObjects(long docId) {
-        List<PdfDocument.IndirectRefDescription> remove = new ArrayList<>();
-        for (Map.Entry<PdfDocument.IndirectRefDescription, PdfIndirectReference> copiedObject : copiedObjects.entrySet()) {
-            if (copiedObject.getKey().docId == docId) {
+        List<PdfIndirectReference> remove = new ArrayList<>();
+        for (Map.Entry<PdfIndirectReference, PdfIndirectReference> copiedObject : copiedObjects.entrySet()) {
+            PdfDocument document = copiedObject.getKey().getDocument();
+            if (document != null && document.getDocumentId() == docId) {
                 if (copiedObject.getValue().refersTo != null) {
                     copiedObject.getValue().refersTo.flush();
                     remove.add(copiedObject.getKey());
                 }
             }
         }
-        for (PdfDocument.IndirectRefDescription ird : remove) {
+        for (PdfIndirectReference ird : remove) {
             copiedObjects.remove(ird);
         }
     }
@@ -530,6 +546,10 @@ public class PdfWriter extends PdfOutputStream implements Serializable {
 
     /**
      * This method is invoked while deserialization
+     *
+     * @param in {@link java.io.ObjectInputStream} inputStream that is read during deserialization
+     * @throws IOException if I/O errors occur while writing to the underlying output stream
+     * @throws ClassNotFoundException if the class of a serialized object could not be found.
      */
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
         in.defaultReadObject();
@@ -540,6 +560,9 @@ public class PdfWriter extends PdfOutputStream implements Serializable {
 
     /**
      * This method is invoked while serialization
+     *
+     * @param out {@link java.io.ObjectOutputStream} output stream to write object into
+     * @throws IOException if I/O errors occur while writing to the underlying output stream
      */
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
         if (duplicateStream == null) {

@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -53,7 +53,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 class CollapsedTableBorders extends TableBorders {
+    /**
+     * The list of the cells' borders which should be collapsed
+     * with the first border of this TableRenderer instance, to be drawn on the area.
+     */
     private List<Border> topBorderCollapseWith = new ArrayList<Border>();
+
+    /**
+     * The list of the cells' borders which should be collapsed
+     * with the last border of this TableRenderer instance, to be drawn on the area.
+     */
     private List<Border> bottomBorderCollapseWith = new ArrayList<Border>();
 
     // region constructors
@@ -75,6 +84,7 @@ class CollapsedTableBorders extends TableBorders {
         return bottomBorderCollapseWith;
     }
 
+    @Override
     public float[] getCellBorderIndents(int row, int col, int rowspan, int colspan) {
         float[] indents = new float[4];
         List<Border> borderList;
@@ -168,8 +178,6 @@ class CollapsedTableBorders extends TableBorders {
                 int col = 0;
                 int row = index - 1;
                 while (col < numberOfColumns) {
-
-                    // TODO
                     if (null != rows.get(row - largeTableIndexOffset)[col]) {
                         CellRenderer cell = rows.get(row - largeTableIndexOffset)[col];
                         Border cellModelBottomBorder = TableBorderUtil.getCellSideBorder(((Cell) cell.getModelElement()), Property.BORDER_BOTTOM);

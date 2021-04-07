@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -42,6 +42,9 @@
  */
 package com.itextpdf.forms.xfdf;
 
+/**
+ * Represents encoding attribute of data or resource elements (children of fileattachment and sound elements).
+ */
 public enum ElementContentEncodingFormat {
     ASCII, HEX
 }

@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -399,7 +399,7 @@ public class PdfPage extends PdfObjectWrapper<PdfDictionary> {
      */
     public PdfPage copyTo(PdfDocument toDocument, IPdfPageExtraCopier copier) {
         PdfDictionary dictionary = getPdfObject().copyTo(toDocument, PAGE_EXCLUDED_KEYS, true);
-        PdfPage page = new PdfPage(dictionary);
+        PdfPage page = getDocument().getPageFactory().createPdfPage(dictionary);
         copyInheritedProperties(page, toDocument);
         for (PdfAnnotation annot : getAnnotations()) {
             if (annot.getSubtype().equals(PdfName.Link)) {
@@ -420,7 +420,7 @@ public class PdfPage extends PdfObjectWrapper<PdfDictionary> {
         if (copier != null) {
             copier.copy(this, page);
         } else {
-            if (!toDocument.getWriter().isUserWarnedAboutAcroFormCopying && getDocument().getCatalog().getPdfObject().containsKey(PdfName.AcroForm)) {
+            if (!toDocument.getWriter().isUserWarnedAboutAcroFormCopying && getDocument().hasAcroForm()) {
                 Logger logger = LoggerFactory.getLogger(PdfPage.class);
                 logger.warn(LogMessageConstant.SOURCE_DOCUMENT_HAS_ACROFORM_DICTIONARY);
                 toDocument.getWriter().isUserWarnedAboutAcroFormCopying = true;
@@ -436,6 +436,7 @@ public class PdfPage extends PdfObjectWrapper<PdfDictionary> {
      *
      * @param toDocument a document to copy to.
      * @return copied {@link PdfFormXObject} object.
+     * @throws IOException if an I/O error occurs.
      */
     public PdfFormXObject copyAsFormXObject(PdfDocument toDocument) throws IOException {
         PdfFormXObject xObject = new PdfFormXObject(getCropBox());
@@ -506,7 +507,6 @@ public class PdfPage extends PdfObjectWrapper<PdfDictionary> {
      *                                     will be flushed.
      */
     public void flush(boolean flushResourcesContentStreams) {
-        // TODO log warning in case of failed flush in pdfa document case
         if (isFlushed()) {
             return;
         }
@@ -768,7 +768,7 @@ public class PdfPage extends PdfObjectWrapper<PdfDictionary> {
     }
 
     /**
-     * Calculates and returns next available MCID reference.
+     * Calculates and returns the next available for this page's content stream MCID reference.
      *
      * @return calculated MCID reference.
      * @throws PdfException in case of not tagged document.
@@ -956,6 +956,9 @@ public class PdfPage extends PdfObjectWrapper<PdfDictionary> {
     /**
      * This method gets outlines of a current page
      *
+     * @param updateOutlines if the flag is {@code true}, the method reads the whole document and creates outline tree.
+     *                       If the flag is {@code false}, the method gets cached outline tree
+     *                       (if it was cached via calling getOutlines method before).
      * @return return all outlines of a current page
      */
     public List<PdfOutline> getOutlines(boolean updateOutlines) {
@@ -977,6 +980,7 @@ public class PdfPage extends PdfObjectWrapper<PdfDictionary> {
      * Default value - {@code false}.
      *
      * @param ignorePageRotationForContent - true to ignore rotation of the new content on the rotated page.
+     * @return this {@link PdfPage} instance.
      */
     public PdfPage setIgnorePageRotationForContent(boolean ignorePageRotationForContent) {
         this.ignorePageRotationForContent = ignorePageRotationForContent;
@@ -1195,8 +1199,8 @@ public class PdfPage extends PdfObjectWrapper<PdfDictionary> {
     /**
      * Returns files associated with PDF page.
      *
-     * @param create iText will create AF array if it doesn't exist and create value is true
-     * @return associated files array.
+     * @param create defines whether AF arrays will be created if it doesn't exist
+     * @return associated files array
      */
     public PdfArray getAssociatedFiles(boolean create) {
         PdfArray afArray = getPdfObject().getAsArray(PdfName.AF);

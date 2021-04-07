@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -64,7 +64,7 @@ public abstract class PdfShading extends PdfObjectWrapper<PdfDictionary> {
     /**
      * constants of shading type (see ISO-320001 Table 78)
      */
-	private static class ShadingType {
+    static final class ShadingType {
         /** The int value of function-based shading type*/
         public static final int FUNCTION_BASED = 1;
         /** The int value of axial shading type*/
@@ -79,6 +79,8 @@ public abstract class PdfShading extends PdfObjectWrapper<PdfDictionary> {
         public static final int COONS_PATCH_MESH = 6;
         /** The int value of tensor-product patch meshes shading type*/
         public static final int TENSOR_PRODUCT_PATCH_MESH = 7;
+
+        private ShadingType() { }
     }
 
     /**
@@ -136,10 +138,23 @@ public abstract class PdfShading extends PdfObjectWrapper<PdfDictionary> {
         return shading;
     }
 
+    /**
+     * Creates the {@link PdfShading} object from the existing {@link PdfDictionary}.
+     *
+     * @param pdfObject {@link PdfDictionary} from which the {@link PdfShading} object will be created.
+     */
     protected PdfShading(PdfDictionary pdfObject) {
         super(pdfObject);
     }
 
+    /**
+     * Creates the {@link PdfShading} object from the existing {@link PdfDictionary},
+     * using provided type and colorspace.
+     *
+     * @param pdfObject {@link PdfDictionary} from which the {@link PdfShading} object will be created.
+     * @param type type with which this {@link PdfShading} object will be created.
+     * @param colorSpace {@link PdfColorSpace} with which this {@link PdfShading} object will be created.
+     */
     protected PdfShading(PdfDictionary pdfObject, int type, PdfColorSpace colorSpace) {
         super(pdfObject);
         getPdfObject().put(PdfName.ShadingType, new PdfNumber(type));
@@ -215,6 +230,9 @@ public abstract class PdfShading extends PdfObjectWrapper<PdfDictionary> {
         super.flush();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected boolean isWrappedObjectMustBeIndirect() {
         return true;
@@ -228,7 +246,12 @@ public abstract class PdfShading extends PdfObjectWrapper<PdfDictionary> {
 
         private static final long serialVersionUID = -4459197498902558052L;
 
-		protected FunctionBased(PdfDictionary pdfDictionary) {
+        /**
+         * Creates the new instance of the class from the existing {@link PdfDictionary}.
+         *
+         * @param pdfDictionary from which this {@link FunctionBased} will be created
+         */
+        protected FunctionBased(PdfDictionary pdfDictionary) {
             super(pdfDictionary);
         }
 
@@ -334,8 +357,13 @@ public abstract class PdfShading extends PdfObjectWrapper<PdfDictionary> {
 
         private static final long serialVersionUID = 5504688740677023792L;
 
-		protected Axial(PdfDictionary pdfDictionary) {
-		    super(pdfDictionary);
+        /**
+         * Creates the new instance of the class from the existing {@link PdfDictionary}.
+         *
+         * @param pdfDictionary from which this {@link Axial} will be created
+         */
+        protected Axial(PdfDictionary pdfDictionary) {
+            super(pdfDictionary);
         }
 
         /**
@@ -387,13 +415,33 @@ public abstract class PdfShading extends PdfObjectWrapper<PdfDictionary> {
          *
          * @param cs the {@link PdfColorSpace} object in which colour values shall be expressed.
          *           The special Pattern space isn't excepted.
-         * @param coords the {@link PdfArray} of four number four numbers [x0 y0 x1 y1] that specified the starting
+         * @param coords the {@link PdfArray} of four numbers [x0 y0 x1 y1] that specified the starting
          *               and the endings coordinates of thew axis, expressed in the shading's target coordinate space.
          * @param function the {@link PdfFunction} object, that is used to calculate color transitions.
          */
         public Axial(PdfColorSpace cs, PdfArray coords, PdfFunction function) {
+            this(cs, coords, null, function);
+        }
+
+        /**
+         * Creates the new instance of the class.
+         *
+         * @param cs       the {@link PdfColorSpace} object in which colour values shall be expressed.
+         *                 The special Pattern space isn't excepted.
+         * @param coords   the {@link PdfArray} of four numbers [x0 y0 x1 y1] that specified
+         *                 the starting and the endings coordinates of thew axis, expressed
+         *                 in the shading's target coordinate space.
+         * @param domain   the {@link PdfArray} of two numbers [t0 t1] specifying the limiting values
+         *                 of a parametric variable t which is considered to vary linearly between
+         *                 these two values and becomes the input argument to the colour function.
+         * @param function the {@link PdfFunction} object, that is used to calculate color transitions.
+         */
+        public Axial(PdfColorSpace cs, PdfArray coords, PdfArray domain, PdfFunction function) {
             super(new PdfDictionary(), ShadingType.AXIAL, cs);
             setCoords(coords);
+            if (domain != null) {
+                setDomain(domain);
+            }
             setFunction(function);
         }
 
@@ -516,12 +564,17 @@ public abstract class PdfShading extends PdfObjectWrapper<PdfDictionary> {
 
         private static final long serialVersionUID = -5012819396006804845L;
 
+        /**
+         * Creates the new instance of the class from the existing {@link PdfDictionary}.
+         *
+         * @param pdfDictionary from which this {@link Radial} will be created
+         */
         protected Radial(PdfDictionary pdfDictionary) {
             super(pdfDictionary);
         }
 
         /**
-         * Creates the new instance of the class.         *
+         * Creates the new instance of the class.
          *
          * @param cs the {@link PdfColorSpace} object in which colour values shall be expressed.
          *           The Indexed color space isn't excepted.
@@ -548,7 +601,7 @@ public abstract class PdfShading extends PdfObjectWrapper<PdfDictionary> {
         }
 
         /**
-         * Creates the new instance of the class.         *
+         * Creates the new instance of the class.
          *
          * @param cs the {@link PdfColorSpace} object in which colour values shall be expressed.
          *           The Indexed color space isn't excepted.
@@ -737,9 +790,14 @@ public abstract class PdfShading extends PdfObjectWrapper<PdfDictionary> {
      * shall be specified for each vertex in place of the colour components c1...cn.
      */
     public static class FreeFormGouraudShadedTriangleMesh extends PdfShading {
-        
-    	private static final long serialVersionUID = -2690557760051875972L;
 
+        private static final long serialVersionUID = -2690557760051875972L;
+
+        /**
+         * Creates the new instance of the class from the existing {@link PdfStream}.
+         *
+         * @param pdfStream from which this {@link FreeFormGouraudShadedTriangleMesh} will be created
+         */
         protected FreeFormGouraudShadedTriangleMesh(PdfStream pdfStream) {
             super(pdfStream);
         }
@@ -905,9 +963,14 @@ public abstract class PdfShading extends PdfObjectWrapper<PdfDictionary> {
      * except there is no edge flag.
      */
     public static class LatticeFormGouraudShadedTriangleMesh extends PdfShading {
-        
-    	private static final long serialVersionUID = -8776232978423888214L;
 
+        private static final long serialVersionUID = -8776232978423888214L;
+
+        /**
+         * Creates the new instance of the class from the existing {@link PdfStream}.
+         *
+         * @param pdfStream from which this {@link LatticeFormGouraudShadedTriangleMesh} will be created
+         */
         protected LatticeFormGouraudShadedTriangleMesh(PdfStream pdfStream) {
             super(pdfStream);
         }
@@ -1076,9 +1139,14 @@ public abstract class PdfShading extends PdfObjectWrapper<PdfDictionary> {
      * shall be specified by a single parametric value t rather than by n separate colour components c1...cn.
      */
     public static class CoonsPatchMesh extends PdfShading {
-        
-    	private static final long serialVersionUID = 7296891352801419708L;
 
+        private static final long serialVersionUID = 7296891352801419708L;
+
+            /**
+             * Creates the new instance of the class from the existing {@link PdfStream}.
+             *
+             * @param pdfStream from which this {@link CoonsPatchMesh} will be created
+             */
         protected CoonsPatchMesh(PdfStream pdfStream) {
             super(pdfStream);
         }
@@ -1240,9 +1308,14 @@ public abstract class PdfShading extends PdfObjectWrapper<PdfDictionary> {
      * For the format of data stream, that defines patches, see ISO-320001 Table 86.
      */
     public static class TensorProductPatchMesh extends PdfShading {
-       
-    	private static final long serialVersionUID = -2750695839303504742L;
 
+        private static final long serialVersionUID = -2750695839303504742L;
+
+        /**
+         * Creates the new instance of the class from the existing {@link PdfStream}.
+         *
+         * @param pdfStream from which this {@link TensorProductPatchMesh} will be created
+         */
         protected TensorProductPatchMesh(PdfStream pdfStream) {
             super(pdfStream);
         }

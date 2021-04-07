@@ -1,7 +1,7 @@
 /*
  *
  * This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
  * Authors: Bruno Lowagie, Paulo Soares, et al.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -172,16 +172,27 @@ public abstract class OpenTypeFontTableReader implements Serializable {
     }
 
     public LanguageRecord getLanguageRecord(String otfScriptTag) {
-        LanguageRecord languageRecord = null;
-        if (otfScriptTag != null) {
-            for (ScriptRecord record : getScriptRecords()) {
-                if (otfScriptTag.equals(record.tag)) {
-                    languageRecord = record.defaultLanguage;
-                    break;
+        return getLanguageRecord(otfScriptTag, null);
+    }
+
+    public LanguageRecord getLanguageRecord(String otfScriptTag, String langTag) {
+        if (otfScriptTag == null) {
+            return null;
+        }
+        for (final ScriptRecord record : getScriptRecords()) {
+            if (!otfScriptTag.equals(record.tag)) {
+                continue;
+            }
+            if (langTag == null) {
+                return record.defaultLanguage;
+            }
+            for (final LanguageRecord lang : record.languages) {
+                if (langTag.equals(lang.tag)) {
+                    return lang;
                 }
             }
         }
-        return languageRecord;
+        return null;
     }
 
 	protected abstract OpenTableLookup readLookupTable(int lookupType, int lookupFlag, int[] subTableLocations)
@@ -210,6 +221,10 @@ public abstract class OpenTypeFontTableReader implements Serializable {
 
     protected SubstLookupRecord[] readSubstLookupRecords(int substCount) throws java.io.IOException {
         return OtfReadCommon.readSubstLookupRecords(rf, substCount);
+    }
+
+    protected PosLookupRecord[] readPosLookupRecords(int substCount) throws java.io.IOException {
+        return OtfReadCommon.readPosLookupRecords(rf, substCount);
     }
 
     protected TagAndLocation[] readTagAndLocations(int baseLocation) throws java.io.IOException {

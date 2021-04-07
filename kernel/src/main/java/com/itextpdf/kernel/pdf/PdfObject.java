@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -219,6 +219,7 @@ public abstract class PdfObject implements Serializable {
      * Marks object to be saved as indirect.
      *
      * @param document a document the indirect reference will belong to.
+     * @param reference indirect reference which will be associated with this document
      * @return object itself.
      */
     public PdfObject makeIndirect(PdfDocument document, PdfIndirectReference reference) {
@@ -330,10 +331,9 @@ public abstract class PdfObject implements Serializable {
 
     /**
      * Sets the 'modified' flag to the indirect object, the flag denotes that the object was modified since the document opening.
+     * It is recommended to set this flag after changing any PDF object.
      * <p>
-     * This flag is meaningful only if the {@link PdfDocument} is opened in append mode
-     * (see {@link StampingProperties#useAppendMode()}).
-     * <p>
+     * For example flag is used in the append mode (see {@link StampingProperties#useAppendMode()}).
      * In append mode the whole document is preserved as is, and only changes to the document are
      * appended to the end of the document file. Because of this, only modified objects need to be flushed and are
      * allowed to be flushed (i.e. to be written).
@@ -353,6 +353,8 @@ public abstract class PdfObject implements Serializable {
      * Some objects are vital for the living period of {@link PdfDocument} or may be
      * prevented from releasing by high-level entities dealing with the objects.
      * Also it's not possible to release the objects that have been modified.
+     *
+     * @return true if releasing this object is forbidden, otherwise false
      */
     public boolean isReleaseForbidden() {
         return checkState(FORBID_RELEASE);
@@ -370,7 +372,7 @@ public abstract class PdfObject implements Serializable {
                 indirectReference = null;
                 setState(READ_ONLY);
             }
-            //TODO log reasonless call of method
+            // TODO DEVSIX-4020. Log reasonless call of method
         }
     }
 
@@ -502,6 +504,7 @@ public abstract class PdfObject implements Serializable {
      * Sets special states of current object.
      *
      * @param state special flag of current object
+     * @return this {@link PdfObject}
      */
     protected PdfObject setState(short state) {
         this.state |= state;
@@ -512,6 +515,7 @@ public abstract class PdfObject implements Serializable {
      * Clear state of the flag of current object.
      *
      * @param state special flag state to clear
+     * @return this {@link PdfObject}
      */
     protected PdfObject clearState(short state) {
         this.state &= (short) ~state;

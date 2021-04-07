@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -489,6 +489,35 @@ public class RotationTest extends ExtendedITextTest {
         Assert.assertNull(new CompareTool().compareByContent(outFileName, cmpFileName, destinationFolder, "diff"));
     }
 
+    @Test
+    // TODO DEVSIX-5029 Content of the first cell is missing
+    public void cellRotationParagraphIsGone() throws IOException, InterruptedException {
+        String testName = "cellRotationParagraphIsGone.pdf";
+        String outFileName = destinationFolder + testName;
+        String cmpFileName = sourceFolder + cmpPrefix + testName;
+
+        PdfDocument pdf = new PdfDocument(new PdfWriter(outFileName));
+        Document doc = new Document(pdf);
+
+        Table table = new Table(2);
+        table.setFixedLayout();
+
+        Cell cell = new Cell().add(new Paragraph().add("Hello World"));
+        cell.setRotationAngle(Math.toRadians(90));
+        cell.setBackgroundColor(ColorConstants.RED);
+        table.addCell(cell);
+        cell = new Cell().add(new Paragraph().add("AAAAAAAAAAAAAAAAA aaaaaaaaaaaaaaaaaaaaaaaa "
+                + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
+        cell.setRotationAngle(Math.toRadians(90));
+        cell.setBackgroundColor(ColorConstants.BLUE);
+        table.addCell(cell);
+
+        doc.add(table);
+        doc.close();
+        Assert.assertNull(new CompareTool().compareByContent(outFileName, cmpFileName, destinationFolder, "diff"));
+
+    }
+
     private Table createTable(float height) {
         Table table = new Table(UnitValue.createPercentArray(2)).useAllAvailableWidth();
 
@@ -859,6 +888,122 @@ public class RotationTest extends ExtendedITextTest {
         doc.close();
 
         Assert.assertNull(new CompareTool().compareByContent(outFileName, cmpFileName, destinationFolder, "diff"));
+    }
+
+    @Test
+    //TODO: update cmp file after fixing DEVSIX-4458
+    public void zeroDegreeRotatedWithAlignmentParagraphInDivTest() throws IOException, InterruptedException {
+        String outFileName = destinationFolder + "zeroDegreeRotatedWithAlignmentParagraphInDiv.pdf";
+        String cmpFileName = sourceFolder + "cmp_zeroDegreeRotatedWithAlignmentParagraphInDiv.pdf";
+
+        PdfDocument pdfDocument = new PdfDocument(new PdfWriter(outFileName));
+
+        Document doc = new Document(pdfDocument);
+
+        Div div = new Div().setBorder(new SolidBorder(ColorConstants.BLACK, 1));
+        div.setWidth(300);
+
+        div.add(new Paragraph("The quick brown fox\njumps")
+                .setTextAlignment(TextAlignment.LEFT)
+                .setRotationAngle(Math.toRadians(0)));
+        div.add(new Paragraph("The quick brown fox\njumps")
+                .setTextAlignment(TextAlignment.CENTER)
+                .setRotationAngle(Math.toRadians(0)));
+        div.add(new Paragraph("The quick brown fox\njumps")
+                .setTextAlignment(TextAlignment.RIGHT)
+                .setRotationAngle(Math.toRadians(0)));
+
+        doc.add(div);
+        doc.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFileName, cmpFileName, destinationFolder));
+    }
+
+    @Test
+    //TODO: update cmp file after fixing DEVSIX-4458
+    public void rotated180DegreesWithAlignmentParagraphInDivTest() throws IOException, InterruptedException {
+        String outFileName = destinationFolder + "rotated180DegreesWithAlignmentParagraphInDiv.pdf";
+        String cmpFileName = sourceFolder + "cmp_rotated180DegreesWithAlignmentParagraphInDiv.pdf";
+
+        PdfDocument pdfDocument = new PdfDocument(new PdfWriter(outFileName));
+
+        Document doc = new Document(pdfDocument);
+
+        Div div = new Div().setBorder(new SolidBorder(ColorConstants.BLACK, 1));
+        div.setWidth(300);
+
+        div.add(new Paragraph("The quick brown fox\njumps")
+                .setTextAlignment(TextAlignment.LEFT)
+                .setRotationAngle(Math.toRadians(180)));
+        div.add(new Paragraph("The quick brown fox\njumps")
+                .setTextAlignment(TextAlignment.CENTER)
+                .setRotationAngle(Math.toRadians(180)));
+        div.add(new Paragraph("The quick brown fox\njumps")
+                .setTextAlignment(TextAlignment.RIGHT)
+                .setRotationAngle(Math.toRadians(180)));
+
+        doc.add(div);
+        doc.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFileName, cmpFileName, destinationFolder));
+    }
+
+    @Test
+    //TODO: update cmp file after fixing DEVSIX-4458
+    public void rotated90DegreesWithAlignmentParagraphInDivTest() throws IOException, InterruptedException {
+        String outFileName = destinationFolder + "rotated90DegreesWithAlignmentParagraphInDiv.pdf";
+        String cmpFileName = sourceFolder + "cmp_rotated90DegreesWithAlignmentParagraphInDiv.pdf";
+
+        PdfDocument pdfDocument = new PdfDocument(new PdfWriter(outFileName));
+
+        Document doc = new Document(pdfDocument);
+
+        Div div = new Div().setBorder(new SolidBorder(ColorConstants.BLACK, 1));
+        div.setHeight(300);
+
+        div.add(new Paragraph("The quick brown fox\njumps")
+                .setTextAlignment(TextAlignment.LEFT)
+                .setRotationAngle(Math.toRadians(90)));
+        div.add(new Paragraph("The quick brown fox\njumps")
+                .setTextAlignment(TextAlignment.CENTER)
+                .setRotationAngle(Math.toRadians(90)));
+        div.add(new Paragraph("The quick brown fox\njumps")
+                .setTextAlignment(TextAlignment.RIGHT)
+                .setRotationAngle(Math.toRadians(90)));
+
+        doc.add(div);
+        doc.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFileName, cmpFileName, destinationFolder));
+    }
+
+    @Test
+    //TODO: update cmp file after fixing DEVSIX-4458
+    public void rotatedWithAlignmentCellInTableTest() throws IOException, InterruptedException {
+        String outFileName = destinationFolder + "rotatedWithAlignmentCellInTable.pdf";
+        String cmpFileName = sourceFolder + "cmp_rotatedWithAlignmentCellInTable.pdf";
+
+        PdfDocument pdfDocument = new PdfDocument(new PdfWriter(outFileName));
+
+        Document doc = new Document(pdfDocument);
+
+        Table table = new Table(1);
+        table.setWidth(300);
+
+        Cell cell = new Cell()
+                .setBorder(new SolidBorder(ColorConstants.BLACK, 1))
+                .setRotationAngle(Math.toRadians(180));
+        cell.add(new Paragraph("The quick brown fox\njumps").setTextAlignment(TextAlignment.LEFT));
+        cell.add(new Paragraph("The quick brown fox\njumps").setTextAlignment(TextAlignment.CENTER));
+        cell.add(new Paragraph("The quick brown fox\njumps").setTextAlignment(TextAlignment.RIGHT));
+
+        table.addCell(cell);
+
+        doc.add(table);
+
+        doc.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFileName, cmpFileName, destinationFolder));
     }
 
     private void drawCross(PdfCanvas canvas, float x, float y) {

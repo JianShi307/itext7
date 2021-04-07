@@ -1,7 +1,7 @@
 /*
  *
  * This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
  * Authors: Bruno Lowagie, Paulo Soares, et al.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -141,6 +141,7 @@ import com.itextpdf.io.util.FileUtil;
 
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.Writer;
 
 /**
  * Converts a PFM file into an AFM file.
@@ -152,7 +153,7 @@ public final class Pfm2afm {
     /** Creates a new instance of Pfm2afm */
     private Pfm2afm(RandomAccessFileOrArray input, OutputStream output) throws java.io.IOException {
         this.input = input;
-        this.output = FileUtil.createPrintWriter(output, "ISO-8859-1");
+        this.output = (PrintWriter) FileUtil.createPrintWriter(output, "ISO-8859-1");
     }
     
     /**

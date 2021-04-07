@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -77,6 +77,8 @@ public class GlyphPositioningTableReader extends OpenTypeFontTableReader {
             }
         }
         switch (lookupType) {
+            case 1:
+                return new GposLookupType1(this, lookupFlag, subTableLocations);
             case 2:
                 return new GposLookupType2(this, lookupFlag, subTableLocations);
             case 4:
@@ -85,6 +87,8 @@ public class GlyphPositioningTableReader extends OpenTypeFontTableReader {
                 return new GposLookupType5(this, lookupFlag, subTableLocations);
             case 6:
                 return new GposLookupType6(this, lookupFlag, subTableLocations);
+            case 7:
+                return new GposLookupType7(this, lookupFlag, subTableLocations);
             default:
                 return null;
         }

@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -43,6 +43,7 @@
 package com.itextpdf.svg.googlecharts;
 
 import com.itextpdf.io.IOException;
+import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.svg.exceptions.SvgLogMessageConstant;
 import com.itextpdf.svg.renderers.SvgIntegrationTest;
 import com.itextpdf.test.ITextTest;
@@ -70,26 +71,20 @@ public class WordTreesChartsTest extends SvgIntegrationTest {
     }
 
     @Test
-    @LogMessages(messages = {
-            @LogMessage(messageTemplate = SvgLogMessageConstant.UNMAPPEDTAG),
-    })
+    //TODO update cmp file after DEVSIX-4136 will be fixed (opacity gradient)
     public void wordTrees2Chart() throws IOException, InterruptedException, java.io.IOException {
-        convertAndCompare(sourceFolder, destinationFolder, "wordTrees2Chart");
+        convertAndCompare(sourceFolder, destinationFolder, "wordTrees2Chart", PageSize.A1);
     }
 
     @Test
-    @LogMessages(messages = {
-            @LogMessage(messageTemplate = SvgLogMessageConstant.UNMAPPEDTAG),
-    })
+    //TODO update cmp file after DEVSIX-4136 will be fixed (opacity gradient)
     public void wordTrees3Chart() throws IOException, InterruptedException, java.io.IOException {
-        convertAndCompare(sourceFolder, destinationFolder, "wordTrees3Chart");
+        convertAndCompare(sourceFolder, destinationFolder, "wordTrees3Chart", PageSize.A1);
     }
 
     @Test
-    @LogMessages(messages = {
-            @LogMessage(messageTemplate = SvgLogMessageConstant.UNMAPPEDTAG, count = 2),
-    })
+    //TODO update cmp file after DEVSIX-4136 will be fixed (opacity gradient)
     public void wordTrees4Chart() throws IOException, InterruptedException, java.io.IOException {
-        convertAndCompare(sourceFolder, destinationFolder, "wordTrees4Chart");
+        convertAndCompare(sourceFolder, destinationFolder, "wordTrees4Chart", PageSize.A1);
     }
 }

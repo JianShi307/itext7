@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -43,6 +43,8 @@
  */
 package com.itextpdf.test;
 
+import com.itextpdf.test.annotations.LogMessage;
+import com.itextpdf.test.annotations.LogMessages;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -50,29 +52,31 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.StackTraceElementProxy;
+import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.read.ListAppender;
-import com.itextpdf.test.annotations.LogMessage;
-import com.itextpdf.test.annotations.LogMessages;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.SubstituteLoggerFactory;
 
-import java.util.List;
-
-
 public class LogListener extends TestWatcher {
 
     private static final String ROOT_ITEXT_PACKAGE = "com.itextpdf";
 
-    private final ListAppender<ILoggingEvent> listAppender = new CustomListAppender<ILoggingEvent>();
+    private final CustomListAppender<ILoggingEvent> listAppender = new CustomListAppender<>();
 
     private final ILoggerFactory lc = LoggerFactory.getILoggerFactory();
 
+    private Map<Logger, Map<String, Appender<ILoggingEvent>>> appenders;
+
     @Override
     protected void starting(Description description) {
-        before();
+        before(description);
     }
 
     @Override
@@ -81,23 +85,56 @@ public class LogListener extends TestWatcher {
         after();
     }
 
-    private int contains(String loggingStatement) {
+    private int contains(LogMessage loggingStatement) {
         List<ILoggingEvent> list = listAppender.list;
         int index = 0;
         for (ILoggingEvent event : list) {
-            if (LogListenerHelper.equalsMessageByTemplate(event.getFormattedMessage(), loggingStatement)) {
+            if (isLevelCompatible(loggingStatement.logLevel(), event.getLevel())
+                    && LoggerHelper
+                    .equalsMessageByTemplate(event.getFormattedMessage(), loggingStatement.messageTemplate())) {
                 index++;
             }
         }
         return index;
     }
 
+    private boolean isLevelCompatible(int logMessageLevel, Level eventLevel) {
+        switch (logMessageLevel) {
+            case LogLevelConstants.UNKNOWN:
+                return eventLevel.isGreaterOrEqual(Level.WARN);
+            case LogLevelConstants.ERROR:
+                return eventLevel == Level.ERROR;
+            case LogLevelConstants.WARN:
+                return eventLevel == Level.WARN;
+            case LogLevelConstants.INFO:
+                return eventLevel == Level.INFO;
+            case LogLevelConstants.DEBUG:
+                return eventLevel == Level.DEBUG;
+            default:
+                return false;
+        }
+    }
+
     public int getSize() {
         return listAppender.list.size();
     }
 
-    private void before() {
-        listAppender.list.clear();
+    private void before(Description description) {
+        listAppender.clear();
+
+        LogMessages logMessages = LoggerHelper.getTestAnnotation(description, LogMessages.class);
+        if (logMessages != null) {
+            Set<String> expectedTemplates = new HashSet<>();
+            LogMessage[] messages = logMessages.messages();
+            for (LogMessage logMessage : messages) {
+                expectedTemplates.add(logMessage.messageTemplate());
+            }
+            listAppender.setExpectedTemplates(expectedTemplates);
+        }
+
+        // LoggerContext#reset method resets more parameters than appenders,
+        // like turbofilters, listeners, etc. But currently it is important to save only appenders.
+        appenders = LoggerHelper.getAllAppendersMap((LoggerContext) lc);
         resetLoggingContext();
         addAppenderToPackage();
         listAppender.start();
@@ -106,6 +143,7 @@ public class LogListener extends TestWatcher {
     private void after() {
         listAppender.stop();
         resetLoggingContext();
+        LoggerHelper.restoreAppenders(appenders);
     }
 
     private void addAppenderToPackage() {
@@ -124,31 +162,56 @@ public class LogListener extends TestWatcher {
     }
 
     private void checkLogMessages(Description description) {
-        LogMessages logMessages = LogListenerHelper.getTestAnnotation(description, LogMessages.class);
+        LogMessages logMessages = LoggerHelper.getTestAnnotation(description, LogMessages.class);
         int checkedMessages = 0;
         if (logMessages != null) {
             LogMessage[] messages = logMessages.messages();
             for (LogMessage logMessage : messages) {
-                int foundCount = contains(logMessage.messageTemplate());
+                int foundCount = contains(logMessage);
                 if (foundCount != logMessage.count() && !logMessages.ignore()) {
-                    LogListenerHelper.failWrongMessageCount(logMessage.count(), foundCount, logMessage.messageTemplate(), description);
+                    LoggerHelper.failWrongMessageCount(logMessage.count(), foundCount, logMessage.messageTemplate(),
+                            description);
                 } else {
                     checkedMessages += foundCount;
                 }
             }
         }
         if (getSize() > checkedMessages) {
-            LogListenerHelper.failWrongTotalCount(getSize(), checkedMessages, description);
+            LoggerHelper.failWrongTotalCount(getSize(), checkedMessages, description);
         }
     }
 
     private class CustomListAppender<E> extends ListAppender<ILoggingEvent> {
+
+        private Set<String> expectedTemplates = new HashSet<>();
+
+        public void setExpectedTemplates(Set<String> expectedTemplates) {
+            this.expectedTemplates.clear();
+            this.expectedTemplates.addAll(expectedTemplates);
+        }
+
+        public void clear() {
+            this.list.clear();
+            expectedTemplates.clear();
+        }
+
         protected void append(ILoggingEvent e) {
             System.out.println(e.getLoggerName() + " " + e.getLevel() + " " + e.getMessage());
             printStackTraceIfAny(e);
-            if (e.getLevel().isGreaterOrEqual(Level.WARN)) {
+            if (e.getLevel().isGreaterOrEqual(Level.WARN) || isExpectedMessage(e.getMessage())) {
                 this.list.add(e);
             }
+        }
+
+        private boolean isExpectedMessage(String message) {
+            if (message != null) {
+                for (String template : expectedTemplates) {
+                    if (LoggerHelper.equalsMessageByTemplate(message, template)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         private void printStackTraceIfAny(ILoggingEvent e) {

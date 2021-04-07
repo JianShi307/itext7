@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.itextpdf</groupId>
     <artifactId>root</artifactId>
-    <version>7.1.9-SNAPSHOT</version>
+    <version>7.1.16-SNAPSHOT</version>
   </parent>
   <artifactId>sign</artifactId>
   <name>iText 7 - sign</name>
@@ -56,7 +56,7 @@
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
           <includes>
-            <include>**/*Test.java</include>
+            <include>**/*.java</include>
           </includes>
           <groups>${integrationtests}</groups>
         </configuration>

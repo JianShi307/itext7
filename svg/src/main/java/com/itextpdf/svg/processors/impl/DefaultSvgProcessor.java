@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -47,7 +47,6 @@ import com.itextpdf.styledxmlparser.node.IElementNode;
 import com.itextpdf.styledxmlparser.node.INode;
 import com.itextpdf.styledxmlparser.node.ITextNode;
 import com.itextpdf.svg.SvgConstants;
-import com.itextpdf.svg.css.SvgCssContext;
 import com.itextpdf.svg.css.impl.SvgStyleResolver;
 import com.itextpdf.svg.exceptions.SvgLogMessageConstant;
 import com.itextpdf.svg.exceptions.SvgProcessingException;
@@ -56,10 +55,14 @@ import com.itextpdf.svg.processors.ISvgProcessor;
 import com.itextpdf.svg.processors.ISvgProcessorResult;
 import com.itextpdf.svg.processors.impl.font.SvgFontProcessor;
 import com.itextpdf.svg.renderers.IBranchSvgNodeRenderer;
+import com.itextpdf.svg.renderers.INoDrawSvgNodeRenderer;
 import com.itextpdf.svg.renderers.ISvgNodeRenderer;
+import com.itextpdf.svg.renderers.factories.DefaultSvgNodeRendererFactory;
 import com.itextpdf.svg.renderers.factories.ISvgNodeRendererFactory;
+import com.itextpdf.svg.renderers.impl.DefsSvgNodeRenderer;
 import com.itextpdf.svg.renderers.impl.ISvgTextNodeRenderer;
-import com.itextpdf.svg.renderers.impl.NoDrawOperationSvgNodeRenderer;
+import com.itextpdf.svg.renderers.impl.LinearGradientSvgNodeRenderer;
+import com.itextpdf.svg.renderers.impl.StopSvgNodeRenderer;
 import com.itextpdf.svg.renderers.impl.TextLeafSvgNodeRenderer;
 import com.itextpdf.svg.renderers.impl.TextSvgBranchRenderer;
 import com.itextpdf.svg.utils.SvgTextUtil;
@@ -80,7 +83,6 @@ public class DefaultSvgProcessor implements ISvgProcessor {
     private ICssResolver cssResolver;
     private ISvgNodeRendererFactory rendererFactory;
     private Map<String, ISvgNodeRenderer> namedObjects;
-    private SvgCssContext cssContext;
     private SvgProcessorContext context;
 
     /**
@@ -107,13 +109,13 @@ public class DefaultSvgProcessor implements ISvgProcessor {
             //Iterate over children
             executeDepthFirstTraversal(svgRoot);
             ISvgNodeRenderer rootSvgRenderer = createResultAndClean();
-            return new SvgProcessorResult(namedObjects, rootSvgRenderer,
-                    context.getFontProvider(), context.getTempFonts());
+            return new SvgProcessorResult(namedObjects, rootSvgRenderer, context);
         } else {
             throw new SvgProcessingException(SvgLogMessageConstant.NOROOT);
         }
     }
 
+    @Deprecated
     public ISvgProcessorResult process(INode root) throws SvgProcessingException {
         return process(root, null);
     }
@@ -127,13 +129,14 @@ public class DefaultSvgProcessor implements ISvgProcessor {
         processorState = new ProcessorState();
         if (converterProps.getRendererFactory() != null) {
             rendererFactory = converterProps.getRendererFactory();
+        } else {
+            rendererFactory = new DefaultSvgNodeRendererFactory();
         }
         context = new SvgProcessorContext(converterProps);
         cssResolver = new SvgStyleResolver(root, context);
         new SvgFontProcessor(context).addFontFaceFonts(cssResolver);
-        //TODO RND-1042
+        //TODO DEVSIX-2264
         namedObjects = new HashMap<>();
-        cssContext = new SvgCssContext();
     }
 
     /**
@@ -148,7 +151,7 @@ public class DefaultSvgProcessor implements ISvgProcessor {
 
             ISvgNodeRenderer startingRenderer = rendererFactory.createSvgNodeRendererForTag(rootElementNode, null);
             if (startingRenderer != null) {
-                Map<String, String> attributesAndStyles = cssResolver.resolveStyles(startingNode, cssContext);
+                Map<String, String> attributesAndStyles = cssResolver.resolveStyles(startingNode, context.getCssContext());
                 rootElementNode.setStyles(attributesAndStyles);
                 startingRenderer.setAttributesAndStyles(attributesAndStyles);
                 processorState.push(startingRenderer);
@@ -184,24 +187,34 @@ public class DefaultSvgProcessor implements ISvgProcessor {
             IElementNode element = (IElementNode) node;
 
             if (!rendererFactory.isTagIgnored(element)) {
-                ISvgNodeRenderer renderer = createRenderer(element, processorState.top());
+                ISvgNodeRenderer parentRenderer = processorState.top();
+                ISvgNodeRenderer renderer = rendererFactory.createSvgNodeRendererForTag(element, parentRenderer);
                 if (renderer != null) {
-                    Map<String, String> styles = cssResolver.resolveStyles(node, cssContext);
-                    element.setStyles(styles); //For inheritance
-                    renderer.setAttributesAndStyles(styles);//For drawing operations
+                    final Map<String, String> styles = cssResolver.resolveStyles(node, context.getCssContext());
+                    // For inheritance
+                    element.setStyles(styles);
+                    // For drawing operations
+                    renderer.setAttributesAndStyles(styles);
 
                     String attribute = renderer.getAttribute(SvgConstants.Attributes.ID);
                     if (attribute != null) {
                         namedObjects.put(attribute, renderer);
                     }
 
-                    // don't add the NoDrawOperationSvgNodeRenderer or its subtree to the ISvgNodeRenderer tree
-                    if (!(renderer instanceof NoDrawOperationSvgNodeRenderer)) {
-                        if (processorState.top() instanceof IBranchSvgNodeRenderer) {
-                            ((IBranchSvgNodeRenderer) processorState.top()).addChild(renderer);
-                        } else if (processorState.top() instanceof TextSvgBranchRenderer && renderer instanceof ISvgTextNodeRenderer) {
-                            //Text branch node renderers only accept ISvgTextNodeRenderers
-                            ((TextSvgBranchRenderer) processorState.top()).addChild((ISvgTextNodeRenderer) renderer);
+                    if (renderer instanceof StopSvgNodeRenderer) {
+                        if (parentRenderer instanceof LinearGradientSvgNodeRenderer) {
+                            // It is necessary to add StopSvgNodeRenderer only as a child of LinearGradientSvgNodeRenderer,
+                            // because StopSvgNodeRenderer performs an auxiliary function and should not be drawn at all
+                            ((LinearGradientSvgNodeRenderer) parentRenderer).addChild(renderer);
+                        }
+                    }
+                    // DefsSvgNodeRenderer should not have parental relationship with any renderer, it only serves as a storage
+                    else if (!(renderer instanceof INoDrawSvgNodeRenderer) && !(parentRenderer instanceof DefsSvgNodeRenderer)) {
+                        if (parentRenderer instanceof IBranchSvgNodeRenderer) {
+                            ((IBranchSvgNodeRenderer) parentRenderer).addChild(renderer);
+                        } else if (parentRenderer instanceof TextSvgBranchRenderer && renderer instanceof ISvgTextNodeRenderer) {
+                            // Text branch node renderers only accept ISvgTextNodeRenderers
+                            ((TextSvgBranchRenderer) parentRenderer).addChild((ISvgTextNodeRenderer) renderer);
                         }
                     }
 
@@ -219,17 +232,6 @@ public class DefaultSvgProcessor implements ISvgProcessor {
         } else if (processAsText(node)) {
             processText((ITextNode) node);
         }
-    }
-
-    /**
-     * Create renderer based on the passed SVG tag and assign its parent
-     *
-     * @param tag    SVG tag with all style attributes already assigned
-     * @param parent renderer of the parent tag
-     * @return Configured renderer for the tag
-     */
-    private ISvgNodeRenderer createRenderer(IElementNode tag, ISvgNodeRenderer parent) {
-        return rendererFactory.createSvgNodeRendererForTag(tag, parent);
     }
 
     /**

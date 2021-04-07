@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -373,6 +373,8 @@ public class TableRenderer extends AbstractRenderer {
 
         occupiedArea = new LayoutArea(area.getPageNumber(), new Rectangle(layoutBox.getX(), layoutBox.getY() + layoutBox.getHeight(), (float) tableWidth, 0));
 
+        TargetCounterHandler.addPageByID(this);
+
         if (footerRenderer != null) {
             // apply the difference to set footer and table left/right margins identical
             prepareFooterOrHeaderRendererForLayout(footerRenderer, layoutBox.getWidth());
@@ -535,9 +537,11 @@ public class TableRenderer extends AbstractRenderer {
                     cell.setProperty(Property.WIDTH, UnitValue.createPointValue(cellWidth));
                 }
                 // Apply cell borders
-                float[] cellIndents = bordersHandler.getCellBorderIndents(currentCellInfo.finishRowInd, col, rowspan, colspan);
+                float[] cellIndents = bordersHandler.getCellBorderIndents(currentCellInfo.finishRowInd, col,
+                        rowspan, colspan);
                 if (!(bordersHandler instanceof SeparatedTableBorders)) {
-                    bordersHandler.applyCellIndents(cellArea.getBBox(), cellIndents[0], cellIndents[1], cellIndents[2] + widestRowBottomBorderWidth, cellIndents[3], false);
+                    bordersHandler.applyCellIndents(cellArea.getBBox(), cellIndents[0], cellIndents[1],
+                            cellIndents[2] + widestRowBottomBorderWidth, cellIndents[3], false);
                 }
                 // update cell width
                 cellWidth = cellArea.getBBox().getWidth();
@@ -550,7 +554,12 @@ public class TableRenderer extends AbstractRenderer {
                 }
 
                 LayoutResult cellResult = cell.setParent(this).layout(new LayoutContext(cellArea, null, childFloatRendererAreas, wasHeightClipped || wasParentsHeightClipped));
-
+                if (cellWidthProperty != null && cellWidthProperty.isPercentValue()) {
+                    cell.setProperty(Property.WIDTH, cellWidthProperty);
+                    if (null != cellResult.getOverflowRenderer()) {
+                        cellResult.getOverflowRenderer().setProperty(Property.WIDTH, cellWidthProperty);
+                    }
+                }
                 cell.setProperty(Property.VERTICAL_ALIGNMENT, verticalAlignment);
                 // width of BlockRenderer depends on child areas, while in cell case it is hardly define.
                 if (cellResult.getStatus() != LayoutResult.NOTHING) {
@@ -731,7 +740,15 @@ public class TableRenderer extends AbstractRenderer {
                     bordersHandler.applyLeftAndRightTableBorder(layoutBox, true);
                     prepareFooterOrHeaderRendererForLayout(footerRenderer, layoutBox.getWidth());
 
+                    // We've already layouted footer one time in order to know how much place it occupies.
+                    // That time, however, we didn't know with which border the top footer's border should be collapsed.
+                    // And now, when we possess such knowledge, we are performing the second attempt, but we need to nullify results
+                    // from the previous attempt
+                    if (bordersHandler instanceof CollapsedTableBorders) {
+                        ((CollapsedTableBorders)bordersHandler).setBottomBorderCollapseWith(null);
+                    }
                     bordersHandler.collapseTableWithFooter(footerRenderer.bordersHandler, hasContent || 0 != childRenderers.size());
+
                     if (bordersHandler instanceof CollapsedTableBorders) {
                         footerRenderer.setBorders(CollapsedTableBorders.getCollapsedBorder(footerRenderer.getBorders()[2], getBorders()[2]), 2);
                     }
@@ -865,8 +882,12 @@ public class TableRenderer extends AbstractRenderer {
                     }
                 }
 
-                if ((isKeepTogether() && 0 == lastFlushedRowBottomBorder.size()) && !Boolean.TRUE.equals(getPropertyAsBoolean(Property.FORCED_PLACEMENT))) {
-                    return new LayoutResult(LayoutResult.NOTHING, null, null, this, null == firstCauseOfNothing ? this : firstCauseOfNothing);
+                if (isKeepTogether(firstCauseOfNothing)
+                        && 0 == lastFlushedRowBottomBorder.size()
+                        && !Boolean.TRUE.equals(getPropertyAsBoolean(Property.FORCED_PLACEMENT))) {
+                    return new LayoutResult(LayoutResult.NOTHING, null, null, this, null == firstCauseOfNothing
+                            ? this
+                            : firstCauseOfNothing);
                 } else {
                     int status = ((occupiedArea.getBBox().getHeight()
                             - (null == footerRenderer ? 0 : footerRenderer.getOccupiedArea().getBBox().getHeight())
@@ -1232,8 +1253,6 @@ public class TableRenderer extends AbstractRenderer {
         splitRenderer.rowRange = rowRange;
         splitRenderer.parent = parent;
         splitRenderer.modelElement = modelElement;
-        // TODO childRenderers will be populated twice during the relayout.
-        // We should probably clean them before #layout().
         splitRenderer.childRenderers = childRenderers;
         splitRenderer.addAllProperties(getOwnProperties());
         splitRenderer.headerRenderer = headerRenderer;
@@ -1460,7 +1479,12 @@ public class TableRenderer extends AbstractRenderer {
         if (isTopTablePart) {
             bordersHandler.drawHorizontalBorder(0, startX, startY, drawContext.getCanvas(), countedColumnWidth);
         }
-        if (isBottomTablePart && isComplete) {
+        //!isLastRendererForModelElement is a check that this is a split render. This is the case with the splitting of
+        // one cell when part of the cell moves to the next page. Therefore, if such a splitting occurs, a bottom border
+        // should be drawn. However, this should not be done for empty renderers that are also created during splitting,
+        // but this splitting, if the table does not fit on the page and the next cell is added to the next page.
+        // In this case, this code should not be processed, since the border in the above code has already been drawn.
+        if (isBottomTablePart && (isComplete || (!isLastRendererForModelElement && !isEmptyTableRenderer()))) {
             bordersHandler.drawHorizontalBorder(heights.size(), startX, y1, drawContext.getCanvas(), countedColumnWidth);
         }
         // draw left
@@ -1471,6 +1495,10 @@ public class TableRenderer extends AbstractRenderer {
         if (isTagged) {
             drawContext.getCanvas().closeTag();
         }
+    }
+
+    private boolean isEmptyTableRenderer() {
+        return rows.isEmpty() && heights.size() == 1 && heights.get(0) == 0;
     }
 
     private void applyFixedXOrYPosition(boolean isXPosition, Rectangle layoutBox) {
@@ -1528,7 +1556,7 @@ public class TableRenderer extends AbstractRenderer {
         int finish = bordersHandler.getFinishRow();
         bordersHandler.setFinishRow(rowRange.getFinishRow());
 
-        // TODO Correct for collapsed borders only
+        // It's width will be considered only for collapsed borders
         Border currentBorder = bordersHandler.getWidestHorizontalBorder(finish + 1);
         bordersHandler.setFinishRow(finish);
         if (skip) {
@@ -1558,16 +1586,14 @@ public class TableRenderer extends AbstractRenderer {
                     float height = 0;
                     int rowspan = (int) cell.getPropertyAsInteger(Property.ROWSPAN);
                     int colspan = (int) cell.getPropertyAsInteger(Property.COLSPAN);
-                    float[] indents = bordersHandler.getCellBorderIndents(bordersHandler instanceof SeparatedTableBorders ? row : targetOverflowRowIndex[col], col, rowspan, colspan);
                     for (int l = heights.size() - 1 - 1; l > targetOverflowRowIndex[col] - rowspan && l >= 0; l--) {
                         height += (float) heights.get(l);
                     }
                     float cellHeightInLastRow;
-                    if (bordersHandler instanceof SeparatedTableBorders) {
-                        cellHeightInLastRow = cell.getOccupiedArea().getBBox().getHeight() - height;
-                    } else {
-                        cellHeightInLastRow = cell.getOccupiedArea().getBBox().getHeight() + indents[0] / 2 + indents[2] / 2 - height;
-                    }
+                    float[] indents = bordersHandler.getCellBorderIndents(bordersHandler instanceof
+                            SeparatedTableBorders ? row : targetOverflowRowIndex[col], col, rowspan, colspan);
+                    cellHeightInLastRow = cell.getOccupiedArea().getBBox().getHeight() - height
+                            + indents[0] / 2 + indents[2] / 2;
                     if (heights.get(heights.size() - 1) < cellHeightInLastRow) {
                         if (bordersHandler instanceof SeparatedTableBorders) {
                             float differenceToConsider = cellHeightInLastRow - heights.get(heights.size() - 1);
@@ -1625,7 +1651,6 @@ public class TableRenderer extends AbstractRenderer {
             int colspan = (int) cell.getPropertyAsInteger(Property.COLSPAN);
             int rowspan = (int) cell.getPropertyAsInteger(Property.ROWSPAN);
             float rowspanOffset = 0;
-            float[] indents = bordersHandler.getCellBorderIndents(currentRowIndex < row || bordersHandler instanceof SeparatedTableBorders ? currentRowIndex : targetOverflowRowIndex[col], col, rowspan, colspan);
             // process rowspan
             for (int l = (currentRowIndex < row ? currentRowIndex : heights.size() - 1) - 1; l > (currentRowIndex < row ? currentRowIndex : targetOverflowRowIndex[col]) - rowspan && l >= 0; l--) {
                 height += (float) heights.get(l);
@@ -1634,9 +1659,10 @@ public class TableRenderer extends AbstractRenderer {
                 }
             }
             height += (float) heights.get(currentRowIndex < row ? currentRowIndex : heights.size() - 1);
-            if (!(bordersHandler instanceof SeparatedTableBorders)) {
-                height -= indents[0] / 2 + indents[2] / 2;
-            }
+            float[] indents = bordersHandler.getCellBorderIndents(
+                    currentRowIndex < row || bordersHandler instanceof SeparatedTableBorders ?
+                    currentRowIndex : targetOverflowRowIndex[col], col, rowspan, colspan);
+            height -= indents[0] / 2 + indents[2] / 2;
             // Correcting cell bbox only. We don't need #move() here.
             // This is because of BlockRenderer's specificity regarding occupied area.
             float shift = height - cell.getOccupiedArea().getBBox().getHeight();
@@ -1766,7 +1792,7 @@ public class TableRenderer extends AbstractRenderer {
     }
 
     private boolean isFooterRendererOfLargeTable() {
-        return isFooterRenderer() && (!getTable().isComplete() || 0 != ((TableRenderer) parent).getTable().getLastRowBottomBorder().size());
+        return isFooterRenderer() && (!((TableRenderer) parent).getTable().isComplete() || 0 != ((TableRenderer) parent).getTable().getLastRowBottomBorder().size());
     }
 
     private boolean isTopTablePart() {

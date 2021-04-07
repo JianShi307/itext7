@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -51,7 +51,13 @@ import java.util.Map;
  * Interface that will provide a mapping from SVG tag names to Renderers that
  * will be able to draw them. It's used in {@link DefaultSvgNodeRendererFactory}
  * to allow customizability in client code, and dependency injection in tests.
+ *
+ * @deprecated The interface will be removed in 7.2, while its implementation
+ * ({@link DefaultSvgNodeRendererMapper}) will be used as our internal class. Users should
+ * override {@link ISvgNodeRendererFactory} (or at least {@link DefaultSvgNodeRendererFactory})
+ * and should not deal with the mapping class as it's more of an implementation detail.
  */
+@Deprecated
 public interface ISvgNodeRendererMapper {
 
     /**

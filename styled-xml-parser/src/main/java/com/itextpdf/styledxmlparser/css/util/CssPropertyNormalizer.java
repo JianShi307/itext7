@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -54,7 +54,7 @@ import java.util.regex.Pattern;
  */
 class CssPropertyNormalizer {
 
-    private static final Pattern URL_PATTERN = PortUtil.createRegexPatternWithDotMatchingNewlines("^[uU][rR][lL]\\(.*?");
+    private static final Pattern URL_PATTERN = PortUtil.createRegexPatternWithDotMatchingNewlines("^[uU][rR][lL]\\(");
 
     /**
      * Normalize a property.
@@ -86,7 +86,8 @@ class CssPropertyNormalizer {
                 }
                 if (str.charAt(i) == '\'' || str.charAt(i) == '"') {
                     i = appendQuotedString(sb, str, i);
-                } else if ((str.charAt(i) == 'u' || str.charAt(i) == 'U') && URL_PATTERN.matcher(str.substring(i)).matches()) {
+                } else if ((str.charAt(i) == 'u' || str.charAt(i) == 'U')
+                        && URL_PATTERN.matcher(str.substring(i)).find()) {
                     sb.append(str.substring(i, i + 4).toLowerCase());
                     i = appendUrlContent(sb, str, i + 4);
                 } else {

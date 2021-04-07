@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -88,8 +88,9 @@ public class GposLookupType4 extends OpenTableLookup {
                     if (gi.glyph == null)
                         break;
                     // not mark => base glyph
-                    if (!mb.marks.containsKey(gi.glyph.getCode()))
+                    if (openReader.getGlyphClass(gi.glyph.getCode()) != OtfClass.GLYPH_MARK) {
                         break;
+                    }
                 }
                 if (gi.glyph == null)
                     break;

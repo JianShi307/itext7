@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -46,6 +46,7 @@ package com.itextpdf.forms;
 import com.itextpdf.forms.fields.PdfFormField;
 import com.itextpdf.forms.xfa.XfaForm;
 import com.itextpdf.io.LogMessageConstant;
+import com.itextpdf.io.util.MessageFormatUtil;
 import com.itextpdf.kernel.PdfException;
 import com.itextpdf.kernel.geom.AffineTransform;
 import com.itextpdf.kernel.geom.Point;
@@ -69,6 +70,7 @@ import com.itextpdf.kernel.pdf.tagging.StandardRoles;
 import com.itextpdf.kernel.pdf.tagutils.TagReference;
 import com.itextpdf.kernel.pdf.tagutils.TagTreePointer;
 import com.itextpdf.kernel.pdf.xobject.PdfFormXObject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -226,7 +228,10 @@ public class PdfAcroForm extends PdfObjectWrapper<PdfDictionary> {
             processKids(kids, fieldDic, page);
         }
 
-        getFields().add(fieldDic);
+        PdfArray fieldsArray = getFields();
+        fieldsArray.add(fieldDic);
+        fieldsArray.setModified();
+
         fields.put(field.getFieldName().toUnicodeString(), field);
         if (field.getKids() != null) {
             iterateFields(field.getKids(), fields);
@@ -236,6 +241,8 @@ public class PdfAcroForm extends PdfObjectWrapper<PdfDictionary> {
             PdfAnnotation annot = PdfAnnotation.makeAnnotation(fieldDic);
             addWidgetAnnotationToPage(page, annot);
         }
+        
+        setModified();
     }
 
     /**
@@ -313,10 +320,11 @@ public class PdfAcroForm extends PdfObjectWrapper<PdfDictionary> {
     public PdfAcroForm setNeedAppearances(boolean needAppearances) {
         if (VersionConforming.validatePdfVersionForDeprecatedFeatureLogError(document, PdfVersion.PDF_2_0, VersionConforming.DEPRECATED_NEED_APPEARANCES_IN_ACROFORM)) {
             getPdfObject().remove(PdfName.NeedAppearances);
-            return this;
+            setModified();
         } else {
-            return put(PdfName.NeedAppearances, PdfBoolean.valueOf(needAppearances));
+            put(PdfName.NeedAppearances, PdfBoolean.valueOf(needAppearances));
         }
+        return this;
     }
 
     /**
@@ -598,6 +606,7 @@ public class PdfAcroForm extends PdfObjectWrapper<PdfDictionary> {
     public void setGenerateAppearance(boolean generateAppearance) {
         if (generateAppearance) {
             getPdfObject().remove(PdfName.NeedAppearances);
+            setModified();
         }
         this.generateAppearance = generateAppearance;
     }
@@ -721,10 +730,9 @@ public class PdfAcroForm extends PdfObjectWrapper<PdfDictionary> {
             PdfDictionary parent = fieldObject.getAsDictionary(PdfName.Parent);
             if (parent != null) {
                 PdfArray kids = parent.getAsArray(PdfName.Kids);
-                if(kids!=null) {
+                if (kids != null) {
                     kids.remove(fieldObject);
-                    // TODO what if parent was in it's turn the only child of it's parent (parent of parent)?
-                    // shouldn't we remove them recursively? check it
+                    // TODO DEVSIX-2715 if parent was in it's turn the only child of it's parent, we should remove them recursively
                     if (kids.isEmpty()) {
                         fFields.remove(parent);
                     }
@@ -766,8 +774,11 @@ public class PdfAcroForm extends PdfObjectWrapper<PdfDictionary> {
 
         PdfDictionary parent = field.getParent();
         if (parent != null) {
-            parent.getAsArray(PdfName.Kids).remove(fieldObject);
+            PdfArray kids = parent.getAsArray(PdfName.Kids);
+            kids.remove(fieldObject);
             fields.remove(fieldName);
+            kids.setModified();
+            parent.setModified();
             return true;
         }
 
@@ -775,6 +786,8 @@ public class PdfAcroForm extends PdfObjectWrapper<PdfDictionary> {
         if (fieldsPdfArray.contains(fieldObject)) {
             fieldsPdfArray.remove(fieldObject);
             this.fields.remove(fieldName);
+            fieldsPdfArray.setModified();
+            setModified();
             return true;
         }
         return false;
@@ -867,6 +880,11 @@ public class PdfAcroForm extends PdfObjectWrapper<PdfDictionary> {
                 continue;
             }
             PdfFormField formField = PdfFormField.makeFormField(field, document);
+            if (formField == null) {
+                logger.warn(MessageFormatUtil.format(LogMessageConstant.CANNOT_CREATE_FORMFIELD,
+                        field.getIndirectReference() == null ? field : field.getIndirectReference()));
+                continue;
+            }
             PdfString fieldName = formField.getFieldName();
             String name;
             if (fieldName == null) {
@@ -957,7 +975,7 @@ public class PdfAcroForm extends PdfObjectWrapper<PdfDictionary> {
         boolean tagged = page.getDocument().isTagged();
         if (tagged) {
             tagPointer = page.getDocument().getTagStructureContext().getAutoTaggingPointer();
-            //TODO attributes?
+            //TODO DEVSIX-4117 PrintField attributes
             tagPointer.addTag(StandardRoles.FORM);
         }
 
@@ -1000,6 +1018,7 @@ public class PdfAcroForm extends PdfObjectWrapper<PdfDictionary> {
 
     public PdfAcroForm put(PdfName key, PdfObject value) {
         getPdfObject().put(key, value);
+        setModified();
         return this;
     }
 
@@ -1014,6 +1033,16 @@ public class PdfAcroForm extends PdfObjectWrapper<PdfDictionary> {
             field.release();
         }
         fields = null;
+    }
+
+    @Override
+    public PdfObjectWrapper<PdfDictionary> setModified() {
+        if (getPdfObject().getIndirectReference() != null) {
+            super.setModified();
+        } else {
+            document.getCatalog().setModified();
+        }
+        return this;
     }
 
     private static PdfDictionary createAcroFormDictionaryByFields(PdfArray fields) {

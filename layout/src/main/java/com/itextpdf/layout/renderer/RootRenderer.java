@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -57,11 +57,13 @@ import com.itextpdf.layout.margincollapse.MarginsCollapseInfo;
 import com.itextpdf.layout.property.ClearPropertyValue;
 import com.itextpdf.layout.property.Property;
 import com.itextpdf.layout.tagging.LayoutTaggingHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class RootRenderer extends AbstractRenderer {
 
@@ -69,11 +71,11 @@ public abstract class RootRenderer extends AbstractRenderer {
     protected RootLayoutArea currentArea;
     protected int currentPageNumber;
     protected List<IRenderer> waitingDrawingElements = new ArrayList<>();
+    List<Rectangle> floatRendererAreas;
     private IRenderer keepWithNextHangingRenderer;
     private LayoutResult keepWithNextHangingRendererLayoutResult;
     private MarginsCollapseHandler marginsCollapseHandler;
     private LayoutArea initialCurrentArea;
-    private List<Rectangle> floatRendererAreas;
     private List<IRenderer> waitingNextPageRenderers = new ArrayList<>();
     private boolean floatOverflowedCompletely = false;
 
@@ -109,6 +111,8 @@ public abstract class RootRenderer extends AbstractRenderer {
 
         // Static layout
         for (int i = 0; currentArea != null && i < addedRenderers.size(); i++) {
+            RootRendererAreaStateHandler rootRendererStateHandler = new RootRendererAreaStateHandler();
+
             renderer = addedRenderers.get(i);
             boolean rendererIsFloat = FloatingHelper.isRendererFloating(renderer);
             boolean clearanceOverflowsToNextPage = FloatingHelper.isClearanceApplied(waitingNextPageRenderers, renderer.<ClearPropertyValue>getProperty(Property.CLEAR));
@@ -123,8 +127,6 @@ public abstract class RootRenderer extends AbstractRenderer {
             List<IRenderer> resultRenderers = new ArrayList<>();
             LayoutResult result = null;
 
-            RootLayoutArea storedArea = null;
-            RootLayoutArea nextStoredArea = null;
             MarginsCollapseInfo childMarginsInfo = null;
             if (marginsCollapsingEnabled && currentArea != null && renderer != null) {
                 childMarginsInfo = marginsCollapseHandler.startChildMarginsHandling(renderer, currentArea.getBBox());
@@ -143,11 +145,7 @@ public abstract class RootRenderer extends AbstractRenderer {
                         break;
                     } else {
                         processRenderer(result.getSplitRenderer(), resultRenderers);
-                        if (nextStoredArea != null) {
-                            currentArea = nextStoredArea;
-                            currentPageNumber = nextStoredArea.getPageNumber();
-                            nextStoredArea = null;
-                        } else {
+                        if (!rootRendererStateHandler.attemptGoForwardToStoredNextState(this)) {
                             currentAreaNeedsToBeUpdated = true;
                         }
                     }
@@ -170,35 +168,16 @@ public abstract class RootRenderer extends AbstractRenderer {
                         }
                     } else {
                         if (currentArea.isEmptyArea() && result.getAreaBreak() == null) {
-                            if (Boolean.TRUE.equals(result.getOverflowRenderer().getModelElement().<Boolean>getProperty(Property.KEEP_TOGETHER))) {
-                                result.getOverflowRenderer().getModelElement().setProperty(Property.KEEP_TOGETHER, false);
-                                Logger logger = LoggerFactory.getLogger(RootRenderer.class);
-                                logger.warn(MessageFormatUtil.format(LogMessageConstant.ELEMENT_DOES_NOT_FIT_AREA, "KeepTogether property will be ignored."));
-                                if (storedArea != null) {
-                                    nextStoredArea = currentArea;
-                                    currentArea = storedArea;
-                                    currentPageNumber = storedArea.getPageNumber();
-                                }
-                                storedArea = currentArea;
-                            } else if (null != result.getCauseOfNothing() && Boolean.TRUE.equals(result.getCauseOfNothing().<Boolean>getProperty(Property.KEEP_TOGETHER))) {
-                                // set KEEP_TOGETHER false on the deepest parent (maybe the element itself) to have KEEP_TOGETHER == true
-                                IRenderer theDeepestKeptTogether = result.getCauseOfNothing();
-                                IRenderer parent;
-                                while (null == theDeepestKeptTogether.getModelElement() || null == theDeepestKeptTogether.getModelElement().<Boolean>getOwnProperty(Property.KEEP_TOGETHER)) {
-                                    parent = ((AbstractRenderer) theDeepestKeptTogether).parent;
-                                    if (parent == null) {
-                                        break;
-                                    }
-                                    theDeepestKeptTogether = parent;
-                                }
-                                theDeepestKeptTogether.getModelElement().setProperty(Property.KEEP_TOGETHER, false);
-                                Logger logger = LoggerFactory.getLogger(RootRenderer.class);
-                                logger.warn(MessageFormatUtil.format(LogMessageConstant.ELEMENT_DOES_NOT_FIT_AREA, "KeepTogether property of inner element will be ignored."));
-                            } else if (!Boolean.TRUE.equals(renderer.<Boolean>getProperty(Property.FORCED_PLACEMENT))) {
-                                result.getOverflowRenderer().setProperty(Property.FORCED_PLACEMENT, true);
-                                Logger logger = LoggerFactory.getLogger(RootRenderer.class);
-                                logger.warn(MessageFormatUtil.format(LogMessageConstant.ELEMENT_DOES_NOT_FIT_AREA, ""));
-                            } else {
+                            boolean keepTogetherChanged = tryDisableKeepTogether(result,
+                                    rendererIsFloat, rootRendererStateHandler);
+
+                            boolean areKeepTogetherAndForcedPlacementBothNotChanged = !keepTogetherChanged;
+                            if (areKeepTogetherAndForcedPlacementBothNotChanged) {
+                                areKeepTogetherAndForcedPlacementBothNotChanged =
+                                        ! updateForcedPlacement(renderer, result.getOverflowRenderer());
+                            }
+
+                            if (areKeepTogetherAndForcedPlacementBothNotChanged) {
                                 // FORCED_PLACEMENT was already set to the renderer and
                                 // LogMessageConstant.ELEMENT_DOES_NOT_FIT_AREA message was logged.
                                 // This else-clause should never be hit, otherwise there is a bug in FORCED_PLACEMENT implementation.
@@ -208,12 +187,8 @@ public abstract class RootRenderer extends AbstractRenderer {
                                 break;
                             }
                         } else {
-                            storedArea = currentArea;
-                            if (nextStoredArea != null) {
-                                currentArea = nextStoredArea;
-                                currentPageNumber = nextStoredArea.getPageNumber();
-                                nextStoredArea = null;
-                            } else {
+                            rootRendererStateHandler.storePreviousState(this);
+                            if (!rootRendererStateHandler.attemptGoForwardToStoredNextState(this)) {
                                 if (rendererIsFloat) {
                                     waitingNextPageRenderers.add(result.getOverflowRenderer());
                                     floatOverflowedCompletely = true;
@@ -325,7 +300,7 @@ public abstract class RootRenderer extends AbstractRenderer {
         if (!immediateFlush) {
             flush();
         }
-        flushWaitingDrawingElements();
+        flushWaitingDrawingElements(true);
         LayoutTaggingHelper taggingHelper = this.<LayoutTaggingHelper>getProperty(Property.TAGGING_HELPER);
         if (taggingHelper != null) {
             taggingHelper.releaseAllHints();
@@ -351,14 +326,6 @@ public abstract class RootRenderer extends AbstractRenderer {
 
     protected abstract LayoutArea updateCurrentArea(LayoutResult overflowResult);
 
-    protected void flushWaitingDrawingElements() {
-        for (int i = 0; i < waitingDrawingElements.size(); ++i) {
-            IRenderer waitingDrawingElement = waitingDrawingElements.get(i);
-            flushSingleRenderer(waitingDrawingElement);
-        }
-        waitingDrawingElements.clear();
-    }
-
     protected void shrinkCurrentAreaAndProcessRenderer(IRenderer renderer, List<IRenderer> resultRenderers, LayoutResult result) {
         if (currentArea != null) {
             float resultRendererHeight = result.getOccupiedArea().getBBox().getHeight();
@@ -372,6 +339,26 @@ public abstract class RootRenderer extends AbstractRenderer {
         if (!immediateFlush) {
             childRenderers.addAll(resultRenderers);
         }
+    }
+
+    protected void flushWaitingDrawingElements() {
+        flushWaitingDrawingElements(true);
+    }
+
+    void flushWaitingDrawingElements(boolean force) {
+        Set<IRenderer> flushedElements = new HashSet<>();
+        for (int i = 0; i < waitingDrawingElements.size(); ++i)
+        {
+            IRenderer waitingDrawingElement = waitingDrawingElements.get(i);
+            // TODO Remove checking occupied area to be not null when DEVSIX-1655 is resolved.
+            if (force || (null != waitingDrawingElement.getOccupiedArea() && waitingDrawingElement.getOccupiedArea().getPageNumber() < currentArea.getPageNumber())) {
+                flushSingleRenderer(waitingDrawingElement);
+                flushedElements.add(waitingDrawingElement);
+            } else if (null == waitingDrawingElement.getOccupiedArea()) {
+                flushedElements.add(waitingDrawingElement);
+            }
+        }
+        waitingDrawingElements.removeAll(flushedElements);
     }
 
     private void processRenderer(IRenderer renderer, List<IRenderer> resultRenderers) {
@@ -483,5 +470,52 @@ public abstract class RootRenderer extends AbstractRenderer {
         for (IRenderer renderer : waitingFloatRenderers) {
             addChild(renderer);
         }
+    }
+
+    private boolean updateForcedPlacement(IRenderer currentRenderer, IRenderer overflowRenderer) {
+        if (Boolean.TRUE.equals(currentRenderer.<Boolean>getProperty(Property.FORCED_PLACEMENT))) {
+            return false;
+        } else {
+            overflowRenderer.setProperty(Property.FORCED_PLACEMENT, true);
+            Logger logger = LoggerFactory.getLogger(RootRenderer.class);
+            if (logger.isWarnEnabled()) {
+                logger.warn(MessageFormatUtil.format(LogMessageConstant.ELEMENT_DOES_NOT_FIT_AREA, ""));
+            }
+            return true;
+        }
+    }
+
+    private boolean tryDisableKeepTogether(LayoutResult result,
+            boolean rendererIsFloat, RootRendererAreaStateHandler rootRendererStateHandler) {
+        IRenderer toDisableKeepTogether = null;
+
+        // looking for the most outer keep together element
+        IRenderer current = result.getCauseOfNothing();
+        while (current != null) {
+            if (Boolean.TRUE.equals(current.<Boolean>getProperty(Property.KEEP_TOGETHER))) {
+                toDisableKeepTogether = current;
+            }
+            current = current.getParent();
+        }
+
+        if (toDisableKeepTogether == null) {
+            return false;
+        }
+
+        // Ideally the disabling of keep together property should be done on the renderers layer,
+        // but due to the problem with renderers tree (parent links from causeOfNothing
+        // may not lead to overflowRenderer) such approach does not work now. So we
+        // disabling keep together on the models layer.
+        toDisableKeepTogether.getModelElement().setProperty(Property.KEEP_TOGETHER, false);
+        Logger logger = LoggerFactory.getLogger(RootRenderer.class);
+        if (logger.isWarnEnabled()) {
+            logger.warn(MessageFormatUtil.format(
+                    LogMessageConstant.ELEMENT_DOES_NOT_FIT_AREA,
+                    "KeepTogether property will be ignored."));
+        }
+        if (!rendererIsFloat) {
+            rootRendererStateHandler.attemptGoBackToStoredPreviousStateAndStoreNextState(this);
+        }
+        return true;
     }
 }

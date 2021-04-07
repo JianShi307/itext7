@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -299,27 +299,10 @@ public class PdfOutline implements Serializable {
         return newOutline;
     }
 
-
     /**
-     * Clear list of children.
+     * Remove this outline from the document. Outlines that are children of this outline are removed recursively
      */
-    void clear() {
-        children.clear();
-    }
-
-    /**
-     * Sets {@link PdfDestination}.
-     *
-     * @param destination instance of {@link PdfDestination}.
-     */
-    void setDestination(PdfDestination destination) {
-        this.destination = destination;
-    }
-
-    /**
-     * Remove this outline from the document.
-     */
-    void removeOutline() {
+    public void removeOutline() {
         if (!pdfDoc.hasOutlines() || isOutlineRoot()) {
             pdfDoc.getCatalog().remove(PdfName.Outlines);
             return;
@@ -348,6 +331,22 @@ public class PdfOutline implements Serializable {
         } else if (next != null) {
             next.remove(PdfName.Prev);
         }
+    }
+
+    /**
+     * Clear list of children.
+     */
+    void clear() {
+        children.clear();
+    }
+
+    /**
+     * Sets {@link PdfDestination}.
+     *
+     * @param destination instance of {@link PdfDestination}.
+     */
+    void setDestination(PdfDestination destination) {
+        this.destination = destination;
     }
 
     /**

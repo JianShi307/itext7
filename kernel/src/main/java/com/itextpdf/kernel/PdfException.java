@@ -1,7 +1,7 @@
 /*
 
   This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
   Authors: Bruno Lowagie, Paulo Soares, et al.
 
   This program is free software; you can redistribute it and/or modify
@@ -67,6 +67,7 @@ public class PdfException extends RuntimeException {
 
     public static final String CannotAddCellToCompletedLargeTable = "The large table was completed. It's prohibited to use it anymore. Created different Table instance instead.";
     public static final String CannotAddKidToTheFlushedElement = "Cannot add kid to the flushed element.";
+    @Deprecated
     public static final String CannotAddNonDictionaryExtGStateToResources1 = "Cannot add graphic state to resources. The PdfObject type is {0}, but should be PdfDictionary.";
     public static final String CannotAddNonDictionaryPatternToResources1 = "Cannot add pattern to resources. The PdfObject type is {0}, but should be PdfDictionary or PdfStream.";
     public static final String CannotAddNonDictionaryPropertiesToResources1 = "Cannot add properties to resources. The PdfObject type is {0}, but should be PdfDictionary.";
@@ -87,10 +88,14 @@ public class PdfException extends RuntimeException {
     public static final String CannotCopyObjectContent = "Cannot copy object content.";
     public static final String CannotCopyIndirectObjectFromTheDocumentThatIsBeingWritten = "Cannot copy indirect object from the document that is being written.";
     public static final String CannotCopyToDocumentOpenedInReadingMode = "Cannot copy to document opened in reading mode.";
+    public static final String CannotCreateFontFromNullFontDictionary = "Cannot create font from null pdf dictionary.";
     public static final String CannotCreateLayoutImageByWmfImage = "Cannot create layout image by WmfImage instance. First convert the image into FormXObject and then use the corresponding layout image constructor.";
     public static final String CannotCreatePdfImageXObjectByWmfImage = "Cannot create PdfImageXObject instance by WmfImage. Use PdfFormXObject constructor instead.";
     public static final String CannotCreatePdfStreamByInputStreamWithoutPdfDocument = "Cannot create pdfstream by InputStream without PdfDocument.";
+    public static final String CannotCreateType0FontWithTrueTypeFontProgramWithoutEmbedding = "Cannot create Type0 font with true type font program without embedding it.";
     public static final String CannotDrawElementsOnAlreadyFlushedPages = "Cannot draw elements on already flushed pages.";
+    public static final String CannotEmbedStandardFont = "Standard fonts cannot be embedded.";
+    public static final String CannotEmbedType0FontWithCidFontProgram = "Cannot embed Type0 font with CID font program based on non-generic predefined CMap.";
     public static final String CannotGetContentBytes = "Cannot get content bytes.";
     public static final String CannotGetPdfStreamBytes = "Cannot get PdfStream bytes.";
     public static final String CannotOperateWithFlushedPdfStream = "Cannot operate with the flushed PdfStream.";
@@ -131,10 +136,17 @@ public class PdfException extends RuntimeException {
     public static final String CodabarMustHaveOneAbcdAsStartStopCharacter = "Codabar must have one of 'ABCD' as start/stop character.";
     public static final String ColorSpaceNotFound = "ColorSpace not found.";
     public static final String ContentStreamMustNotInvokeOperatorsThatSpecifyColorsOrOtherColorRelatedParameters = "Content stream must not invoke operators that specify colors or other color related parameters in the graphics state.";
+    public static final String DataHandlerCounterHasBeenDisabled = "Data handler counter has been disabled";
     public static final String DecodeParameterType1IsNotSupported = "Decode parameter type {0} is not supported.";
     public static final String DefaultAppearanceNotFound = "DefaultAppearance is required but not found";
     public static final String DefaultcryptfilterNotFoundEncryption = "/DefaultCryptFilter not found (encryption).";
     public static final String DictionaryKey1IsNotAName = "Dictionary key {0} is not a name.";
+    /**
+     * Exception message in case of dictionary does not have specified font data.
+     *
+     * @deprecated Will be removed in nex major release as there are no usages left.
+     */
+    @Deprecated
     public static final String DictionaryDoesntHave1FontData = "Dictionary doesn't have {0} font data.";
     public static final String DictionaryDoesntHaveSupportedFontData = "Dictionary doesn't have supported font data.";
     public static final String DocumentAlreadyPreClosed = "Document has been already pre closed.";
@@ -142,6 +154,7 @@ public class PdfException extends RuntimeException {
     public static final String DocumentDoesntContainStructTreeRoot = "Document doesn't contain StructTreeRoot.";
     public static final String DocumentHasNoPages = "Document has no pages.";
     public static final String DocumentHasNoPdfCatalogObject = "Document has no PDF Catalog object.";
+    public static final String DocumentHasNotBeenReadYet = "The PDF document has not been read yet. Document reading occurs in PdfDocument class constructor";
     public static final String DocumentMustBePreClosed = "Document must be preClosed.";
     public static final String DocumentForCopyToCannotBeNull = "Document for copyTo cannot be null.";
     public static final String DuringDecompressionMultipleStreamsInSumOccupiedMoreMemoryThanAllowed = "During decompression multiple streams in sum occupied more memory than allowed. Please either check your pdf or increase the allowed single decompressed pdf stream maximum size value by setting the appropriate parameter of ReaderProperties's MemoryLimitsAwareHandler.";
@@ -167,6 +180,7 @@ public class PdfException extends RuntimeException {
     public static final String FilterCcittfaxdecodeIsOnlySupportedForImages = "Filter CCITTFaxDecode is only supported for images";
     public static final String FilterIsNotANameOrArray = "filter is not a name or array.";
     public static final String FlushedPageCannotBeAddedOrInserted = "Flushed page cannot be added or inserted.";
+    public static final String FLUSHED_PAGE_CANNOT_BE_REMOVED = "Flushed page cannot be removed from a document which is tagged or has an AcroForm";
     public static final String FlushingHelperFLushingModeIsNotForDocReadingMode = "Flushing writes the object to the output stream and releases it from memory. It is only possible for documents that have a PdfWriter associated with them. Use PageFlushingHelper#releaseDeep method instead.";
     public static final String FontAndSizeMustBeSetBeforeWritingAnyText = "Font and size must be set before writing any text.";
     public static final String FontEmbeddingIssue = "Font embedding issue.";
@@ -175,6 +189,7 @@ public class PdfException extends RuntimeException {
     public static final String FontSizeIsTooSmall = "Font size is too small.";
     public static final String FormXObjectMustHaveBbox = "Form XObject must have BBox.";
     public static final String FunctionIsNotCompatibleWitColorSpace = "Function is not compatible with ColorSpace.";
+    @Deprecated
     public static final String GivenAccessibleElementIsNotConnectedToAnyTag = "Given accessible element is not connected to any tag.";
     public static final String IllegalCharacterInAsciihexdecode = "illegal character in ASCIIHexDecode.";
     public static final String IllegalCharacterInAscii85decode = "Illegal character in ASCII85Decode.";
@@ -204,10 +219,12 @@ public class PdfException extends RuntimeException {
     public static final String MacroSegmentIdMustBeGtOrEqZero = "macroSegmentId must be >= 0";
     public static final String MacroSegmentIdMustBeGtZero = "macroSegmentId must be > 0";
     public static final String MacroSegmentIdMustBeLtMacroSegmentCount = "macroSegmentId must be < macroSemgentCount";
+    public static final String MissingRequiredFieldInFontDictionary = "Missing required field {0} in font dictionary.";
     public static final String MustBeATaggedDocument = "Must be a tagged document.";
     public static final String NumberOfEntriesInThisXrefSubsectionNotFound = "Number of entries in this xref subsection not found.";
     public static final String NoCompatibleEncryptionFound = "No compatible encryption found.";
     public static final String NoCryptoDictionaryDefined = "No crypto dictionary defined.";
+    public static final String NoGlyphsDefinedForType3Font = "No glyphs defined for type3 font.";
     public static final String NoKidWithSuchRole = "No kid with such role.";
     /**
      * @deprecated Now we log a warning rather than throw an exception.
@@ -292,6 +309,7 @@ public class PdfException extends RuntimeException {
     public static final String UnknownKeyAlgorithm1 = "Unknown key algorithm: {0}.";
     @Deprecated
     public static final String UnsupportedDefaultColorSpaceName1 = "Unsupported default color space name. Was {0}, but should be DefaultCMYK, DefaultGray or DefaultRGB";
+    public static final String UnsupportedFontEmbeddingStrategy = "Unsupported font embedding strategy.";
     public static final String UnsupportedXObjectType = "Unsupported XObject type.";
     public static final String VerificationAlreadyOutput = "Verification already output.";
     public static final String WhenAddingObjectReferenceToTheTagTreeItMustBeConnectedToNotFlushedObject = "When adding object reference to the tag tree, it must be connected to not flushed object.";

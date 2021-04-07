@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -110,7 +110,6 @@ public class PathSvgNodeRendererTest extends SvgIntegrationTest {
     }
 
     @Test
-    //TODO (RND-904) This test should fail when RND-904 (relative line operator l ) is implemented.
     public void pathNodeRendererMoveToTest1() throws IOException, InterruptedException {
         String filename = "pathNodeRendererMoveToTest1.pdf";
         PdfDocument doc = new PdfDocument(new PdfWriter(destinationFolder + filename));
@@ -244,7 +243,7 @@ public class PathSvgNodeRendererTest extends SvgIntegrationTest {
         IElementNode rootTag = new JsoupXmlParser().parse(xmlStream, "ISO-8859-1");
 
         DefaultSvgProcessor processor = new DefaultSvgProcessor();
-        IBranchSvgNodeRenderer root = (IBranchSvgNodeRenderer) processor.process(rootTag).getRootRenderer();
+        IBranchSvgNodeRenderer root = (IBranchSvgNodeRenderer) processor.process(rootTag, null).getRootRenderer();
 
         SvgDrawContext context = new SvgDrawContext(null, null);
         PdfCanvas cv = new PdfCanvas(doc, 1);
@@ -265,7 +264,7 @@ public class PathSvgNodeRendererTest extends SvgIntegrationTest {
         IElementNode rootTag = new JsoupXmlParser().parse(xmlStream, "ISO-8859-1");
 
         DefaultSvgProcessor processor = new DefaultSvgProcessor();
-        IBranchSvgNodeRenderer root = (IBranchSvgNodeRenderer) processor.process(rootTag).getRootRenderer();
+        IBranchSvgNodeRenderer root = (IBranchSvgNodeRenderer) processor.process(rootTag, null).getRootRenderer();
 
         SvgDrawContext context = new SvgDrawContext(null, null);
         PdfCanvas cv = new PdfCanvas(doc, 1);
@@ -286,7 +285,7 @@ public class PathSvgNodeRendererTest extends SvgIntegrationTest {
         IElementNode rootTag = new JsoupXmlParser().parse(xmlStream, "ISO-8859-1");
 
         DefaultSvgProcessor processor = new DefaultSvgProcessor();
-        IBranchSvgNodeRenderer root = (IBranchSvgNodeRenderer) processor.process(rootTag).getRootRenderer();
+        IBranchSvgNodeRenderer root = (IBranchSvgNodeRenderer) processor.process(rootTag, null).getRootRenderer();
 
         SvgDrawContext context = new SvgDrawContext(null, null);
         PdfCanvas cv = new PdfCanvas(doc, 1);
@@ -302,49 +301,41 @@ public class PathSvgNodeRendererTest extends SvgIntegrationTest {
     }
 
     @Test
-    public void pathZOperatorTest01() throws IOException, InterruptedException {
-        convertAndCompare(sourceFolder, destinationFolder, "pathZOperatorTest01");
-    }
-
-
-    @Test
-    public void pathZOperatorTest02() throws IOException, InterruptedException {
-        convertAndCompare(sourceFolder, destinationFolder, "pathZOperatorTest02");
-    }
-
-
-    @Test
-    public void pathZOperatorTest03() throws IOException, InterruptedException {
-        convertAndCompare(sourceFolder, destinationFolder, "pathZOperatorTest03");
-    }
-
-
-    @Test
-    public void pathZOperatorTest04() throws IOException, InterruptedException {
-        convertAndCompare(sourceFolder, destinationFolder, "pathZOperatorTest04");
+    public void pathZOperatorMultipleZTest() throws IOException, InterruptedException {
+        convertAndCompare(sourceFolder, destinationFolder, "pathZOperatorMultipleZTest");
     }
 
     @Test
-    public void invalidZOperatorTest01() throws IOException, InterruptedException {
+    public void pathZOperatorSingleZTest() throws IOException, InterruptedException {
+        convertAndCompare(sourceFolder, destinationFolder, "pathZOperatorSingleZTest");
+    }
+
+    @Test
+    public void pathZOperatorSingleZInstructionsAfterTest() throws IOException, InterruptedException {
+        convertAndCompare(sourceFolder, destinationFolder, "pathZOperatorSingleZInstructionsAfterTest");
+    }
+
+    @Test
+    public void invalidZOperatorTest() throws IOException, InterruptedException {
         junitExpectedException.expect(SvgProcessingException.class);
         convertAndCompare(sourceFolder, destinationFolder, "invalidZOperatorTest01");
     }
 
     @Test
-    public void invalidOperatorTest01() throws IOException, InterruptedException {
+    public void invalidOperatorTest() throws IOException, InterruptedException {
         junitExpectedException.expect(SvgProcessingException.class);
         convertAndCompare(sourceFolder, destinationFolder, "invalidOperatorTest01");
     }
 
 
-    /* This test should fail when RND-1034 is resolved*/
+    //TODO DEVSIX-2242. This test should fail when the ticket is resolved
     @Test
     public void pathLOperatorMultipleCoordinates() throws IOException, InterruptedException {
         convertAndCompare(sourceFolder, destinationFolder, "pathLOperatorMultipleCoordinates");
     }
 
     @Test
-    public void pathVOperatorTest01() throws IOException, InterruptedException {
+    public void pathVOperatorTest() throws IOException, InterruptedException {
         convertAndCompare(sourceFolder, destinationFolder, "pathVOperatorTest01");
     }
 
@@ -359,13 +350,13 @@ public class PathSvgNodeRendererTest extends SvgIntegrationTest {
     }
 
     @Test
-    public void pathHOperatorSimpleTest01() throws IOException, InterruptedException {
-        convertAndCompare(sourceFolder, destinationFolder, "pathHOperatorSimpleTest01");
+    public void pathHOperatorSimpleTest() throws IOException, InterruptedException {
+        convertAndCompare(sourceFolder, destinationFolder, "pathHOperatorSimpleTest");
     }
 
     @Test
-    public void pathHandVOperatorTest01() throws IOException, InterruptedException {
-        convertAndCompare(sourceFolder, destinationFolder, "pathHandVOperatorTest01");
+    public void pathHandVOperatorTest() throws IOException, InterruptedException {
+        convertAndCompare(sourceFolder, destinationFolder, "pathHandVOperatorTest");
     }
 
     @Test
@@ -419,4 +410,23 @@ public class PathSvgNodeRendererTest extends SvgIntegrationTest {
         convertAndCompare(sourceFolder, destinationFolder, "eofillUnsuportedPathTest");
     }
 
+    @Test
+    public void multiplePairsAfterMoveToRelativeTest() throws IOException, InterruptedException {
+        convertAndCompare(sourceFolder, destinationFolder, "multiplePairsAfterMoveToRelative");
+    }
+
+    @Test
+    public void multiplePairsAfterMoveToAbsoluteTest() throws IOException, InterruptedException {
+        convertAndCompare(sourceFolder, destinationFolder, "multiplePairsAfterMoveToAbsolute");
+    }
+
+    @Test
+    public void pathHOperatorAbsoluteAfterMultiplePairsTest() throws IOException, InterruptedException {
+        convertAndCompare(sourceFolder, destinationFolder, "pathHOperatorAbsoluteAfterMultiplePairs");
+    }
+
+    @Test
+    public void pathHOperatorRelativeAfterMultiplePairsTest() throws IOException, InterruptedException {
+        convertAndCompare(sourceFolder, destinationFolder, "pathHOperatorRelativeAfterMultiplePairs");
+    }
 }

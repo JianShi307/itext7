@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -61,6 +61,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -75,6 +76,19 @@ public class FontFaceTest extends SvgIntegrationTest {
     @BeforeClass
     public static void beforeClass() {
         ITextTest.createDestinationFolder(destinationFolder);
+    }
+
+    @Test
+    // TODO fix cmp file after DEVSIX-2256 is finished. Right now unicode range is not processed correctly
+    public void unicodeRangeTest() throws IOException, InterruptedException {
+        convertAndCompare(sourceFolder, destinationFolder, "unicodeRangeTest");
+    }
+
+    @Test
+    // TODO fix cmp file after DEVSIX-2534 is finished. Right now droid fonts are not applied if
+    //  their aliases are inside single quotes and contain spaces
+    public void droidSerifSingleQuotesTest() throws IOException, InterruptedException {
+        convertAndCompare(sourceFolder, destinationFolder, "droidSerifSingleQuotesTest");
     }
 
     @Test
@@ -155,11 +169,15 @@ public class FontFaceTest extends SvgIntegrationTest {
     }
 
     @Test
-    @Ignore("DEVSIX-1612")
-    //TODO: In w3c test suite this font is labeled as invalid though and its loading failed in browser, though iText parses its as correct one and LOADS!
-    //See DirectoryTableOrder002Test in io for decompression details
     public void w3cProblemTest02() throws IOException, InterruptedException {
-        runTest("w3cProblemTest02");
+        try {
+            runTest("w3cProblemTest02");
+        } catch (NegativeArraySizeException e) {
+            return;
+        }
+
+        Assert.fail("In w3c test suite this font is labeled as invalid, "
+                + "so the invalid negative value is expected while creating a glyph.");
     }
 
     @Test
@@ -193,11 +211,15 @@ public class FontFaceTest extends SvgIntegrationTest {
     }
 
     @Test
-    @Ignore("DEVSIX-1612")
-    //TODO: In w3c test suite this font is labeled as invalid though and its loading failed in browser, though iText parses its as correct one and LOADS!
-    //See ValidationOff012Test in io for decompression details
     public void w3cProblemTest07() throws IOException, InterruptedException {
-        runTest("w3cProblemTest07");
+        try {
+            runTest("w3cProblemTest07");
+        } catch (NegativeArraySizeException e) {
+            return;
+        }
+
+        Assert.fail("In w3c test suite this font is labeled as invalid, "
+                + "so the invalid negative value is expected while creating a glyph.");
     }
 
     @Test
@@ -295,15 +317,10 @@ public class FontFaceTest extends SvgIntegrationTest {
         compare(fileName, sourceFolder, destinationFolder);
     }
 
-    // TODO DEVSIX-2113
-    // This test passes correctly when baseUri is set manually. Remove SvgConverterProperties and use convertToSinglePage(File, File) method instead.
-    // It must produce the same pdf as the one with a pre-defined baseUri does
     @Test
     public void resolveFontsDefaultUri() throws IOException, InterruptedException {
-        SvgConverterProperties properties = new SvgConverterProperties();
-        properties.setBaseUri(sourceFolder);
         String fileName = "fontSelectorTest02";
-        convertToSinglePage(new File(sourceFolder + fileName + ".svg"), new File(destinationFolder + fileName + ".pdf"), properties);
+        convertToSinglePage(new File(sourceFolder + fileName + ".svg"), new File(destinationFolder + fileName + ".pdf"));
         compare(fileName, sourceFolder, destinationFolder);
     }
 

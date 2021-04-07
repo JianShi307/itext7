@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -44,23 +44,27 @@ package com.itextpdf.kernel.utils;
 
 import com.itextpdf.io.LogMessageConstant;
 import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfName;
 import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.test.ExtendedITextTest;
 import com.itextpdf.test.annotations.LogMessage;
 import com.itextpdf.test.annotations.LogMessages;
 import com.itextpdf.test.annotations.type.IntegrationTest;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.xml.parsers.ParserConfigurationException;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.xml.sax.SAXException;
+import static org.junit.Assert.assertNull;
 
 @Category(IntegrationTest.class)
 public class PdfMergerTest extends ExtendedITextTest {
@@ -291,5 +295,142 @@ public class PdfMergerTest extends ExtendedITextTest {
         if (errorMessage != null) {
             Assert.fail(errorMessage);
         }
+    }
+
+    @Test
+    // TODO DEVSIX-1743. Update cmp file after fix
+    @LogMessages(messages = {
+            @LogMessage(messageTemplate = LogMessageConstant.SOURCE_DOCUMENT_HAS_ACROFORM_DICTIONARY)
+    })
+    public void mergeWithAcroFormsTest() throws IOException, InterruptedException {
+        String pdfAcro1 = sourceFolder + "pdfSource1.pdf";
+        String pdfAcro2 = sourceFolder + "pdfSource2.pdf";
+        String outFileName = destinationFolder + "mergeWithAcroFormsTest.pdf";
+        String cmpFileName= sourceFolder + "cmp_mergeWithAcroFormsTest.pdf";
+
+        List<File> sources = new ArrayList<File>();
+        sources.add(new File(pdfAcro1));
+        sources.add(new File(pdfAcro2));
+        mergePdfs(sources, outFileName);
+
+        Assert.assertNull(new CompareTool().compareByContent(outFileName, cmpFileName, destinationFolder));
+    }
+
+    @Test
+    @LogMessages(messages = {
+            @LogMessage(messageTemplate = LogMessageConstant.DOCUMENT_HAS_CONFLICTING_OCG_NAMES, count = 3)
+    })
+    public void mergePdfWithOCGTest() throws IOException, InterruptedException {
+        String pdfWithOCG1 = sourceFolder  + "sourceOCG1.pdf";
+        String pdfWithOCG2 = sourceFolder  + "sourceOCG2.pdf";
+        String outPdf = destinationFolder + "mergePdfWithOCGTest.pdf";
+        String cmpPdf = sourceFolder + "cmp_mergePdfWithOCGTest.pdf";
+
+        List<File> sources = new ArrayList<File>();
+        sources.add(new File(pdfWithOCG1));
+        sources.add(new File(pdfWithOCG2));
+        sources.add(new File(pdfWithOCG2));
+        sources.add(new File(pdfWithOCG2));
+        mergePdfs(sources, outPdf);
+
+        Assert.assertNull(new CompareTool().compareByContent(outPdf, cmpPdf, destinationFolder));
+    }
+
+    @Test
+    @LogMessages(messages = {
+            @LogMessage(messageTemplate = LogMessageConstant.DOCUMENT_HAS_CONFLICTING_OCG_NAMES)
+    })
+    public void mergePdfWithComplexOCGTest() throws IOException, InterruptedException {
+        String pdfWithOCG1 = sourceFolder  + "sourceOCG1.pdf";
+        String pdfWithOCG2 = sourceFolder  + "pdfWithComplexOCG.pdf";
+        String outPdf = destinationFolder + "mergePdfWithComplexOCGTest.pdf";
+        String cmpPdf = sourceFolder + "cmp_mergePdfWithComplexOCGTest.pdf";
+
+        List<File> sources = new ArrayList<File>();
+        sources.add(new File(pdfWithOCG1));
+        sources.add(new File(pdfWithOCG2));
+        mergePdfs(sources, outPdf);
+
+        Assert.assertNull(new CompareTool().compareByContent(outPdf, cmpPdf, destinationFolder));
+    }
+
+    @Test
+    @LogMessages(messages = {
+            @LogMessage(messageTemplate = LogMessageConstant.DOCUMENT_HAS_CONFLICTING_OCG_NAMES)
+    })
+    public void mergeTwoPagePdfWithComplexOCGTest() throws IOException, InterruptedException {
+        String pdfWithOCG1 = sourceFolder  + "sourceOCG1.pdf";
+        String pdfWithOCG2 = sourceFolder  + "twoPagePdfWithComplexOCGTest.pdf";
+        String outPdf = destinationFolder + "mergeTwoPagePdfWithComplexOCGTest.pdf";
+        String cmpPdf = sourceFolder + "cmp_mergeTwoPagePdfWithComplexOCGTest.pdf";
+
+        PdfDocument mergedDoc = new PdfDocument(new PdfWriter(outPdf));
+        PdfMerger merger = new PdfMerger(mergedDoc);
+        List<File> sources = new ArrayList<File>();
+        sources.add(new File(pdfWithOCG1));
+        sources.add(new File(pdfWithOCG2));
+
+        // The test verifies that are copying only those OCGs and properties that are used on the copied pages
+        for(File source : sources){
+            PdfDocument sourcePdf = new PdfDocument(new PdfReader(source));
+            merger.merge(sourcePdf, 1, 1).setCloseSourceDocuments(true);
+            sourcePdf.close();
+        }
+        merger.close();
+        mergedDoc.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outPdf, cmpPdf, destinationFolder));
+    }
+
+    @Test
+    public void mergePdfWithComplexOCGTwiceTest() throws IOException, InterruptedException {
+        String pdfWithOCG = sourceFolder  + "pdfWithComplexOCG.pdf";
+        String outPdf = destinationFolder + "mergePdfWithComplexOCGTwiceTest.pdf";
+        String cmpPdf = sourceFolder + "cmp_mergePdfWithComplexOCGTwiceTest.pdf";
+
+        PdfDocument mergedDoc = new PdfDocument(new PdfWriter(outPdf));
+        PdfMerger merger = new PdfMerger(mergedDoc);
+        PdfDocument sourcePdf = new PdfDocument(new PdfReader(new File(pdfWithOCG)));
+        // The test verifies that identical layers from the same document are not copied
+        merger.merge(sourcePdf, 1, sourcePdf.getNumberOfPages());
+        merger.merge(sourcePdf, 1, sourcePdf.getNumberOfPages());
+        sourcePdf.close();
+        merger.close();
+        mergedDoc.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outPdf, cmpPdf, destinationFolder));
+    }
+
+    @Test
+    @Ignore ("TODO: DEVSIX-5064 (when doing merge with outlines infinite loop occurs )")
+    public void mergeOutlinesWithWrongStructureTest() throws IOException, InterruptedException {
+        PdfDocument inputDoc = new PdfDocument(new PdfReader(
+                sourceFolder + "infiniteLoopInOutlineStructure.pdf"));
+
+        PdfDocument outputDoc = new PdfDocument(new PdfWriter(
+                destinationFolder + "infiniteLoopInOutlineStructure.pdf"));
+
+        PdfMerger merger = new PdfMerger(outputDoc, false, true);
+        System.out.println("Doing merge");
+        merger.merge(inputDoc, 1, 2);
+        merger.close();
+        System.out.println("Merge done");
+
+        Assert.assertNull(new CompareTool().compareByContent(
+                destinationFolder + "infiniteLoopInOutlineStructure.pdf",
+                sourceFolder + "cmp_infiniteLoopInOutlineStructure.pdf", destinationFolder));
+    }
+
+    private void mergePdfs(List<File> sources, String destination) throws IOException {
+        PdfDocument mergedDoc = new PdfDocument(new PdfWriter(destination));
+        PdfMerger merger = new PdfMerger(mergedDoc);
+        for(File source : sources){
+            PdfDocument sourcePdf = new PdfDocument(new PdfReader(source));
+            merger.merge(sourcePdf, 1, sourcePdf.getNumberOfPages()).setCloseSourceDocuments(true);
+            sourcePdf.close();
+        }
+
+        merger.close();
+        mergedDoc.close();
     }
 }

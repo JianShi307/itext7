@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -171,7 +171,7 @@ public class Jbig2SegmentReader {
          * if for_embedding, skip the segment types that are known to be not for acrobat.
          *
          * @param for_embedding         True if the bytes represents embedded data, false otherwise
-         * @throws java.io.IOException
+         * @throws java.io.IOException if an I/O error occurs.
          * @return a byte array
          */
         public byte[] getData(boolean for_embedding) throws java.io.IOException {

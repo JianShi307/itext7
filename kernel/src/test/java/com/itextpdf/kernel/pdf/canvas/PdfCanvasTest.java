@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -597,55 +597,6 @@ public class PdfCanvasTest extends ExtendedITextTest {
                     .endText()
                     .restoreState();
             canvas.rectangle(100, 500, 100, 100).fill();
-            canvas.release();
-            page.flush();
-
-        }
-        pdfDoc.close();
-
-        PdfReader reader = new PdfReader(filename);
-        PdfDocument pdfDocument = new PdfDocument(reader);
-        Assert.assertEquals("Rebuilt", false, reader.hasRebuiltXref());
-        PdfDictionary info = pdfDocument.getTrailer().getAsDictionary(PdfName.Info);
-        Assert.assertEquals("Author", author, info.get(PdfName.Author).toString());
-        Assert.assertEquals("Creator", creator, info.get(PdfName.Creator).toString());
-        Assert.assertEquals("Title", title, info.get(PdfName.Title).toString());
-        Assert.assertEquals("Page count", pageCount, pdfDocument.getNumberOfPages());
-        for (int i = 1; i <= pageCount; i++) {
-            PdfDictionary page = pdfDocument.getPage(i).getPdfObject();
-            Assert.assertEquals(PdfName.Page, page.get(PdfName.Type));
-        }
-        pdfDocument.close();
-    }
-
-    @Test(timeout = 0)
-    @Ignore("Too big result file. This test is for manual testing. -Xmx6g shall be set.")
-    public void hugeDocumentWithFullCompression() throws IOException {
-        int pageCount = 800;
-        String filename = destinationFolder + "hugeDocumentWithFullCompression.pdf";
-
-        final String author = "Alexander Chingarev";
-        final String creator = "iText 6";
-        final String title = "Empty iText 6 Document";
-
-        PdfWriter writer = new PdfWriter(filename, new WriterProperties().setFullCompressionMode(true));
-        PdfDocument pdfDoc = new PdfDocument(writer);
-        pdfDoc.getDocumentInfo().setAuthor(author).
-                setCreator(creator).
-                setTitle(title);
-        for (int i = 0; i < pageCount; i++) {
-            PdfPage page = pdfDoc.addNewPage();
-            PdfCanvas canvas = new PdfCanvas(page);
-            canvas
-                    .saveState()
-                    .beginText()
-                    .moveText(36, 700)
-                    .setFontAndSize(PdfFontFactory.createFont(StandardFonts.HELVETICA), 72)
-                    .showText(Integer.toString(i + 1))
-                    .endText()
-                    .restoreState();
-            PdfImageXObject xObject = new PdfImageXObject(ImageDataFactory.create(sourceFolder + "Willaerts_Adam_The_Embarkation_of_the_Elector_Palantine_Oil_Canvas-huge.jpg"));
-            canvas.addXObject(xObject, 100, 500, 400);
             canvas.release();
             page.flush();
 
@@ -1456,98 +1407,6 @@ public class PdfCanvasTest extends ExtendedITextTest {
 
         Assert.assertNull(new CompareTool().compareByContent(destinationFolder + filename, sourceFolder + "cmp_" + filename, destinationFolder, "diff_"));
     }*/
-
-    @Test
-    @LogMessages(messages = {
-            @LogMessage(messageTemplate = LogMessageConstant.IMAGE_HAS_JBIG2DECODE_FILTER),
-            @LogMessage(messageTemplate = LogMessageConstant.IMAGE_HAS_JPXDECODE_FILTER),
-            @LogMessage(messageTemplate = LogMessageConstant.IMAGE_HAS_MASK),
-            @LogMessage(messageTemplate = LogMessageConstant.IMAGE_SIZE_CANNOT_BE_MORE_4KB)
-    })
-    public void inlineImagesTest01() throws IOException, InterruptedException {
-        String filename = "inlineImages01.pdf";
-        PdfDocument document = new PdfDocument(new PdfWriter(destinationFolder + filename));
-
-        PdfPage page = document.addNewPage();
-        PdfCanvas canvas = new PdfCanvas(page);
-
-        canvas.addImage(ImageDataFactory.create(sourceFolder + "Desert.jpg"), 36, 700, 100, true);
-        canvas.addImage(ImageDataFactory.create(sourceFolder + "bulb.gif"), 36, 600, 100, true);
-        canvas.addImage(ImageDataFactory.create(sourceFolder + "smpl.bmp"), 36, 500, 100, true);
-        canvas.addImage(ImageDataFactory.create(sourceFolder + "itext.png"), 36, 460, 100, true);
-        canvas.addImage(ImageDataFactory.create(sourceFolder + "0047478.jpg"), 36, 300, 100, true);
-        canvas.addImage(ImageDataFactory.create(sourceFolder + "map.jp2"), 36, 200, 100, true);
-        canvas.addImage(ImageDataFactory.create(sourceFolder + "amb.jb2"), 36, 30, 100, true);
-
-        document.close();
-
-        Assert.assertNull(new CompareTool().compareByContent(destinationFolder + filename, sourceFolder + "cmp_" + filename, destinationFolder, "diff_"));
-    }
-
-    @Test
-    @LogMessages(messages = {
-            @LogMessage(messageTemplate = LogMessageConstant.IMAGE_HAS_JBIG2DECODE_FILTER),
-            @LogMessage(messageTemplate = LogMessageConstant.IMAGE_HAS_JPXDECODE_FILTER),
-            @LogMessage(messageTemplate = LogMessageConstant.IMAGE_HAS_MASK),
-            @LogMessage(messageTemplate = LogMessageConstant.IMAGE_SIZE_CANNOT_BE_MORE_4KB)
-    })
-    public void inlineImagesTest02() throws IOException, InterruptedException {
-        String filename = "inlineImages02.pdf";
-        PdfDocument document = new PdfDocument(new PdfWriter(destinationFolder + filename));
-
-        PdfPage page = document.addNewPage();
-        PdfCanvas canvas = new PdfCanvas(page);
-
-        InputStream stream = UrlUtil.openStream(UrlUtil.toURL(sourceFolder + "Desert.jpg"));
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        StreamUtil.transferBytes(stream, baos);
-        canvas.addImage(ImageDataFactory.create(baos.toByteArray()), 36, 700, 100, true);
-        stream = UrlUtil.openStream(UrlUtil.toURL(sourceFolder + "bulb.gif"));
-        baos = new ByteArrayOutputStream();
-        StreamUtil.transferBytes(stream, baos);
-        canvas.addImage(ImageDataFactory.create(baos.toByteArray()), 36, 600, 100, true);
-        stream = UrlUtil.openStream(UrlUtil.toURL(sourceFolder + "smpl.bmp"));
-        baos = new ByteArrayOutputStream();
-        StreamUtil.transferBytes(stream, baos);
-        canvas.addImage(ImageDataFactory.create(baos.toByteArray()), 36, 500, 100, true);
-        stream = UrlUtil.openStream(UrlUtil.toURL(sourceFolder + "itext.png"));
-        baos = new ByteArrayOutputStream();
-        StreamUtil.transferBytes(stream, baos);
-        canvas.addImage(ImageDataFactory.create(baos.toByteArray()), 36, 460, 100, true);
-        stream = UrlUtil.openStream(UrlUtil.toURL(sourceFolder + "0047478.jpg"));
-        baos = new ByteArrayOutputStream();
-        StreamUtil.transferBytes(stream, baos);
-        canvas.addImage(ImageDataFactory.create(baos.toByteArray()), 36, 300, 100, true);
-        stream = UrlUtil.openStream(UrlUtil.toURL(sourceFolder + "map.jp2"));
-        baos = new ByteArrayOutputStream();
-        StreamUtil.transferBytes(stream, baos);
-        canvas.addImage(ImageDataFactory.create(baos.toByteArray()), 36, 200, 100, true);
-        stream = UrlUtil.openStream(UrlUtil.toURL(sourceFolder + "amb.jb2"));
-        baos = new ByteArrayOutputStream();
-        StreamUtil.transferBytes(stream, baos);
-        canvas.addImage(ImageDataFactory.create(baos.toByteArray()), 36, 30, 100, true);
-
-        document.close();
-
-        Assert.assertNull(new CompareTool().compareByContent(destinationFolder + filename, sourceFolder + "cmp_" + filename, destinationFolder, "diff_"));
-    }
-
-    @Test
-    public void inlineImagesTest03() throws IOException, InterruptedException {
-        String filename = "inlineImages03.pdf";
-        PdfDocument document = new PdfDocument(new PdfWriter(destinationFolder + filename,
-                new WriterProperties().setPdfVersion(PdfVersion.PDF_2_0))
-                .setCompressionLevel(CompressionConstants.NO_COMPRESSION));
-
-        PdfPage page = document.addNewPage();
-        PdfCanvas canvas = new PdfCanvas(page);
-
-        canvas.addImage(ImageDataFactory.create(sourceFolder + "bulb.gif"), 36, 600, 100, true);
-
-        document.close();
-
-        Assert.assertNull(new CompareTool().compareByContent(destinationFolder + filename, sourceFolder + "cmp_" + filename, destinationFolder, "diff_"));
-    }
 
     @Test
     public void awtImagesTest01() throws IOException, InterruptedException {

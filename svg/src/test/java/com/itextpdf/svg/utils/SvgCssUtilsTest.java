@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -42,6 +42,11 @@
  */
 package com.itextpdf.svg.utils;
 
+import com.itextpdf.styledxmlparser.CommonAttributeConstants;
+import com.itextpdf.styledxmlparser.css.util.CssUtils;
+import com.itextpdf.styledxmlparser.jsoup.nodes.Element;
+import com.itextpdf.styledxmlparser.jsoup.parser.Tag;
+import com.itextpdf.styledxmlparser.node.impl.jsoup.node.JsoupElementNode;
 import com.itextpdf.test.ExtendedITextTest;
 import com.itextpdf.test.annotations.type.UnitTest;
 
@@ -49,7 +54,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -165,7 +169,7 @@ public class SvgCssUtilsTest extends ExtendedITextTest {
     @Test
     public void normalConvertPtsToPxTest() {
         float[] input = new float[] { -1f, 0f, 1f };
-        float[] expected = new float[] {-0.75f, 0f, 0.75f};
+        float[] expected = new float[] {-1.3333334f, 0f, 1.3333334f};
 
         for (int i = 0; i < input.length; i++) {
             float actual = SvgCssUtils.convertPtsToPx(input[i]);
@@ -175,7 +179,7 @@ public class SvgCssUtilsTest extends ExtendedITextTest {
 
     @Test
     public void convertFloatMaximumToPdfTest() {
-        float expected = 2.5521175E38f;
+        float expected = Float.POSITIVE_INFINITY;
         float actual = SvgCssUtils.convertPtsToPx(Float.MAX_VALUE);
 
         Assert.assertEquals(expected, actual, 0f);
@@ -197,12 +201,23 @@ public class SvgCssUtilsTest extends ExtendedITextTest {
         Assert.assertEquals(expected, actual);
     }
 
-    @Ignore("TODO: Check autoport for failing float comparisons. Blocked by RND-882\n")
     @Test
     public void convertFloatMinimumToPdfTest() {
         float expected = 1.4E-45f;
         float actual = SvgCssUtils.convertPtsToPx(Float.MIN_VALUE);
 
         Assert.assertEquals(expected, actual, 0f);
+    }
+
+    @Test
+    public void compareIsStyleSheetLinkResult() {
+        Element element = new Element(Tag.valueOf("link"), "");
+        element.attr(CommonAttributeConstants.REL, CommonAttributeConstants.STYLESHEET);
+        JsoupElementNode elementNode = new JsoupElementNode(element);
+
+        boolean expected = CssUtils.isStyleSheetLink(elementNode);
+        boolean actual = SvgCssUtils.isStyleSheetLink(elementNode);
+
+        Assert.assertEquals(actual, expected);
     }
 }

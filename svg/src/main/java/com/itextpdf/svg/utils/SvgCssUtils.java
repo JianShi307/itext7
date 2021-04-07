@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -42,8 +42,8 @@
  */
 package com.itextpdf.svg.utils;
 
+import com.itextpdf.styledxmlparser.css.util.CssUtils;
 import com.itextpdf.styledxmlparser.node.IElementNode;
-import com.itextpdf.svg.SvgConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,7 +52,7 @@ import java.util.List;
 /**
  * Utility class that facilitates parsing values from CSS.
  */
-// TODO RND-875
+// TODO DEVSIX-2266
 
 public final class SvgCssUtils {
 
@@ -99,11 +99,29 @@ public final class SvgCssUtils {
     }
 
     /**
-     * @param pts value to be converted to pixels
-     * @return float converted value pts*0.75f
+     * Convert given point value to a pixel value. 1 px is 0.75 pts.
+     *
+     * @param pts float value to be converted to pixels
+     * @return float converted value pts/0.75f
+     * @deprecated Will be replaced by the {@link com.itextpdf.styledxmlparser.css.util.CssUtils#convertPtsToPx(float)}
+     * in update 7.2.
      */
+    @Deprecated
     public static float convertPtsToPx(float pts) {
-        return pts * 0.75f;
+        return pts / 0.75f;
+    }
+
+    /**
+     * Convert given point value to a pixel value. 1 px is 0.75 pts.
+     *
+     * @param pts double value to be converted to pixels
+     * @return double converted value pts/0.75
+     * @deprecated Will be replaced by the {@link com.itextpdf.styledxmlparser.css.util.CssUtils#convertPtsToPx(double)}
+     * in update 7.2.
+     */
+    @Deprecated
+    public static double convertPtsToPx(double pts) {
+        return pts / 0.75;
     }
 
     /**
@@ -111,10 +129,12 @@ public final class SvgCssUtils {
      *
      * @param headChildElement the head child element
      * @return true, if the element node represents a style sheet link
+     * @deprecated Will be replaced by the
+     * {@link CssUtils#isStyleSheetLink(IElementNode)} in update 7.2.
      */
+    @Deprecated
     public static boolean isStyleSheetLink(IElementNode headChildElement) {
-        return SvgConstants.Tags.LINK.equals(headChildElement.name())
-                && SvgConstants.Attributes.STYLESHEET.equals(headChildElement.getAttribute(SvgConstants.Attributes.REL));
+        return CssUtils.isStyleSheetLink(headChildElement);
     }
 
 }

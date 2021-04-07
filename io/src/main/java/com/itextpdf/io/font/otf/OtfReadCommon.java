@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -78,14 +78,14 @@ public class OtfReadCommon {
 		int coverageFormat = rf.readShort();
 		List<Integer> glyphIds;
 		if (coverageFormat == 1) {
-			int glyphCount = rf.readShort();
+			int glyphCount = rf.readUnsignedShort();
 			glyphIds = new ArrayList<>(glyphCount);
 			for (int i = 0; i < glyphCount; i++) {
-				int coverageGlyphId = rf.readShort();
+				int coverageGlyphId = rf.readUnsignedShort();
 				glyphIds.add(coverageGlyphId);
 			}
 		} else if (coverageFormat == 2) {
-			int rangeCount = rf.readShort();
+			int rangeCount = rf.readUnsignedShort();
 			glyphIds = new ArrayList<>();
 			for (int i = 0; i < rangeCount; i++) {
 				readRangeRecord(rf, glyphIds);
@@ -99,8 +99,8 @@ public class OtfReadCommon {
 	}
 
 	private static void readRangeRecord(RandomAccessFileOrArray rf, List<Integer> glyphIds) throws java.io.IOException {
-		int startGlyphId = rf.readShort();
-		int endGlyphId = rf.readShort();
+		int startGlyphId = rf.readUnsignedShort();
+		int endGlyphId = rf.readUnsignedShort();
 		@SuppressWarnings("unused")
         int startCoverageIndex = rf.readShort();
 		for (int glyphId = startGlyphId; glyphId <= endGlyphId; glyphId++) {
@@ -176,15 +176,28 @@ public class OtfReadCommon {
         return marks;
     }
 
-    public static SubstLookupRecord[] readSubstLookupRecords(RandomAccessFileOrArray rf, int substCount) throws java.io.IOException {
-        SubstLookupRecord[] substPosLookUpRecords = new SubstLookupRecord[substCount];
+    public static SubstLookupRecord[] readSubstLookupRecords(RandomAccessFileOrArray rf, int substCount)
+            throws java.io.IOException {
+        SubstLookupRecord[] substLookUpRecords = new SubstLookupRecord[substCount];
         for (int i = 0; i < substCount; ++i) {
             SubstLookupRecord slr = new SubstLookupRecord();
             slr.sequenceIndex = rf.readUnsignedShort();
             slr.lookupListIndex = rf.readUnsignedShort();
-            substPosLookUpRecords[i] = slr;
+            substLookUpRecords[i] = slr;
         }
-        return substPosLookUpRecords;
+        return substLookUpRecords;
+    }
+
+    public static PosLookupRecord[] readPosLookupRecords(RandomAccessFileOrArray rf, int recordCount)
+            throws java.io.IOException {
+        PosLookupRecord[] posLookUpRecords = new PosLookupRecord[recordCount];
+        for (int i = 0; i < recordCount; ++i) {
+            PosLookupRecord lookupRecord = new PosLookupRecord();
+            lookupRecord.sequenceIndex = rf.readUnsignedShort();
+            lookupRecord.lookupListIndex = rf.readUnsignedShort();
+            posLookUpRecords[i] = lookupRecord;
+        }
+        return posLookUpRecords;
     }
 
     public static GposAnchor[] readAnchorArray(OpenTypeFontTableReader tableReader, int[] locations, int left, int right) throws java.io.IOException {

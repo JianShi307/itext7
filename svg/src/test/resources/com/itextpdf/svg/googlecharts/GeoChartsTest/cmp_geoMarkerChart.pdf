@@ -16,7 +16,7 @@ endobj
 <</Pages 2 0 R/Type/Catalog>>
 endobj
 3 0 obj
-<</CreationDate(D:20190624140942+03'00')/ModDate(D:20190624140942+03'00')/Producer(iText® 7.1.7-SNAPSHOT ©2000-2019 iText Group NV \(AGPL-version\))>>
+<</CreationDate(D:20200617112610+03'00')/ModDate(D:20200617112610+03'00')/Producer(iText® 7.1.12-SNAPSHOT ©2000-2020 iText Group NV \(AGPL-version\))>>
 endobj
 6 0 obj
 <</BaseFont/Times-Roman/Encoding/WinAnsiEncoding/Subtype/Type1/Type/Font>>
@@ -36,7 +36,10 @@ Q
 endstream
 endobj
 8 0 obj
-<</BBox[0 0 675.75 375.75]/Length 88465/Resources<</Font<</F1 6 0 R>>>>/Subtype/Form/Type/XObject>>stream
+<</BBox[0 0 675.75 375.75]/Length 88511/Resources<</Font<</F1 6 0 R>>/Pattern<</P1 9 0 R>>>>/Subtype/Form/Type/XObject>>stream
+0 0 675.75 375.75 re
+W
+n
 q
 0 0 0 rg
 q
@@ -418,7 +421,7 @@ q
 576.84 192.11 l
 577.92 193.2 l
 580.16 192.04 l
-584.64 192.94 l
+584.63 192.94 l
 590.57 189.86 l
 591.8 191.07 l
 593.57 190.58 l
@@ -3262,7 +3265,7 @@ q
 593.57 190.58 l
 591.8 191.07 l
 590.57 189.86 l
-584.64 192.94 l
+584.63 192.94 l
 580.16 192.04 l
 577.92 193.2 l
 576.84 192.11 l
@@ -3343,7 +3346,7 @@ q
 536.41 281.07 l
 535.03 280.61 l
 536.89 281.45 l
-539.74 279.8 l
+539.75 279.8 l
 542.67 280.52 l
 544.02 278.75 l
 545.42 279.4 l
@@ -4831,7 +4834,7 @@ q
 229.11 120.99 l
 237.97 117.69 l
 240.31 115.58 l
-242.47 109.99 l
+242.46 109.99 l
 245.86 108.37 l
 247.14 104.72 l
 252.85 101.3 l
@@ -6239,7 +6242,7 @@ q
 688.69 316.11 l
 686.26 317.42 l
 685.02 320.02 l
-681.88 319.42 l
+681.87 319.42 l
 682.07 323.31 l
 673.36 322.65 l
 672.7 323.98 l
@@ -6669,6 +6672,9 @@ Q
 Q
 q
 q
+/Pattern cs
+
+/P1 scn
 % rect
 43.13 355.45 135.25 9.8 re
 f
@@ -6742,20 +6748,36 @@ Q
 
 endstream
 endobj
+9 0 obj
+<</PatternType 2/Shading 10 0 R/Type/Pattern>>
+endobj
+10 0 obj
+<</ColorSpace/DeviceRGB/Coords[43.13 349.5 178.37 349.5]/Domain[0 1]/Function 11 0 R/ShadingType 2>>
+endobj
+11 0 obj
+<</Bounds[]/Domain[0 1]/Encode[0 1]/FunctionType 3/Functions[12 0 R]>>
+endobj
+12 0 obj
+<</C0[0 0.50196 0]/C1[0 0 1]/Domain[0 1]/FunctionType 2/N 1>>
+endobj
 xref
-0 9
+0 13
 0000000000 65535 f 
 0000000226 00000 n 
-0000000527 00000 n 
+0000000528 00000 n 
 0000000271 00000 n 
 0000000089 00000 n 
 0000000015 00000 n 
-0000000437 00000 n 
-0000000578 00000 n 
-0000000770 00000 n 
+0000000438 00000 n 
+0000000579 00000 n 
+0000000771 00000 n 
+0000089435 00000 n 
+0000089497 00000 n 
+0000089614 00000 n 
+0000089701 00000 n 
 trailer
-<</ID [<15f99dc842c5a5533b3d67dbb2275d5c><15f99dc842c5a5533b3d67dbb2275d5c>]/Info 3 0 R/Root 1 0 R/Size 9>>
-%iText-7.1.7-SNAPSHOT
+<</ID [<031bfc26821f6435a7825ee0679c1551><031bfc26821f6435a7825ee0679c1551>]/Info 3 0 R/Root 1 0 R/Size 13>>
+%iText-7.1.12-SNAPSHOT
 startxref
-89367
+89779
 %%EOF

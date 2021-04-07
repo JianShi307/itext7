@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -41,6 +41,9 @@
     address: sales@itextpdf.com
  */
 package com.itextpdf.styledxmlparser.css;
+
+import com.itextpdf.layout.font.Range;
+import com.itextpdf.styledxmlparser.css.util.CssUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,5 +107,15 @@ public class CssFontFaceRule extends CssNestedAtRule {
         }
         sb.append("}");
         return sb.toString();
+    }
+
+    public Range resolveUnicodeRange() {
+        Range range = null;
+        for (CssDeclaration descriptor : getProperties()) {
+            if ("unicode-range".equals(descriptor.getProperty())) {
+                range = CssUtils.parseUnicodeRange(descriptor.getExpression());
+            }
+        }
+        return range;
     }
 }

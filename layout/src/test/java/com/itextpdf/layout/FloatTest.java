@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -73,6 +73,7 @@ import com.itextpdf.test.ExtendedITextTest;
 import com.itextpdf.test.annotations.LogMessage;
 import com.itextpdf.test.annotations.LogMessages;
 import com.itextpdf.test.annotations.type.IntegrationTest;
+
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -85,6 +86,9 @@ public class FloatTest extends ExtendedITextTest {
 
     public static final String sourceFolder = "./src/test/resources/com/itextpdf/layout/FloatTest/";
     public static final String destinationFolder = "./target/test/com/itextpdf/layout/FloatTest/";
+
+    private static final String shortText =
+            "Video provides a powerful way to help you prove your point. When you click Online Video, you can paste in the embed code for the video you want to add. You can also type a keyword to search online for the video that best fits your document. ";
 
     private static final String text =
             "Video provides a powerful way to help you prove your point. When you click Online Video, you can paste in the embed code for the video you want to add. You can also type a keyword to search online for the video that best fits your document. " +
@@ -452,7 +456,7 @@ public class FloatTest extends ExtendedITextTest {
         PdfDocument pdfDoc = new PdfDocument(new PdfWriter(outFile)).setTagged();
         PdfPage page = pdfDoc.addNewPage();
         PdfCanvas pdfCanvas = new PdfCanvas(page);
-        Canvas canvas = new Canvas(pdfCanvas, pdfDoc, page.getPageSize().applyMargins(36, 36, 36, 36, false));
+        Canvas canvas = new Canvas(pdfCanvas, page.getPageSize().applyMargins(36, 36, 36, 36, false));
         canvas.enableAutoTagging(page);
 
         Div div = new Div().setBackgroundColor(ColorConstants.RED);
@@ -1734,6 +1738,35 @@ public class FloatTest extends ExtendedITextTest {
 
         Assert.assertNull(new CompareTool().compareByContent(outFile, cmpFileName, destinationFolder, "diff39_"));
     }
+
+    @Test
+    @LogMessages(messages = @LogMessage(messageTemplate = LogMessageConstant.ELEMENT_DOES_NOT_FIT_AREA, count = 2))
+    public void floatsKeepTogetherOnPageSplit03() throws IOException, InterruptedException {
+        String cmpFileName = sourceFolder + "cmp_floatsKeepTogetherOnPageSplit03.pdf";
+        String outFile = destinationFolder + "floatsKeepTogetherOnPageSplit03.pdf";
+
+        Document document = new Document(new PdfDocument(new PdfWriter(outFile)));
+
+        document.add(new Paragraph(text));
+
+        Div floatedKeptTogetherDiv = new Div()
+                .add(new Paragraph(text + text))
+                .setBackgroundColor(ColorConstants.BLUE)
+                .setWidth(200)
+                .setKeepTogether(true);
+        floatedKeptTogetherDiv.setProperty(Property.FLOAT, FloatPropertyValue.LEFT);
+        document.add(floatedKeptTogetherDiv);
+
+        Div longKeptTogetherDiv = new Div()
+                .add(new Paragraph(text + text + text + text + text + text))
+                .setKeepTogether(true);
+        document.add(longKeptTogetherDiv);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFile, cmpFileName, destinationFolder, "diff39_"));
+    }
+
 
     @Test
     public void floatsInParagraphPartialSplit01() throws IOException, InterruptedException {
@@ -3083,4 +3116,315 @@ public class FloatTest extends ExtendedITextTest {
 
         Assert.assertNull(new CompareTool().compareByContent(outFile, cmpFileName, destinationFolder, "diff03_"));
     }
+
+    @Test
+    @LogMessages(messages = @LogMessage(messageTemplate = LogMessageConstant.ELEMENT_DOES_NOT_FIT_AREA))
+    public void keepTogetherEnoughSpaceOnNewPageWithFloatTest() throws IOException, InterruptedException {
+        String cmpFileName = sourceFolder + "cmp_keepTogetherEnoughSpaceOnNewPageWithFloatTest.pdf";
+        String outFile = destinationFolder + "keepTogetherEnoughSpaceOnNewPageWithFloatTest.pdf";
+
+        Document document = new Document(new PdfDocument(new PdfWriter(outFile)));
+
+        fillWithKeptTogetherElement(document, text, 2, false, false);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFile, cmpFileName, destinationFolder, "diff50_"));
+    }
+
+    @Test
+    @LogMessages(messages = @LogMessage(messageTemplate = LogMessageConstant.ELEMENT_DOES_NOT_FIT_AREA))
+    public void keepTogetherNotEnoughSpaceOnNewPageWithFloatEnoughOnEmptyTest()
+            throws IOException, InterruptedException {
+        String cmpFileName = sourceFolder + "cmp_keepTogetherNotEnoughSpaceOnNewPageWithFloatEnoughOnEmptyTest.pdf";
+        String outFile = destinationFolder + "keepTogetherNotEnoughSpaceOnNewPageWithFloatEnoughOnEmptyTest.pdf";
+
+        Document document = new Document(new PdfDocument(new PdfWriter(outFile)));
+
+        fillWithKeptTogetherElement(document, text, 3, false, false);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFile, cmpFileName, destinationFolder, "diff50_"));
+    }
+
+    @Test
+    @LogMessages(messages = @LogMessage(messageTemplate = LogMessageConstant.ELEMENT_DOES_NOT_FIT_AREA, count = 2))
+    public void keepTogetherNotEnoughSpaceOnNewEmptyPageTest() throws IOException, InterruptedException {
+        String cmpFileName = sourceFolder + "cmp_keepTogetherNotEnoughSpaceOnNewEmptyPageTest.pdf";
+        String outFile = destinationFolder + "keepTogetherNotEnoughSpaceOnNewEmptyPageTest.pdf";
+
+        Document document = new Document(new PdfDocument(new PdfWriter(outFile)));
+
+        fillWithKeptTogetherElement(document, text, 4, false, false);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFile, cmpFileName, destinationFolder, "diff50_"));
+    }
+
+    @Test
+    @LogMessages(messages = @LogMessage(messageTemplate = LogMessageConstant.ELEMENT_DOES_NOT_FIT_AREA, count = 1))
+    public void keepTogetherNotEnoughSpaceOnNewEmptyPageShortFloatTest() throws IOException, InterruptedException {
+        String cmpFileName = sourceFolder + "cmp_keepTogetherNotEnoughSpaceOnNewEmptyPageShortFloatTest.pdf";
+        String outFile = destinationFolder + "keepTogetherNotEnoughSpaceOnNewEmptyPageShortFloatTest.pdf";
+
+        Document document = new Document(new PdfDocument(new PdfWriter(outFile)));
+
+        fillWithKeptTogetherElement(document, "Some short text", 4, false, true);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFile, cmpFileName, destinationFolder, "diff50_"));
+    }
+
+
+    @Test
+    @LogMessages(messages = @LogMessage(messageTemplate = LogMessageConstant.ELEMENT_DOES_NOT_FIT_AREA))
+    public void innerKeepTogetherEnoughSpaceOnNewPageWithFloatTest() throws IOException, InterruptedException {
+        String cmpFileName = sourceFolder + "cmp_innerKeepTogetherEnoughSpaceOnNewPageWithFloatTest.pdf";
+        String outFile = destinationFolder + "innerKeepTogetherEnoughSpaceOnNewPageWithFloatTest.pdf";
+
+        Document document = new Document(new PdfDocument(new PdfWriter(outFile)));
+
+        fillWithKeptTogetherElement(document, text, 2, true, false);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFile, cmpFileName, destinationFolder, "diff50_"));
+    }
+
+    @Test
+    @LogMessages(messages = @LogMessage(messageTemplate = LogMessageConstant.ELEMENT_DOES_NOT_FIT_AREA))
+    public void innerKeepTogetherNotEnoughSpaceOnNewPageWithFloatEnoughOnEmptyTest()
+            throws IOException, InterruptedException {
+        String cmpFileName =
+                sourceFolder + "cmp_innerKeepTogetherNotEnoughSpaceOnNewPageWithFloatEnoughOnEmptyTest.pdf";
+        String outFile = destinationFolder + "innerKeepTogetherNotEnoughSpaceOnNewPageWithFloatEnoughOnEmptyTest.pdf";
+
+        Document document = new Document(new PdfDocument(new PdfWriter(outFile)));
+
+        fillWithKeptTogetherElement(document, text, 3, true, false);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFile, cmpFileName, destinationFolder, "diff50_"));
+    }
+
+    @Test
+    @LogMessages(messages = @LogMessage(messageTemplate = LogMessageConstant.ELEMENT_DOES_NOT_FIT_AREA, count = 2))
+    public void innerKeepTogetherNotEnoughSpaceOnNewEmptyPageTest() throws IOException, InterruptedException {
+        String cmpFileName = sourceFolder + "cmp_innerKeepTogetherNotEnoughSpaceOnNewEmptyPageTest.pdf";
+        String outFile = destinationFolder + "innerKeepTogetherNotEnoughSpaceOnNewEmptyPageTest.pdf";
+
+        Document document = new Document(new PdfDocument(new PdfWriter(outFile)));
+
+        fillWithKeptTogetherElement(document, text, 4, true, false);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFile, cmpFileName, destinationFolder, "diff50_"));
+    }
+
+    @Test
+    public void indentInParagraphAndFloatInInnerDivTest() throws IOException, InterruptedException {
+        String outFile = destinationFolder + "indentInParagraphAndFloatInInnerDiv.pdf";
+        String cmpFileName = sourceFolder + "cmp_indentInParagraphAndFloatInInnerDiv.pdf";
+
+        Document document = new Document(new PdfDocument(new PdfWriter(outFile)));
+
+        Div div = new Div().add(new Paragraph("Video provides a powerful way to help you prove"
+                + " your point. When you click Online Video, you can"));
+        div.setProperty(Property.FLOAT, FloatPropertyValue.RIGHT);
+        div.setBackgroundColor(ColorConstants.YELLOW);
+
+        Paragraph p = new Paragraph();
+        p.setFirstLineIndent(50);
+        p.add(div);
+        p.add(text);
+        document.add(p);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFile, cmpFileName, destinationFolder));
+    }
+
+    @Test
+    public void floatAndIndentInFirstParagraphInDivTest() throws IOException, InterruptedException {
+        String outFile = destinationFolder + "floatAndIndentInFirstParagraphInDiv.pdf";
+        String cmpFileName = sourceFolder + "cmp_floatAndIndentInFirstParagraphInDiv.pdf";
+
+        Document document = new Document(new PdfDocument(new PdfWriter(outFile)));
+
+        Paragraph shortFloat = new Paragraph("Hello, iText! Hello, iText!").setBackgroundColor(ColorConstants.CYAN);
+        shortFloat.setFirstLineIndent(50).setProperty(Property.FLOAT, FloatPropertyValue.RIGHT);
+
+        Paragraph p = new Paragraph(text).setBackgroundColor(ColorConstants.YELLOW);
+
+        Div div = new Div();
+        div.add(shortFloat);
+        div.add(p);
+        document.add(div);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFile, cmpFileName, destinationFolder));
+    }
+
+    @Test
+    public void shortFloatRightAndIndentInSecondParagraphInDivTest() throws IOException, InterruptedException {
+        String outFile = destinationFolder + "shortFloatRightAndIndentInSecondParagraphInDiv.pdf";
+        String cmpFileName = sourceFolder + "cmp_shortFloatRightAndIndentInSecondParagraphInDiv.pdf";
+
+        Document document = new Document(new PdfDocument(new PdfWriter(outFile)));
+
+        Paragraph shortFloat = new Paragraph("Hello, iText! Hello, iText!").setBackgroundColor(ColorConstants.CYAN);
+        shortFloat.setProperty(Property.FLOAT, FloatPropertyValue.RIGHT);
+
+        Paragraph p = new Paragraph(text).setFirstLineIndent(50).setBackgroundColor(ColorConstants.YELLOW);
+
+        Div div = new Div();
+        div.add(shortFloat);
+        div.add(p);
+        document.add(div);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFile, cmpFileName, destinationFolder));
+    }
+
+    @Test
+    public void shortFloatLeftAndIndentInSecondParagraphInDivTest() throws IOException, InterruptedException {
+        String outFile = destinationFolder + "shortFloatLeftAndIndentInSecondParagraphInDiv.pdf";
+        String cmpFileName = sourceFolder + "cmp_shortFloatLeftAndIndentInSecondParagraphInDiv.pdf";
+
+        Document document = new Document(new PdfDocument(new PdfWriter(outFile)));
+
+        Paragraph shortFloat = new Paragraph("Hello, iText! Hello, iText!").setBackgroundColor(ColorConstants.CYAN);
+        shortFloat.setProperty(Property.FLOAT, FloatPropertyValue.LEFT);
+
+        Paragraph p = new Paragraph(text).setFirstLineIndent(50).setBackgroundColor(ColorConstants.YELLOW);
+
+        Div div = new Div();
+        div.add(shortFloat);
+        div.add(p);
+        document.add(div);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFile, cmpFileName, destinationFolder));
+    }
+
+    @Test
+    public void longFloatAndIndentInSecondParagraphInDivTest() throws IOException, InterruptedException {
+        String outFile = destinationFolder + "longFloatAndIndentInSecondParagraphInDiv.pdf";
+        String cmpFileName = sourceFolder + "cmp_longFloatAndIndentInSecondParagraphInDiv.pdf";
+
+        Document document = new Document(new PdfDocument(new PdfWriter(outFile)));
+
+        Paragraph longFloat = new Paragraph(text).setBackgroundColor(ColorConstants.CYAN);
+        longFloat.setProperty(Property.FLOAT, FloatPropertyValue.RIGHT);
+
+        Paragraph p = new Paragraph(text).setFirstLineIndent(50).setBackgroundColor(ColorConstants.YELLOW);
+
+        Div div = new Div();
+        div.add(longFloat);
+        div.add(p);
+        document.add(div);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFile, cmpFileName, destinationFolder));
+    }
+
+    @Test
+    public void indentInParentParagraphShortFirstFloatTest() throws IOException, InterruptedException {
+        String outFile = destinationFolder + "indentInParentParagraphShortFirstFloat.pdf";
+        String cmpFileName = sourceFolder + "cmp_indentInParentParagraphShortFirstFloat.pdf";
+
+        Document document = new Document(new PdfDocument(new PdfWriter(outFile)));
+
+        Paragraph parent = new Paragraph(text).setFirstLineIndent(50);
+
+        Paragraph shortFloat = new Paragraph(shortText).setBackgroundColor(ColorConstants.CYAN);
+        shortFloat.setProperty(Property.FLOAT, FloatPropertyValue.RIGHT);
+        parent.add(shortFloat);
+
+        Paragraph p = new Paragraph(text).setBackgroundColor(ColorConstants.YELLOW);
+        parent.add(p);
+
+        document.add(parent);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFile, cmpFileName, destinationFolder));
+    }
+
+    @Test
+    public void indentInParentParagraphLongFirstFloatTest() throws IOException, InterruptedException {
+        String outFile = destinationFolder + "indentInParentParagraphLongFirstFloat.pdf";
+        String cmpFileName = sourceFolder + "cmp_indentInParentParagraphLongFirstFloat.pdf";
+
+        Document document = new Document(new PdfDocument(new PdfWriter(outFile)));
+
+        Paragraph parent = new Paragraph(text).setFirstLineIndent(50);
+
+        Paragraph longFloat = new Paragraph(text).setBackgroundColor(ColorConstants.CYAN);
+        longFloat.setProperty(Property.FLOAT, FloatPropertyValue.RIGHT);
+        parent.add(longFloat);
+
+        Paragraph p = new Paragraph(text).setBackgroundColor(ColorConstants.YELLOW);
+        parent.add(p);
+
+        document.add(parent);
+
+        document.close();
+
+        Assert.assertNull(new CompareTool().compareByContent(outFile, cmpFileName, destinationFolder));
+    }
+
+
+    private static void fillWithKeptTogetherElement(Document doc, String floatText, int textTimes, boolean isInner, boolean floatAsFirst) {
+
+        Div floatedDiv = new Div()
+                .setWidth(150)
+                .setBorder(new SolidBorder(ColorConstants.BLUE, 3))
+                .setKeepTogether(true);
+        floatedDiv.setProperty(Property.FLOAT, FloatPropertyValue.LEFT);
+        floatedDiv.add(new Paragraph(floatText).setFontColor(ColorConstants.LIGHT_GRAY));
+
+        Paragraph keptTogetherParagraph = new Paragraph().setKeepTogether(true);
+        for (int i = 0; i < textTimes; i++) {
+            keptTogetherParagraph.add(text);
+        }
+
+        if (isInner) {
+            Div container = new Div();
+
+            container.add(floatedDiv);
+
+            if (!floatAsFirst) {
+                container.add(new Paragraph("Hello"));
+                container.add(new Paragraph("Hello"));
+                container.add(new Paragraph("Hello"));
+                container.add(new Paragraph("Hello"));
+            }
+
+            container.add(keptTogetherParagraph);
+
+            doc.add(container);
+        } else {
+            doc.add(floatedDiv);
+
+            if (!floatAsFirst) {
+                doc.add(new Paragraph("Hello"));
+                doc.add(new Paragraph("Hello"));
+                doc.add(new Paragraph("Hello"));
+                doc.add(new Paragraph("Hello"));
+            }
+
+            doc.add(keptTogetherParagraph);
+        }
+    }
+
 }

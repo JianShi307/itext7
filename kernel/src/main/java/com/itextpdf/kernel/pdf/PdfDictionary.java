@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -453,6 +453,8 @@ public class PdfDictionary extends PdfObject {
     /**
      *
      * @param asDirect true is to extract direct object always.
+     * @param key the key to get the value from the map
+     * @return key if indirect reference is present
      */
     public PdfObject get(PdfName key, boolean asDirect) {
         if (!asDirect)

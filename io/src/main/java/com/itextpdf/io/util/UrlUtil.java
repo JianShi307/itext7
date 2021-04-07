@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -130,4 +130,12 @@ public final class UrlUtil {
         return new File(filename).toURI().toURL().toExternalForm();
     }
 
+    /**
+     * This method gets normalized uri string from a file.
+     * @param filename a given filename
+     * @return a normalized uri string
+     */
+    public static String getNormalizedFileUriString(String filename) {
+        return "file://" + UrlUtil.toNormalizedURI(filename).getPath();
+    }
 }

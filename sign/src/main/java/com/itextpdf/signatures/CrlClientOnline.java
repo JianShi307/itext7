@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -43,12 +43,12 @@
  */
 package com.itextpdf.signatures;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.itextpdf.io.LogMessageConstant;
+import com.itextpdf.io.util.MessageFormatUtil;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
@@ -56,6 +56,8 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An implementation of the CrlClient that fetches the CRL bytes
@@ -85,7 +87,7 @@ public class CrlClientOnline implements ICrlClient {
     /**
      * Creates a CrlClientOnline instance using one or more URLs.
      *
-     * @param crls
+     * @param crls the CRLs as Strings
      */
     public CrlClientOnline(String... crls) {
         for (String url : crls) {
@@ -96,7 +98,7 @@ public class CrlClientOnline implements ICrlClient {
     /**
      * Creates a CrlClientOnline instance using one or more URLs.
      *
-     * @param crls
+     * @param crls the CRLs as URLs
      */
     public CrlClientOnline(URL... crls) {
         for (URL url : crls) {
@@ -107,7 +109,7 @@ public class CrlClientOnline implements ICrlClient {
     /**
      * Creates a CrlClientOnline instance using a certificate chain.
      *
-     * @param chain
+     * @param chain a certificate chain
      */
     public CrlClientOnline(Certificate[] chain) {
         for (int i = 0; i < chain.length; i++) {
@@ -169,7 +171,7 @@ public class CrlClientOnline implements ICrlClient {
                 ar.add(bout.toByteArray());
                 LOGGER.info("Added CRL found at: " + urlt);
             } catch (Exception e) {
-                LOGGER.info("Skipped CRL: " + e.getMessage() + " for " + urlt);
+                LOGGER.info(MessageFormatUtil.format(LogMessageConstant.INVALID_DISTRIBUTION_POINT, e.getMessage()));
             }
         }
         return ar;
@@ -183,7 +185,7 @@ public class CrlClientOnline implements ICrlClient {
     protected void addUrl(String url) {
         try {
             addUrl(new URL(url));
-        } catch (IOException e) {
+        } catch (MalformedURLException e) {
             LOGGER.info("Skipped CRL url (malformed): " + url);
         }
     }

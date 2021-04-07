@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -241,7 +241,7 @@ public final class DataUtil {
     static String getCharsetFromContentType(String contentType) {
         if (contentType == null) return null;
         Matcher m = charsetPattern.matcher(contentType);
-        if (PortUtil.isSuccessful(m)) {
+        if (m.find()) {
             String charset = m.group(1).trim();
             charset = charset.replace("charset=", "");
             return validateCharset(charset);

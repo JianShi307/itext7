@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -267,6 +267,7 @@ public class PdfSignatureAppearanceTest extends ExtendedITextTest {
         new PdfDocument(new PdfReader(dest)).close();
 
         try {
+            // TODO DEVSIX-864 compareVisually() should be changed to compareByContent() because it slows down the test
             String testResult = new CompareTool().compareVisually(dest, sourceFolder + "cmp_" + fileName, destinationFolder, "diff_");
             if (null != testResult) {
                 assertionResults.append(testResult);

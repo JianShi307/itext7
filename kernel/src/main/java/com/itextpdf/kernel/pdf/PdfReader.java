@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -56,13 +56,13 @@ import com.itextpdf.kernel.PdfException;
 import com.itextpdf.kernel.crypto.securityhandler.UnsupportedSecurityHandlerException;
 import com.itextpdf.kernel.pdf.filters.FilterHandlers;
 import com.itextpdf.kernel.pdf.filters.IFilterHandler;
+
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +71,11 @@ import org.slf4j.LoggerFactory;
  * Reads a PDF document.
  */
 public class PdfReader implements Closeable, Serializable {
+
+    /**
+     * The default {@link StrictnessLevel} to be used.
+     */
+    public static final StrictnessLevel DEFAULT_STRICTNESS_LEVEL = StrictnessLevel.LENIENT;
 
     private static final long serialVersionUID = -3584187443691964939L;
 
@@ -84,6 +89,10 @@ public class PdfReader implements Closeable, Serializable {
     protected static boolean correctStreamLength = true;
 
     private boolean unethicalReading;
+
+    private boolean memorySavingMode;
+
+    private StrictnessLevel strictnessLevel = DEFAULT_STRICTNESS_LEVEL;
 
     //indicate nearest first Indirect reference object which includes current reading the object, using for PdfString decrypt
     private PdfIndirectReference currentIndirectReference;
@@ -115,6 +124,7 @@ public class PdfReader implements Closeable, Serializable {
      *
      * @param byteSource source of bytes for the reader
      * @param properties properties of the created reader
+     * @throws IOException if an I/O error occurs
      */
     public PdfReader(IRandomAccessSource byteSource, ReaderProperties properties) throws IOException {
         this.properties = properties;
@@ -195,9 +205,50 @@ public class PdfReader implements Closeable, Serializable {
     /**
      * The iText is not responsible if you decide to change the
      * value of this parameter.
+     *
+     * @param unethicalReading true to enable unethicalReading, false to disable it.
+     *                         By default unethicalReading is disabled.
+     * @return this {@link PdfReader} instance.
      */
     public PdfReader setUnethicalReading(boolean unethicalReading) {
         this.unethicalReading = unethicalReading;
+        return this;
+    }
+
+    /**
+     * Defines if memory saving mode is enabled.
+     * <p>
+     * By default memory saving mode is disabled for the sake of time–memory trade-off.
+     * <p>
+     * If memory saving mode is enabled, document processing might slow down, but reading will be less memory demanding.
+     *
+     * @param memorySavingMode true to enable memory saving mode, false to disable it.
+     * @return this {@link PdfReader} instance.
+     */
+    public PdfReader setMemorySavingMode(boolean memorySavingMode) {
+        this.memorySavingMode = memorySavingMode;
+        return this;
+    }
+
+    /**
+     * Get the current {@link StrictnessLevel} of the reader.
+     *
+     * @return the current {@link StrictnessLevel}
+     */
+    public StrictnessLevel getStrictnessLevel() {
+        return strictnessLevel;
+    }
+
+    /**
+     * Set the {@link StrictnessLevel} for the reader. If the argument is {@code null}, then
+     * the {@link PdfReader#DEFAULT_STRICTNESS_LEVEL} will be used.
+     *
+     * @param strictnessLevel the {@link StrictnessLevel} to set
+     *
+     * @return this {@link PdfReader} instance
+     */
+    public PdfReader setStrictnessLevel(StrictnessLevel strictnessLevel) {
+        this.strictnessLevel = strictnessLevel == null ? DEFAULT_STRICTNESS_LEVEL : strictnessLevel;
         return this;
     }
 
@@ -225,8 +276,13 @@ public class PdfReader implements Closeable, Serializable {
      * If any exception generated while reading XRef section, PdfReader will try to rebuild it.
      *
      * @return true, if PdfReader rebuilt Cross-Reference section.
+     * @throws PdfException if the method has been invoked before the PDF document was read.
      */
     public boolean hasRebuiltXref() {
+        if (pdfDocument == null || !pdfDocument.getXref().isReadingCompleted()) {
+            throw new PdfException(PdfException.DocumentHasNotBeenReadYet);
+        }
+
         return rebuiltXref;
     }
 
@@ -235,8 +291,13 @@ public class PdfReader implements Closeable, Serializable {
      * That Do Not Support Compressed Reference Streams" in PDF 32000-1:2008 spec.
      *
      * @return true, if the document has hybrid Cross-Reference section.
+     * @throws PdfException if the method has been invoked before the PDF document was read.
      */
     public boolean hasHybridXref() {
+        if (pdfDocument == null || !pdfDocument.getXref().isReadingCompleted()) {
+            throw new PdfException(PdfException.DocumentHasNotBeenReadYet);
+        }
+
         return hybridXref;
     }
 
@@ -244,17 +305,29 @@ public class PdfReader implements Closeable, Serializable {
      * Indicates whether the document has Cross-Reference Streams.
      *
      * @return true, if the document has Cross-Reference Streams.
+     * @throws PdfException if the method has been invoked before the PDF document was read.
      */
     public boolean hasXrefStm() {
+        if (pdfDocument == null || !pdfDocument.getXref().isReadingCompleted()) {
+            throw new PdfException(PdfException.DocumentHasNotBeenReadYet);
+        }
+
         return xrefStm;
     }
 
     /**
      * If any exception generated while reading PdfObject, PdfReader will try to fix offsets of all objects.
-     *
+     * <p>
+     * This method's returned value might change over time, because PdfObjects reading
+     * can be postponed even up to document closing.
      * @return true, if PdfReader fixed offsets of PdfObjects.
+     * @throws PdfException if the method has been invoked before the PDF document was read.
      */
     public boolean hasFixedXref() {
+        if (pdfDocument == null || !pdfDocument.getXref().isReadingCompleted()) {
+            throw new PdfException(PdfException.DocumentHasNotBeenReadYet);
+        }
+
         return fixedXref;
     }
 
@@ -262,8 +335,13 @@ public class PdfReader implements Closeable, Serializable {
      * Gets position of the last Cross-Reference table.
      *
      * @return -1 if Cross-Reference table has rebuilt, otherwise position of the last Cross-Reference table.
+     * @throws PdfException if the method has been invoked before the PDF document was read.
      */
     public long getLastXref() {
+        if (pdfDocument == null || !pdfDocument.getXref().isReadingCompleted()) {
+            throw new PdfException(PdfException.DocumentHasNotBeenReadYet);
+        }
+
         return lastXref;
     }
 
@@ -271,6 +349,7 @@ public class PdfReader implements Closeable, Serializable {
      * Reads, decrypt and optionally decode stream bytes.
      * Note, this method doesn't store actual bytes in any internal structures.
      *
+     * @param stream a {@link PdfStream} stream instance to be read and optionally decoded.
      * @param decode true if to get decoded stream bytes, false if to leave it originally encoded.
      * @return byte[] array.
      * @throws IOException on error.
@@ -288,6 +367,7 @@ public class PdfReader implements Closeable, Serializable {
      * Reads and decrypt stream bytes.
      * Note, this method doesn't store actual bytes in any internal structures.
      *
+     * @param stream a {@link PdfStream} stream instance to be read
      * @return byte[] array.
      * @throws IOException on error.
      */
@@ -339,9 +419,10 @@ public class PdfReader implements Closeable, Serializable {
     }
 
     /**
-     * Reads, decrypt and optionally decode stream bytes into {@link ByteArrayInputStream}.
+     * Reads, decrypts and optionally decodes stream bytes into {@link ByteArrayInputStream}.
      * User is responsible for closing returned stream.
      *
+     * @param stream a {@link PdfStream} stream instance to be read
      * @param decode true if to get decoded stream, false if to leave it originally encoded.
      * @return InputStream or {@code null} if reading was failed.
      * @throws IOException on error.
@@ -390,21 +471,12 @@ public class PdfReader implements Closeable, Serializable {
         if (null != streamDictionary.getIndirectReference()) {
             memoryLimitsAwareHandler = streamDictionary.getIndirectReference().getDocument().memoryLimitsAwareHandler;
         }
-        if (null != memoryLimitsAwareHandler) {
-            HashSet<PdfName> filterSet = new HashSet<>();
-            int index;
-            for (index = 0; index < filters.size(); index++) {
-                PdfName filterName = filters.getAsName(index);
-                if (!filterSet.add(filterName)) {
-                    memoryLimitsAwareHandler.beginDecompressedPdfStreamProcessing();
-                    break;
-                }
-            }
-            if (index == filters.size()) {
-                // The stream isn't suspicious. We shouldn't process it.
 
-                memoryLimitsAwareHandler = null;
-            }
+        final boolean memoryLimitsAwarenessRequired = null != memoryLimitsAwareHandler &&
+                memoryLimitsAwareHandler.isMemoryLimitsAwarenessRequiredOnDecompression(filters);
+
+        if(memoryLimitsAwarenessRequired) {
+            memoryLimitsAwareHandler.beginDecompressedPdfStreamProcessing();
         }
 
         PdfArray dp = new PdfArray();
@@ -441,11 +513,11 @@ public class PdfReader implements Closeable, Serializable {
                 decodeParams = null;
             }
             b = filterHandler.decode(b, filterName, decodeParams, streamDictionary);
-            if (null != memoryLimitsAwareHandler) {
+            if (memoryLimitsAwarenessRequired) {
                 memoryLimitsAwareHandler.considerBytesOccupiedByDecompressedPdfStream(b.length);
             }
         }
-        if (null != memoryLimitsAwareHandler) {
+        if (memoryLimitsAwarenessRequired) {
             memoryLimitsAwareHandler.endDecompressedPdfStreamProcessing();
         }
         return b;
@@ -478,8 +550,13 @@ public class PdfReader implements Closeable, Serializable {
      *
      * @return {@code true} if the document was opened with the owner password or if it's not encrypted,
      * {@code false} if the document was opened with the user password.
+     * @throws PdfException if the method has been invoked before the PDF document was read.
      */
     public boolean isOpenedWithFullPermission() {
+        if (pdfDocument == null || !pdfDocument.getXref().isReadingCompleted()) {
+            throw new PdfException(PdfException.DocumentHasNotBeenReadYet);
+        }
+
         return !encrypted || decrypt.isOpenedWithFullPermission() || unethicalReading;
     }
 
@@ -489,8 +566,19 @@ public class PdfReader implements Closeable, Serializable {
      * See ISO 32000-1, Table 22 for more details.
      *
      * @return the encryption permissions, an unsigned 32-bit quantity.
+     * @throws PdfException if the method has been invoked before the PDF document was read.
      */
     public long getPermissions() {
+
+        /* !pdfDocument.getXref().isReadingCompleted() can be used for encryption properties as well,
+         * because decrypt object is initialized in private readDecryptObj method which is called in our code
+         * in the next line after the setting isReadingCompleted line. This means that there's no way for users
+         * when this method would work incorrectly right now.
+         */
+        if (pdfDocument == null || !pdfDocument.getXref().isReadingCompleted()) {
+            throw new PdfException(PdfException.DocumentHasNotBeenReadYet);
+        }
+
         long perm = 0;
         if (encrypted && decrypt.getPermissions() != null) {
             perm = (long) decrypt.getPermissions();
@@ -501,9 +589,15 @@ public class PdfReader implements Closeable, Serializable {
     /**
      * Gets encryption algorithm and access permissions.
      *
+     * @return {@code int} value corresponding to a certain type of encryption.
      * @see EncryptionConstants
+     * @throws PdfException if the method has been invoked before the PDF document was read.
      */
     public int getCryptoMode() {
+        if (pdfDocument == null || !pdfDocument.getXref().isReadingCompleted()) {
+            throw new PdfException(PdfException.DocumentHasNotBeenReadYet);
+        }
+
         if (decrypt == null)
             return -1;
         else
@@ -525,9 +619,17 @@ public class PdfReader implements Closeable, Serializable {
      * Computes user password if standard encryption handler is used with Standard40, Standard128 or AES128 encryption algorithm.
      *
      * @return user password, or null if not a standard encryption handler was used or if ownerPasswordUsed wasn't use to open the document.
+     * @throws PdfException if the method has been invoked before the PDF document was read.
      */
     public byte[] computeUserPassword() {
-        if (!encrypted || !decrypt.isOpenedWithFullPermission()) return null;
+        if (pdfDocument == null || !pdfDocument.getXref().isReadingCompleted()) {
+            throw new PdfException(PdfException.DocumentHasNotBeenReadYet);
+        }
+
+        if (!encrypted || !decrypt.isOpenedWithFullPermission()) {
+            return null;
+        }
+
         return decrypt.computeUserPassword(properties.password);
     }
 
@@ -540,8 +642,13 @@ public class PdfReader implements Closeable, Serializable {
      *
      * @return byte array represents original file ID.
      * @see PdfDocument#getOriginalDocumentId()
+     * @throws PdfException if the method has been invoked before the PDF document was read.
      */
     public byte[] getOriginalFileId() {
+        if (pdfDocument == null || !pdfDocument.getXref().isReadingCompleted()) {
+            throw new PdfException(PdfException.DocumentHasNotBeenReadYet);
+        }
+
         PdfArray id = trailer.getAsArray(PdfName.ID);
         if (id != null && id.size() == 2) {
             return ByteUtils.getIsoBytes(id.getAsString(0).getValue());
@@ -559,8 +666,13 @@ public class PdfReader implements Closeable, Serializable {
      *
      * @return byte array represents modified file ID.
      * @see PdfDocument#getModifiedDocumentId()
+     * @throws PdfException if the method has been invoked before the PDF document was read.
      */
     public byte[] getModifiedFileId() {
+        if (pdfDocument == null || !pdfDocument.getXref().isReadingCompleted()) {
+            throw new PdfException(PdfException.DocumentHasNotBeenReadYet);
+        }
+
         PdfArray id = trailer.getAsArray(PdfName.ID);
         if (id != null && id.size() == 2) {
             return ByteUtils.getIsoBytes(id.getAsString(1).getValue());
@@ -569,12 +681,24 @@ public class PdfReader implements Closeable, Serializable {
         }
     }
 
+    /**
+     * Checks if the {@link PdfDocument} read with this {@link PdfReader} is encrypted.
+     *
+     * @return {@code true} is the document is encrypted, otherwise {@code false}.
+     * @throws PdfException if the method has been invoked before the PDF document was read.
+     */
     public boolean isEncrypted() {
+        if (pdfDocument == null || !pdfDocument.getXref().isReadingCompleted()) {
+            throw new PdfException(PdfException.DocumentHasNotBeenReadYet);
+        }
+
         return encrypted;
     }
 
     /**
      * Parses the entire PDF
+     *
+     * @throws IOException if an I/O error occurs.
      */
     protected void readPdf() throws IOException {
         String version = tokens.checkPdfHeader();
@@ -737,7 +861,7 @@ public class PdfReader implements Closeable, Serializable {
                 return new PdfNumber(tokens.getByteContent());
             case String: {
                 PdfString pdfString = new PdfString(tokens.getByteContent(), tokens.isHexString());
-                if (isEncrypted() && !decrypt.isEmbeddedFilesOnly() && !objStm) {
+                if (encrypted && !decrypt.isEmbeddedFilesOnly() && !objStm) {
                     pdfString.setDecryption(currentIndirectReference.getObjNumber(), currentIndirectReference.getGenNumber(), decrypt);
                 }
                 return pdfString;
@@ -1138,6 +1262,10 @@ public class PdfReader implements Closeable, Serializable {
             throw new PdfException(PdfException.TrailerNotFound);
     }
 
+    boolean isMemorySavingMode() {
+        return memorySavingMode;
+    }
+
     private void readDecryptObj() {
         if (encrypted)
             return;
@@ -1290,6 +1418,10 @@ public class PdfReader implements Closeable, Serializable {
 
     /**
      * This method is invoked while deserialization
+     *
+     * @param in {@link java.io.ObjectInputStream} inputStream that is read during deserialization
+     * @throws IOException if I/O errors occur while writing to the underlying output stream
+     * @throws ClassNotFoundException if the class of a serialized object could not be found.
      */
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
         in.defaultReadObject();
@@ -1300,6 +1432,9 @@ public class PdfReader implements Closeable, Serializable {
 
     /**
      * This method is invoked while serialization
+     *
+     * @param out {@link java.io.ObjectOutputStream} output stream to write object into
+     * @throws IOException if I/O errors occur while writing to the underlying output stream
      */
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
         if (sourcePath != null) {
@@ -1349,6 +1484,41 @@ public class PdfReader implements Closeable, Serializable {
         @Override
         public void close() throws IOException {
             buffer = null;
+        }
+    }
+
+    /**
+     * Enumeration representing the strictness level for reading.
+     */
+    public enum StrictnessLevel {
+        /**
+         * The reading strictness level at which iText fails (throws an exception) in case of
+         * contradiction with PDF specification, but still recovers from mild parsing errors
+         * and ambiguities.
+         */
+        CONSERVATIVE(5000),
+        /**
+         * The reading strictness level at which iText tries to recover from parsing
+         * errors if possible.
+         */
+        LENIENT(3000);
+
+        private final int levelValue;
+
+        StrictnessLevel(int levelValue) {
+            this.levelValue = levelValue;
+        }
+
+        /**
+         * Checks whether the current instance represents more strict reading level than
+         * the provided one. Note that the {@code null} is less strict than any other value.
+         *
+         * @param compareWith the {@link StrictnessLevel} to compare with
+         *
+         * @return {@code true} if the current level is stricter than the provided one
+         */
+        public boolean isStricter(StrictnessLevel compareWith) {
+            return compareWith == null || this.levelValue > compareWith.levelValue;
         }
     }
 }

@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -70,7 +70,8 @@ public interface IExternalSignature {
      * with the hash algorithm.
      * @param message The message you want to be hashed and signed.
      * @return	A signed message digest.
-     * @throws GeneralSecurityException
+     * @throws GeneralSecurityException when requested cryptographic algorithm or security provider
+     * is not available
      */
     byte[] sign(byte[] message) throws GeneralSecurityException;
 }

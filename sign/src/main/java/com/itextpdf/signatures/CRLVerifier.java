@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -124,11 +124,12 @@ public class CRLVerifier extends RootStoreVerifier {
      * @param issuerCert	its issuer
      * @param signDate		the sign date
      * @return true if the verification succeeded
-     * @throws GeneralSecurityException
+     * @throws GeneralSecurityException thrown when certificate has been revoked
      */
     public boolean verify(X509CRL crl, X509Certificate signCert, X509Certificate issuerCert, Date signDate) throws GeneralSecurityException {
-        if (crl == null || signDate == SignUtils.UNDEFINED_TIMESTAMP_DATE)
+        if (crl == null || signDate == TimestampConstants.UNDEFINED_TIMESTAMP_DATE) {
             return false;
+        }
         // We only check CRLs valid on the signing date for which the issuer matches
         if (crl.getIssuerX500Principal().equals(signCert.getIssuerX500Principal()) && signDate.before(crl.getNextUpdate())) {
             // the signing certificate may not be revoked

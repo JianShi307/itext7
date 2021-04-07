@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -43,6 +43,9 @@
  */
 package com.itextpdf.io.util;
 
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedOutputStream;
@@ -179,6 +182,10 @@ public final class FileUtil {
 
     public static FileOutputStream getFileOutputStream(File tempFile) throws FileNotFoundException {
         return new FileOutputStream(tempFile);
+    }
+
+    public static InputStream getInputStreamForFile(String path) throws IOException {
+        return Files.newInputStream(Paths.get(path));
     }
 
     public static RandomAccessFile getRandomAccessFile(File tempFile) throws FileNotFoundException {

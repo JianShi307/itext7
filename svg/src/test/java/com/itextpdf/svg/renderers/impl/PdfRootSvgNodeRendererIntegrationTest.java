@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -154,7 +154,7 @@ public class PdfRootSvgNodeRendererIntegrationTest extends SvgIntegrationTest {
         PdfDocument document = new PdfDocument(new PdfWriter(new ByteArrayOutputStream(), new WriterProperties().setCompressionLevel(0)));
         document.addNewPage();
 
-        ISvgNodeRenderer processed = SvgConverter.process(SvgConverter.parse("<svg />")).getRootRenderer();
+        ISvgNodeRenderer processed = SvgConverter.process(SvgConverter.parse("<svg />"), null).getRootRenderer();
         PdfRootSvgNodeRenderer root = new PdfRootSvgNodeRenderer(processed);
         PdfFormXObject pdfForm = new PdfFormXObject(new PdfStream());
         PdfCanvas canvas = new PdfCanvas(pdfForm, document);

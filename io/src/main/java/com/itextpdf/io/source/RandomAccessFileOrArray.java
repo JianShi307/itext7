@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -174,7 +174,7 @@ public class RandomAccessFileOrArray implements DataInput, Serializable {
      *
      * @param b the destination buffer
      * @return the number of bytes actually read
-     * @throws java.io.IOException in
+     * @throws java.io.IOException in case of any I/O error
      */
     public int read(byte b[]) throws java.io.IOException {
         return read(b, 0, b.length);
@@ -247,7 +247,7 @@ public class RandomAccessFileOrArray implements DataInput, Serializable {
     /**
      * Closes the underlying source.
      *
-     * @throws java.io.IOException
+     * @throws java.io.IOException in case of any I/O error.
      */
     public void close() throws java.io.IOException {
         isBack = false;
@@ -259,7 +259,7 @@ public class RandomAccessFileOrArray implements DataInput, Serializable {
      * Gets the total amount of bytes in the source.
      *
      * @return source's size.
-     * @throws java.io.IOException
+     * @throws java.io.IOException in case of any I/O error.
      */
     public long length() throws java.io.IOException {
         return byteSource.length();
@@ -269,7 +269,7 @@ public class RandomAccessFileOrArray implements DataInput, Serializable {
      * Sets the current position in the source to the specified index.
      *
      * @param pos the position to set
-     * @throws java.io.IOException
+     * @throws java.io.IOException in case of any I/O error.
      */
     public void seek(long pos) throws java.io.IOException {
         byteSourcePosition = pos;

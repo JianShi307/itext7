@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -53,6 +53,7 @@ import com.itextpdf.io.source.ByteArrayOutputStream;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.font.PdfFontFactory.EmbeddingStrategy;
 import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.PdfArray;
 import com.itextpdf.kernel.pdf.PdfDictionary;
@@ -94,6 +95,16 @@ public class PdfFormFieldTest extends ExtendedITextTest {
     @BeforeClass
     public static void beforeClass() {
         createDestinationFolder(destinationFolder);
+    }
+
+    @Test
+    // The first message for the case when the FormField is null,
+    // the second message when the FormField is a indirect reference to null.
+    @LogMessages(messages = {@LogMessage(messageTemplate = LogMessageConstant.CANNOT_CREATE_FORMFIELD, count = 2)})
+    public void nullFormFieldTest() throws IOException {
+        PdfDocument pdfDoc = new PdfDocument(new PdfReader(sourceFolder + "nullFormField.pdf"));
+        PdfAcroForm form = PdfAcroForm.getAcroForm(pdfDoc, true);
+        pdfDoc.close();
     }
 
     @Test
@@ -170,6 +181,30 @@ public class PdfFormFieldTest extends ExtendedITextTest {
 
         CompareTool compareTool = new CompareTool();
         String errorMessage = compareTool.compareByContent(filename, sourceFolder + "cmp_formFieldTest04.pdf", destinationFolder, "diff_");
+        if (errorMessage != null) {
+            Assert.fail(errorMessage);
+        }
+    }
+
+    @Test
+    public void textFieldLeadingSpacesAreNotTrimmedTest() throws IOException, InterruptedException {
+        String filename = destinationFolder + "textFieldLeadingSpacesAreNotTrimmed.pdf";
+        PdfDocument pdfDoc = new PdfDocument(new PdfWriter(filename));
+        pdfDoc.addNewPage();
+
+        PdfAcroForm form = PdfAcroForm.getAcroForm(pdfDoc, true);
+
+        PdfPage page = pdfDoc.getFirstPage();
+        Rectangle rect = new Rectangle(210, 490, 300, 22);
+
+        PdfTextFormField field = PdfFormField.createText(pdfDoc, rect, "TestField", "        value with leading space");
+
+        form.addField(field, page);
+
+        pdfDoc.close();
+
+        CompareTool compareTool = new CompareTool();
+        String errorMessage = compareTool.compareByContent(filename, sourceFolder + "cmp_textFieldLeadingSpacesAreNotTrimmed.pdf", destinationFolder, "diff_");
         if (errorMessage != null) {
             Assert.fail(errorMessage);
         }
@@ -580,7 +615,7 @@ public class PdfFormFieldTest extends ExtendedITextTest {
         field.setFont(PdfFontFactory.createFont(StandardFonts.COURIER));
         field.setValue("New value size must be 8, but with different font.");
 
-        new Canvas(new PdfCanvas(pdfDoc.getFirstPage()), pdfDoc, new Rectangle(30, 500, 500, 200))
+        new Canvas(new PdfCanvas(pdfDoc.getFirstPage()), new Rectangle(30, 500, 500, 200))
                 .add(new Paragraph("The text font after modification it via PDF viewer (e.g. Acrobat) shall be preserved."));
 
         pdfDoc.close();
@@ -630,9 +665,9 @@ public class PdfFormFieldTest extends ExtendedITextTest {
         PdfDocument pdfDoc = new PdfDocument(writer);
         Document document = new Document(pdfDoc);
 
-        PdfFont hebrew = PdfFontFactory.createFont(sourceFolder + "OpenSansHebrew-Regular.ttf", PdfEncodings.IDENTITY_H, true);
+        PdfFont hebrew = PdfFontFactory.createFont(sourceFolder + "OpenSansHebrew-Regular.ttf", PdfEncodings.IDENTITY_H);
         hebrew.setSubset(false);
-        PdfFont sileot = PdfFontFactory.createFont(sourceFolder + "SILEOT.ttf", PdfEncodings.IDENTITY_H, true);
+        PdfFont sileot = PdfFontFactory.createFont(sourceFolder + "SILEOT.ttf", PdfEncodings.IDENTITY_H);
         sileot.setSubset(false);
 
         PdfAcroForm form = PdfAcroForm.getAcroForm(pdfDoc, true);
@@ -663,9 +698,9 @@ public class PdfFormFieldTest extends ExtendedITextTest {
         PdfDocument pdfDoc = new PdfDocument(writer);
         Document document = new Document(pdfDoc);
 
-        PdfFont hebrew = PdfFontFactory.createFont(sourceFolder + "OpenSansHebrew-Regular.ttf", PdfEncodings.IDENTITY_H, true);
+        PdfFont hebrew = PdfFontFactory.createFont(sourceFolder + "OpenSansHebrew-Regular.ttf", PdfEncodings.IDENTITY_H);
         hebrew.setSubset(false);
-        PdfFont sileot = PdfFontFactory.createFont(sourceFolder + "SILEOT.ttf", PdfEncodings.IDENTITY_H, true);
+        PdfFont sileot = PdfFontFactory.createFont(sourceFolder + "SILEOT.ttf", PdfEncodings.IDENTITY_H);
         sileot.setSubset(false);
 
         PdfAcroForm form = PdfAcroForm.getAcroForm(pdfDoc, true);
@@ -696,9 +731,9 @@ public class PdfFormFieldTest extends ExtendedITextTest {
         PdfWriter writer = new PdfWriter(outPdf);
         PdfDocument pdfDoc = new PdfDocument(writer);
 
-        PdfFont hebrew = PdfFontFactory.createFont(sourceFolder + "OpenSansHebrew-Regular.ttf", PdfEncodings.IDENTITY_H, true);
+        PdfFont hebrew = PdfFontFactory.createFont(sourceFolder + "OpenSansHebrew-Regular.ttf", PdfEncodings.IDENTITY_H);
         hebrew.setSubset(false);
-        PdfFont sileot = PdfFontFactory.createFont(sourceFolder + "SILEOT.ttf", PdfEncodings.IDENTITY_H, true);
+        PdfFont sileot = PdfFontFactory.createFont(sourceFolder + "SILEOT.ttf", PdfEncodings.IDENTITY_H);
         sileot.setSubset(false);
 
         PdfAcroForm form = PdfAcroForm.getAcroForm(pdfDoc, true);
@@ -724,9 +759,9 @@ public class PdfFormFieldTest extends ExtendedITextTest {
         PdfWriter writer = new PdfWriter(baos);
         PdfDocument pdfDoc = new PdfDocument(writer);
 
-        PdfFont hebrew = PdfFontFactory.createFont(sourceFolder + "OpenSansHebrew-Regular.ttf", PdfEncodings.IDENTITY_H, true);
+        PdfFont hebrew = PdfFontFactory.createFont(sourceFolder + "OpenSansHebrew-Regular.ttf", PdfEncodings.IDENTITY_H);
         hebrew.setSubset(false);
-        PdfFont sileot = PdfFontFactory.createFont(sourceFolder + "SILEOT.ttf", PdfEncodings.IDENTITY_H, true);
+        PdfFont sileot = PdfFontFactory.createFont(sourceFolder + "SILEOT.ttf", PdfEncodings.IDENTITY_H);
         sileot.setSubset(false);
 
         PdfAcroForm form = PdfAcroForm.getAcroForm(pdfDoc, true);
@@ -807,7 +842,7 @@ public class PdfFormFieldTest extends ExtendedITextTest {
     }
 
     @Test
-    @LogMessages(messages = {@LogMessage(messageTemplate = LogMessageConstant.COMB_FLAG_MAY_BE_SET_ONLY_IF_MAXLEN_IS_PRESENT, count = 2)})
+    @LogMessages(messages = {@LogMessage(messageTemplate = LogMessageConstant.COMB_FLAG_MAY_BE_SET_ONLY_IF_MAXLEN_IS_PRESENT)})
     public void noMaxLenWithSetCombFlagTest() throws IOException, InterruptedException {
         String outPdf = destinationFolder + "noMaxLenWithSetCombFlagTest.pdf";
         String cmpPdf = sourceFolder + "cmp_noMaxLenWithSetCombFlagTest.pdf";
@@ -1012,6 +1047,7 @@ public class PdfFormFieldTest extends ExtendedITextTest {
     }
 
     @Test
+    @LogMessages(messages = {@LogMessage(messageTemplate = LogMessageConstant.MULTIPLE_VALUES_ON_A_NON_MULTISELECT_FIELD)})
     public void pdfWithDifferentFieldsTest() throws IOException, InterruptedException {
         String fileName = destinationFolder + "pdfWithDifferentFieldsTest.pdf";
         PdfDocument pdfDoc = new PdfDocument(new PdfWriter(fileName));
@@ -1155,30 +1191,6 @@ public class PdfFormFieldTest extends ExtendedITextTest {
         Assert.assertEquals(field, thirdPageAnnots.get(0));
     }
 
-    @Test
-    //TODO update cmp-file after DEVSIX-3077 fixed
-    public void createFieldInAppendModeTest() throws IOException, InterruptedException {
-        String file = destinationFolder + "blank.pdf";
-
-        PdfDocument document = new PdfDocument(new PdfWriter(file));
-        document.addNewPage();
-        PdfAcroForm.getAcroForm(document, true);
-        document.close();
-
-        PdfReader reader = new PdfReader(file);
-        PdfWriter writer1 = new PdfWriter(destinationFolder + "createFieldInAppendModeTest.pdf");
-        PdfDocument doc = new PdfDocument(reader, writer1, new StampingProperties().useAppendMode());
-        PdfFormField field = PdfFormField.createCheckBox(
-                doc,
-                new Rectangle(10, 10, 24, 24),
-                "checkboxname", "On",
-                PdfFormField.TYPE_CHECK);
-        PdfAcroForm.getAcroForm(doc, true).addField(field);
-        doc.close();
-
-        Assert.assertNull(new CompareTool().compareByContent(destinationFolder + "createFieldInAppendModeTest.pdf", sourceFolder + "cmp_" + "createFieldInAppendModeTest.pdf", destinationFolder, "diff_"));
-    }
-
     private void createAcroForm(PdfDocument pdfDoc, PdfAcroForm form, PdfFont font, String text, int offSet) {
         for (int x = offSet; x < (offSet + 3); x++) {
             Rectangle rect = new Rectangle(100 + (30 * x), 100 + (100 * x), 55, 30);
@@ -1234,16 +1246,13 @@ public class PdfFormFieldTest extends ExtendedITextTest {
     }
 
     @Test
-    //TODO DEVSIX-2822
+    // Acrobat removes /NeedAppearances flag when document is opened and suggests to resave the document at once.
     public void appendModeAppearance() throws IOException, InterruptedException {
         String inputFile = "appendModeAppearance.pdf";
         String outputFile = "appendModeAppearance.pdf";
 
         String line1 = "ABC";
 
-        // borders in with or without append mode are different
-        //PdfDocument pdfDocument = new PdfDocument(new PdfReader(sourceFolder + inputFile),
-        //          new PdfWriter(destinationFolder + outputFile));
         PdfDocument pdfDocument = new PdfDocument(new PdfReader(sourceFolder + inputFile),
                 new PdfWriter(destinationFolder + outputFile),
                 new StampingProperties().useAppendMode());
@@ -1263,10 +1272,9 @@ public class PdfFormFieldTest extends ExtendedITextTest {
     }
 
     @Test
-    // TODO update cmp-file after DEVSIX-2622 fixed
     public void fillUnmergedTextFormField() throws IOException, InterruptedException {
         String file = sourceFolder + "fillUnmergedTextFormField.pdf";
-        String outfile = destinationFolder + "outfile.pdf";
+        String outfile = destinationFolder + "fillUnmergedTextFormField.pdf";
         String text = "John";
 
         PdfDocument pdfDocument = new PdfDocument(new PdfReader(file), new PdfWriter(outfile));
@@ -1274,7 +1282,7 @@ public class PdfFormFieldTest extends ExtendedITextTest {
 
         pdfDocument.close();
 
-        Assert.assertNull(new CompareTool().compareByContent(destinationFolder + "outfile.pdf",
+        Assert.assertNull(new CompareTool().compareByContent(destinationFolder + "fillUnmergedTextFormField.pdf",
                 sourceFolder + "cmp_" + "fillUnmergedTextFormField.pdf", destinationFolder, "diff_"));
     }
 
@@ -1358,5 +1366,25 @@ public class PdfFormFieldTest extends ExtendedITextTest {
         if (errorMessage != null) {
             Assert.fail(errorMessage);
         }
+    }
+
+    @Test
+    public void releaseAcroformTest() throws IOException, InterruptedException {
+        String srcFile = sourceFolder + "formFieldFile.pdf";
+        String outPureStamping = destinationFolder + "formFieldFileStamping.pdf";
+        String outStampingRelease = destinationFolder + "formFieldFileStampingRelease.pdf";
+
+        PdfDocument doc = new PdfDocument(new PdfReader(srcFile), new PdfWriter(outPureStamping));
+        // We open/close document to make sure that the results of release logic and simple overwriting coincide.
+        doc.close();
+
+        try (PdfDocument stamperRelease = new PdfDocument(new PdfReader(srcFile),
+                new PdfWriter(outStampingRelease))) {
+
+            PdfAcroForm form = PdfAcroForm.getAcroForm(stamperRelease, false);
+            form.release();
+        }
+
+        Assert.assertNull(new CompareTool().compareByContent(outStampingRelease, outPureStamping, destinationFolder));
     }
 }

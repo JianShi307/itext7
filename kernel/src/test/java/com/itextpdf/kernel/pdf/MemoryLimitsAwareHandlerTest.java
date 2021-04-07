@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -67,6 +67,24 @@ public class MemoryLimitsAwareHandlerTest extends ExtendedITextTest {
 
         Assert.assertEquals(100000000, handler.getMaxSizeOfSingleDecompressedPdfStream());
         Assert.assertEquals(500000000, handler.getMaxSizeOfDecompressedPdfStreamsSum());
+    }
+
+    @Test
+    public void overridenMemoryHandler() {
+        MemoryLimitsAwareHandler defaultHandler = new MemoryLimitsAwareHandler();
+        MemoryLimitsAwareHandler customHandler = new MemoryLimitsAwareHandler() {
+            @Override
+            public boolean isMemoryLimitsAwarenessRequiredOnDecompression(PdfArray filters) {
+                return true;
+            }
+        };
+
+        PdfArray filters = new PdfArray();
+        filters.add(PdfName.FlateDecode);
+
+        Assert.assertFalse(defaultHandler.isMemoryLimitsAwarenessRequiredOnDecompression(filters));
+        Assert.assertTrue(customHandler.isMemoryLimitsAwarenessRequiredOnDecompression(filters));
+
     }
 
     @Test

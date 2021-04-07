@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -87,7 +87,7 @@ public abstract class StandardSecurityHandler extends SecurityHandler {
     /**
      * Gets bytes of String-value without considering encoding.
      *
-     * @param string
+     * @param string a {@link PdfString} to get bytes from it
      * @return byte array
      */
     protected byte[] getIsoBytes(PdfString string) {

@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: iText Software.
 
     This program is free software; you can redistribute it and/or modify
@@ -302,7 +302,7 @@ public abstract class Evaluator {
 
         @Override
         public boolean matches(Element root, Element element) {
-            return element.hasAttr(key) && PortUtil.hasMatch(pattern, element.attr(key));
+            return element.hasAttr(key) && pattern.matcher(element.attr(key)).find();
         }
 
         @Override
@@ -715,7 +715,7 @@ public abstract class Evaluator {
 
         @Override
         public boolean matches(Element root, Element element) {
-            return PortUtil.hasMatch(pattern, element.text());
+            return pattern.matcher(element.text()).find();
         }
 
         @Override
@@ -736,7 +736,7 @@ public abstract class Evaluator {
 
         @Override
         public boolean matches(Element root, Element element) {
-            return PortUtil.hasMatch(pattern, element.ownText());
+            return pattern.matcher(element.ownText()).find();
         }
 
         @Override

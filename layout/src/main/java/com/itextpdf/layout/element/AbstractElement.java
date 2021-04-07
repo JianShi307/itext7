@@ -1,7 +1,7 @@
 /*
 
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2019 iText Group NV
+    Copyright (c) 1998-2021 iText Group NV
     Authors: Bruno Lowagie, Paulo Soares, et al.
 
     This program is free software; you can redistribute it and/or modify
@@ -119,7 +119,14 @@ public abstract class AbstractElement<T extends IElement> extends ElementPropert
 
     /**
      * Add a new style to this element. A style can be used as an effective way
-     * to define multiple equal properties to several elements.
+     * to define multiple equal properties to several elements, however its properties have
+     * lower priority than properties, directly set on {@link ElementPropertyContainer}
+     *
+     * Note that if several Style objects are added, iText checks them one by one
+     * in the order in which they were added and returns the property's value from
+     * the last Style object, which contains this property. So, if there are two Style
+     * objects added: the first has set width of 100 points and the second of 200 points,
+     * iText will get 200 points as width value.
      *
      * @param style the style to be added
      * @return this element
